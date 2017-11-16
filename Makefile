@@ -82,17 +82,11 @@ PERL     =  /usr/bin/perl
 RESULT     := $(shell CONFIG=$(CONFIG) PERL=$(PERL) make -f config-makefile)
 CONFIGVARS := $(shell cat GIZMO_config.h)
 
-HG_COMMIT := $(shell hg id 2>/dev/null)
-HG_REPO := $(shell hg path default)
-HG_BRANCH := $(shell hg branch)
-BUILDINFO = "Build on $(HOSTNAME) by $(USER) from $(HG_BRANCH):$(HG_COMMIT) at $(HG_REPO)"
-#OPT += -DBUILDINFO='$(BUILDINFO)'
-
 ifeq (FIRE_PHYSICS_DEFAULTS,$(findstring FIRE_PHYSICS_DEFAULTS,$(CONFIGVARS)))  # using 'fire default' instead of all the above
     CONFIGVARS += COOLING COOL_LOW_TEMPERATURES COOL_METAL_LINES_BY_SPECIES
-    CONFIGVARS += GALSF METALS TURB_DIFF_METALS GALSF_SFR_MOLECULAR_CRITERION GALSF_SFR_VIRIAL_SF_CRITERION=0
+    CONFIGVARS += GALSF METALS GALSF_SFR_MOLECULAR_CRITERION GALSF_SFR_VIRIAL_SF_CRITERION=0
     CONFIGVARS += GALSF_FB_GASRETURN GALSF_FB_HII_HEATING GALSF_FB_SNE_HEATING=1 GALSF_FB_RT_PHOTONMOMENTUM
-    CONFIGVARS += GALSF_FB_LOCAL_UV_HEATING GALSF_FB_RPWIND_LOCAL GALSF_FB_RPROCESS_ENRICHMENT=4 GALSF_SFR_IMF_VARIATION
+    CONFIGVARS += GALSF_FB_LOCAL_UV_HEATING GALSF_FB_RPWIND_LOCAL GALSF_FB_RPROCESS_ENRICHMENT=6 GALSF_SFR_IMF_VARIATION
 endif
 
 
@@ -103,10 +97,17 @@ FC 	 = mpif90
 
 OPTIMIZE = -Wall  -g   # optimization and warning flags (default)
 
-MPICHLIB = -lmpich
+MPICHLIB = #
 
-GRACKLEINCL =
-GRACKLELIBS = -lgrackle
+GRACKLEINCL = -I./grackle/local/include
+GRACKLELIBS = -L./grackle/local/lib -lgrackle -lhdf5
+
+HDF5_HOME   = /usr
+HDF5LIB     = -lhdf5
+HDF5INCL    = -I/usr/include -DH5_USE_16_API
+
+GSLLIB	    = -lgsl
+GSLINCL	    = -I/usr/include
 
 
 ifeq (NOTYPEPREFIX_FFTW,$(findstring NOTYPEPREFIX_FFTW,$(CONFIGVARS)))  # fftw installed without type prefix?
@@ -148,7 +149,46 @@ endif
 
 endif
 
+#----------------------------------------------------------------------------------------------
+ifeq ($(SYSTYPE),"Curie")
+CC       =  mpicc
+CXX      =  mpicpc
+FC	 =  $(CC)
+OPTIMIZE = -O3 -funroll-loops -std=c99
+OPTIMIZE += -g -Wall # compiler warnings
+GMP_INCL = #
+GMP_LIBS = #
+HDF5_HOME   = /ccc/products/hdf5-1.18
+GSL_HOME    = /ccc/products/gsl-1.14/
+GSL_INCL = -I$(GSL_HOME)/include
+GSL_LIBS = -L$(GSL_HOME)/lib
+FFTW_INCL= -I$(FFTW2_HOME)/include
+FFTW_LIBS= -L$(FFTW2_HOME)/lib
+HDF5INCL = -I$(HDF5_HOME)/include -DH5_USE_16_API
+HDF5LIB  = -L$(HDF5_HOME)/lib -lhdf5 -lz
+MPICHLIB = #
+OPT     += # -DUSE_MPI_IN_PLACE
+endif
 
+ifeq ($(SYSTYPE),"Horizon")
+CC       =  mpicc
+CXX      =  mpicpc
+FC       =  $(CC)
+OPTIMIZE = -O3 -funroll-loops -std=c99
+OPTIMIZE += -g -Wall # compiler warnings
+GMP_INCL = #
+GMP_LIBS = #
+HDF5_HOME   = /softs/hdf5/1.8.16
+GSL_HOME    = /softs/gsl/2.1
+GSL_INCL = -I$(GSL_HOME)/include
+GSL_LIBS = -L$(GSL_HOME)/lib
+FFTW_INCL= -I$(FFTW2_HOME)/include
+FFTW_LIBS= -L$(FFTW2_HOME)/lib
+HDF5INCL = -I$(HDF5_HOME)/include -DH5_USE_16_API
+HDF5LIB  = -L$(HDF5_HOME)/lib -lhdf5 -lz
+MPICHLIB = #
+OPT     += # -DUSE_MPI_IN_PLACE
+endif
 
 
 #----------------------------------------------------------------------------------------------
@@ -188,83 +228,69 @@ endif
 #----------------------------
 ifeq ($(SYSTYPE),"MacBookPro")
 CC       =  mpicc
-CXX      =  mpicxx
-FC       =  $(CC) #mpifort
-OPTIMIZE += -O3 -funroll-loops
+CXX      =  mpiccxx
+FC       =  mpifort
+OPTIMIZE = -O1 -funroll-loops
 OPTIMIZE += -g -Wall # compiler warnings
-ifeq (OPENMP,$(findstring OPENMP,$(CONFIGVARS)))
-OPTIMIZE += -fopenmp # openmp required compiler flags
-FC       = $(CC)
-endif
 GMP_INCL = #
 GMP_LIBS = #
 MKL_INCL = #
 MKL_LIBS = #
-GSL_INCL = -I/usr/local/include 
-GSL_LIBS = -L/usr/local/lib 
+GSL_INCL = -I/usr/local/include -I$(PORTINCLUDE)
+GSL_LIBS = -L/usr/local/lib -L$(PORTLIB)
 FFTW_INCL= -I/usr/local/include
 FFTW_LIBS= -L/usr/local/lib
-HDF5INCL = -I/usr/local/include -DH5_USE_16_API
-HDF5LIB  = -L/usr/local/lib -lhdf5 -lz
+HDF5INCL = -I/usr/local/include -I$(PORTINCLUDE) -DH5_USE_16_API
+HDF5LIB  = -L/usr/local/lib -L$(PORTLIB) -lhdf5 -lz
 MPICHLIB = #
 OPT     += #
-endif
-
-
-
-#----------------------------------------------------------------------------------------------
-ifeq ($(SYSTYPE),"Wheeler")
-CC       = mpicc ## gcc compilers, for intel replace this with mpiicc
-CXX      = mpicpc ## gcc compilers, for intel replace this with mpiicpc
-FC       = $(CC)
-#OPTIMIZE = -Wall -g -O3 -xHOST -ipo -no-prec-div -fp-model fast=2 -fast-transcendentals -funroll-loops ## optimizations for intel compilers
-##OPTIMIZE += -pg ## profiling for intel compilers
-OPTIMIZE = -g -O2 -ffast-math -funroll-loops -finline-functions -funswitch-loops -fpredictive-commoning -fgcse-after-reload -fipa-cp-clone  ## optimizations for gcc compilers (1/2)
-OPTIMIZE += -ftree-loop-distribute-patterns -ftree-slp-vectorize -fvect-cost-model -ftree-partial-pre   ## optimizations for gcc compilers (2/2)
-#OPTIMIZE += -pg -fprofile -fprofile-arcs -ftest-coverage -fprofile-generate ## full profiling, for gcc compilers
-ifeq (OPENMP,$(findstring OPENMP,$(CONFIGVARS)))
-OPTIMIZE += -fopenmp # openmp required compiler flags
-FC       = $(CC)
-endif
-GMP_INCL =
-GMP_LIBS =
-MKL_INCL =
-MKL_LIBS =
-GSL_INCL = -I$(GSL_HOME)/include
-GSL_LIBS = -L$(GSL_HOME)/lib
-FFTW_INCL= -I$(FFTW2_HOME)/include
-FFTW_LIBS= -L$(FFTW2_HOME)/lib
-HDF5INCL = -I$(HDF5_HOME)/include -DH5_USE_16_API
-HDF5LIB  = -L$(HDF5_HOME)/lib -lhdf5 -lz
-MPICHLIB = #
-OPT     += -DUSE_MPI_IN_PLACE
-## modules to load (intel compilers):
-## module load intel/17 gsl/2.1 hdf5/1.8.17
-## or for gcc compilers:
-## module load gcc/5.3.0 openmpi/2.0.1 gsl/2.1 hdf5/1.8.17
-## -- currently fftw2 is running from a custom install, but it should soon be fully module-supported (current module doesnt have mpi)
-##     it is built in my directory with the config flags:
-##      ./configure --prefix=$HOME/fftw_intel --enable-mpi --enable-type-prefix --enable-float CC=mpiicc CFLAGS='-O3 -fstrict-aliasing -malign-double -fomit-frame-pointer'
-##      linked via the above FFTW2_HOME=$HOME/fftw_intel (where the libraries are installed)
-##      (for a gcc compiler version, just omit the "CC" and "CFLAGS" flags above)
-## in your job submission script, be sure to run gizmo with the following (if using intel compilers, otherwise this is irrelevant):
-##   export I_MPI_DAPL_TRANSLATION_CACHE=0
-##   before your "mpirun", (or include it in your .bashrc and source that before running): this is necessary or else the communication over DAPL will generate MPI memory errors
+##
+## PFH: this is my own laptop installation (2013 MacBook Pro running Yosemite)
+## --
+## I have installed GSL and HDF5 through MacPorts (once you have it installed, just use:
+## sudo port install gsl
+## sudo port install hdf5
+## then the shortcut PORTINCLUDE/PORTLIB are just my own links to the macports installation
+##  directories. in my case they are the default:
+## PORTLIB=/opt/local/lib
+## PORTINCLUDE=/opt/local/include
+## --
+## Unfortunately, FFTW is more complicated, since macports, fink, and other repository systems
+## do not support direct installation of the MPI version of FFTW2, which is what GIZMO needs
+## if you want to run with PMGRID or POWERSPEC enabled (if not, it should just compile without
+## FFTW just fine). Be sure to install FFTW 2.1.5: get it from http://www.fftw.org/
+## then unpack it, go into the unpacked directory, and configure it with:
+## ./configure --enable-mpi --enable-type-prefix --enable-float
+## (this set of commands is important to install the correct version)
+## then "make" and finally "sudo make install"
+## that should install it to its default location, /usr/local/, which is where FFTW_INCL/FFW_LIBS
+## are set to point (to the respective include and lib sub-directories). check to make sure you
+## have the fftw libraries correctly installed.
+## --
+## With this done, and the code successfully compiled, you should be able to run it with
+## mpirun -np X ./GIZMO 1>gizmo.out 2>gizmo.err &
+## (here "X" is the number of processes you want to use, I'm assuming youre running from the
+##  same directory with the code so ./GIZMO is just in the local directory, and GIZMO is the
+##  compiled file, and the 1> and 2> commands route stdin and stderr to the desired files)
+##--
+## If you're having trouble, I recommend the excellent guides to installing GADGET-2 at:
+## http://astrobites.org/2011/04/02/installing-and-running-gadget-2/
+## and
+## https://gauge.wordpress.com/2009/06/16/pitp-2009-installing-gadget2/
+## (by Nathan Goldbaum and Javiera Guedes, respectively) -- the installation should be
+## nearly identical here
 ##
 endif
+
 
 
 #----------------------------------------------------------------------------------------------
 ifeq ($(SYSTYPE),"Zwicky")
 CC       =  mpicc
 CXX      =  mpicpc
-FC       =  $(CC) ##mpiifort -nofor_main
+FC       =  mpiifort -nofor_main
 OPTIMIZE = -O3 -funroll-loops
 OPTIMIZE += -g -Wall # compiler warnings
-ifeq (OPENMP,$(findstring OPENMP,$(CONFIGVARS)))
-OPTIMIZE += -fopenmp # openmp required compiler flags
-FC       = $(CC)
-endif
 GMP_INCL = #
 GMP_LIBS = #
 MKL_INCL = -I$(MKL_HOME)/include
@@ -285,34 +311,6 @@ OPT     += # -DUSE_MPI_IN_PLACE
 ##      linked via the above FFTW2_HOME=/home/phopkins/fftw (where the libraries are installed)
 endif
 
-
-#------------------------------------------------------------------------------
-ifeq ($(SYSTYPE), "Edison")
-CC	 =  mpicc
-CXX	 =  mpipc
-FC	 =  $(CC)
-OPTIMIZE =  -O3 -funroll-loops -ffast-math -finline-functions -funswitch-loops
-OPTIMIZE += -g -Wall -fpredictive-commoning -fgcse-after-reload -fvect-cost-model
-ifeq (OPENMP, $(findstring OPENMP,$(CONFIGVARS)))
-OPTIMIZE += -fopenmp
-endif
-GMP_INCL =
-GMP_LIBS =
-MKL_INCL = -I$(INCLUDE)
-MKL_LIBS = -L$(LIBRARY_PATH) -mkl=sequential
-GSL_INCL = -I$(GSL_DIR)/include
-GSL_LIBS = -L$(GSL_DIR)/lib
-FFTW_INCL= -I$(FFTW_INC)
-FFTW_LIBS= -L$(FFTW_DIR)
-HDF5INCL = -I$(HDF5_INCLUDE_OPTS) -DH5_USE_16_API
-HDF5LIB  = -L$(HDF5_DIR)/lib -lhdf5 -lz
-MPICHLIB =
-OPT     += -DUSE_MPI_IN_PLACE
-##
-## modules to load: intel, impi, gsl, fftw/2.1.5.9, cray-hdf5
-## note: there is a module called "hdf5" which will not work. Use cray-hdf5.
-endif
-#-----------------------------------------------------------------------------
 
 
 #----------------------------------------------------------------------------------------------
@@ -355,180 +353,30 @@ endif
 
 
 #----------------------------------------------------------------------------------------------
-ifeq ($(SYSTYPE),"Comet")
-CC       =  mpicc
-CXX      =  mpiCC
-FC       =  $(CC)
-OPTIMIZE = -O3 -xhost -ipo -funroll-loops -no-prec-div -fp-model fast=2  # speed
-OPTIMIZE += -g -Wall # compiler warnings
-#OPTIMIZE += -parallel -openmp  # openmp (comment out this line if OPENMP not used)
-ifeq (OPENMP,$(findstring OPENMP,$(CONFIGVARS)))
-OPTIMIZE += -parallel -openmp  # openmp required compiler flags
-endif
-GMP_INCL = #
-GMP_LIBS = #
-MKL_INCL = -I/opt/intel/composer_xe_2013_sp1.2.144/mkl/include
-MKL_LIBS = -L/opt/intel/composer_xe_2013_sp1.2.144/mkl/lib -mkl=sequential
-##MKL_LIBS = -L/opt/mvapich2/intel/ib/lib -lm -lmkl_core -lmkl_sequential -lmkl_scalapack_lp64 -lmkl_intel_lp64 -lmkl_blacs_intelmpi_lp64
-GSL_INCL = -I/opt/gsl/2.1/intel/include
-GSL_LIBS = -L/opt/gsl/2.1/intel/lib
-FFTW_INCL= -I/opt/fftw/2.1.5/intel/mvapich2_ib/include
-FFTW_LIBS= -L/opt/fftw/2.1.5/intel/mvapich2_ib/lib
-HDF5INCL = -I/opt/hdf5/intel/mvapich2_ib/include -DH5_USE_16_API
-HDF5LIB  = -L/opt/hdf5/intel/mvapich2_ib/lib -lhdf5 -lz
-MPICHLIB = -L/opt/mvapich2/intel/ib/lib
-#MPICHLIB = -L/opt/openmpi/intel/ib/lib
-OPT     += -DUSE_MPI_IN_PLACE
-## modules to load:
-## module load gsl intel hdf5 mvapich2_ib fftw/2.1.5
-##  -- performance is very similar with impi (intel-mpi) instead of mpavich2,
-##   if preferred use that with MPICHLIB line uncommented
-## newest version of code needed for compatibility with calls in MPI-2 libraries
-endif
-#----------------------------------------------------------------------------------------------
-
-
-
-#----------------------------------------------------------------------------------------------
-ifeq ($(SYSTYPE),"Darter")
-CC       =  cc
-CXX      =  CC
-FC       =  ftn -nofor_main
-OPTIMIZE = -O3 -ipo -no-prec-div -static -xHost  # speed
-OPTIMIZE += -g  # compiler warnings
-#OPTIMIZE += -parallel -openmp  # openmp (comment out this line if OPENMP not used)
-ifeq (OPENMP,$(findstring OPENMP,$(CONFIGVARS)))
-OPTIMIZE += -parallel -openmp  # openmp required compiler flags
-endif
-GMP_INCL = #
-GMP_LIBS = #
-MKL_INCL = #
-MKL_LIBS = #
-GSL_INCL = #
-GSL_LIBS = #
-FFTW_INCL= #
-FFTW_LIBS= #
-HDF5INCL = -DH5_USE_16_API
-HDF5LIB  = #
-MPICHLIB = #
-OPT     += -DUSE_MPI_IN_PLACE
-## modules to load:
-## module swap PrgEnv-cray PrgEnv-intel
-## module load intel gsl cray-hdf5-parallel fftw/2.1.5.9
-endif
-
-
-#----------------------------------------------------------------------------------------------
 ifeq ($(SYSTYPE),"Quest")
-CC       =  mpicc
-CXX      =  mpic++
+CC       =  mpiicc
+CXX      =  mpiicpc
 FC       =  $(CC)
-OPTIMIZE = -O2 -xhost -ipo -funroll-loops -no-prec-div -fp-model fast=2
+OPTIMIZE = -O1 -funroll-loops
+OPTIMIZE += -g -Wall -no-prec-div -ipo -heap-arrays
 GMP_INCL = #
 GMP_LIBS = #
 MKL_INCL = -I$(MKLROOT)/include
 MKL_LIBS = -L$(MKLROOT)/lib/intel64 -lm -lmkl_core -lmkl_sequential -lmkl_scalapack_lp64 -lmkl_intel_lp64 -lmkl_blacs_intelmpi_lp64
-GSL_INCL = -I/projects/b1026/pascal/software/gsl/1.16/include
-GSL_LIBS = -L/projects/b1026/pascal/software/gsl/1.16/lib -lgsl -lgslcblas -lm
-FFTW_INCL= -I/projects/b1026/pascal/software/fftw/2.1.5-mvp/include
-FFTW_LIBS= -L/projects/b1026/pascal/software/fftw/2.1.5-mvp/lib
-HDF5INCL = -I/projects/b1026/pascal/software/hdf5/1.8.12/include -DH5_USE_16_API
-HDF5LIB  = -L/projects/b1026/pascal/software/hdf5/1.8.12/lib -lhdf5 -lz
-MPICHLIB = -lmpich
+GSL_INCL = -I/software/gsl/1.16-intel/include
+GSL_LIBS = -L/software/gsl/1.16-intel/lib -lgsl -lgslcblas -lm
+FFTW_INCL= -I/software/FFTW/2.1.5-intel/include
+FFTW_LIBS= -L/software/FFTW/2.1.5-intel/lib
+HDF5INCL = -I/software/hdf5/1.8.12-serial/include -DH5_USE_16_API
+HDF5LIB  = -L/software/hdf5/1.8.12-serial/lib -lhdf5 -lz
+#MPICHLIB =
 OPT     += -DUSE_MPI_IN_PLACE
-#### modules to load:
-#module load mpi/mvapich2-intel2013.2
-#module use /projects/b1026/pascal/software/modules
-#module load hdf5/1.8.12.1 gsl/1.16 fftw/2.1.5-mvp
+## debugging:
+#OPT     += -check_mpi -genv I_MPI_DEBUG 5
+## modules to load:
+##module load mpi/intel-mpi-4.1.0 gsl/1.16-intel hdf5/1.8.12-serial fftw/2.1.5-intel
 endif
 
-
-#----------------------------------------------------------------------------------------------
-ifeq ($(SYSTYPE),"Titan")
-CC       =  cc
-CXX      =  CC
-FC       =  $(CC) #ftn
-OPTIMIZE = -O3 -ipo -funroll-loops -no-prec-div -fp-model fast=2 -static
-OPTIMIZE += -g
-ifeq (OPENMP,$(findstring OPENMP,$(CONFIGVARS)))
-OPTIMIZE += -openmp # (intel) openmp required compiler flags
-FC       = $(CC)
-endif
-GMP_INCL = #
-GMP_LIBS = #
-MKL_INCL = #
-MKL_LIBS = #
-GSL_INCL = -I$(GSL_DIR)/include
-GSL_LIBS = -L$(GSL_DIR)/lib -lgsl -lgslcblas -lm
-FFTW_INCL= -I/opt/cray/fftw/2.1.5.8/include
-FFTW_LIBS= -L/opt/cray/fftw/2.1.5.8/lib
-HDF5INCL = -I$(HDF5_DIR)/include -DH5_USE_16_API
-HDF5LIB  = -L$(HDF5_DIR)/lib -lhdf5 -lz
-MPICHLIB =
-OPT     += -DUSE_MPI_IN_PLACE
-endif
-## in your .bashrc file, include
-## module swap PrgEnv-pgi PrgEnv-intel
-## module load cray-hdf5-parallel fftw/2.1.5.8 gsl mercurial
-
-
-
-#----------------------------------------------------------------------------------------------
-ifeq ($(SYSTYPE),"Mira")
-ifeq (OPENMP,$(findstring OPENMP,$(CONFIGVARS)))
-CC       = mpixlc_r # xl compilers appear to give significant speedup vs gcc
-CXX      = mpixlcxx_r # _r for thread-safe versions, desired with openmp
-OPTIMIZE = -openmp -qsmp=omp:noauto # -fopenmp for gcc or bgclang
-else
-CC       = mpixlc
-CXX      = mpixlcxx
-OPTIMIZE =
-endif
-FC       =  $(CC)
-OPTIMIZE += -O3 -static -qnostrict -lm -ldl #-lpthread
-OPTIMIZE += -g #-qlist -qsource -qreport -qlistopt # compiler warnings: qlist, etc produce list of opts
-GMP_INCL = #
-GMP_LIBS = #
-MKL_INCL = #
-MKL_LIBS = #
-GSL_INCL = -I$(MIRA_GSL_INC)
-GSL_LIBS = -lm -ldl -lpthread -L$(MIRA_GSL_LIB) -lgsl
-FFTW_INCL= -I$(MIRA_FFTW2_INC)
-FFTW_LIBS= -L$(MIRA_FFTW2_LIB)
-HDF5INCL = -I$(MIRA_HDF5_INC) -DH5_USE_16_API -I$(MIRA_SZIP_INC) -I$(MIRA_LZIP_INC)
-HDF5LIB  = -L$(MIRA_SZIP_LIB) -lszip -L$(MIRA_LZIP_LIB) -lz -L$(MIRA_HDF5_LIB) -lhdf5 -lz -lszip
-MPICHLIB = #
-OPT     += -DUSE_MPI_IN_PLACE -DREDUCE_TREEWALK_BRANCHING
-##
-## in .bashrc, need to define environmental variables:
-##   export MIRA_HDF5_INC=/soft/libraries/hdf5/current/cnk-xl/current/include
-##   export MIRA_HDF5_LIB=/soft/libraries/hdf5/current/cnk-xl/current/lib
-##   export MIRA_GSL_INC=/soft/libraries/3rdparty/gsl/1.9/xl/include
-##   export MIRA_GSL_LIB=/soft/libraries/3rdparty/gsl/1.9/xl/lib
-##   export MIRA_SZIP_INC=/soft/libraries/alcf/current/xl/SZIP/include
-##   export MIRA_SZIP_LIB=/soft/libraries/alcf/current/xl/SZIP/lib
-##   export MIRA_LZIP_INC=/soft/libraries/alcf/current/xl/ZLIB/include
-##   export MIRA_LZIP_LIB=/soft/libraries/alcf/current/xl/ZLIB/lib
-##   export MIRA_FFTW2_INC=/home/phopkins/fftw/include
-##   export MIRA_FFTW2_LIB=/home/phopkins/fftw/lib
-##   export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$MIRA_LZIP_LIB:$MIRA_SZIP_LIB:$MIRA_FFTW2_LIB:$MIRA_GSL_LIB:$MIRA_HDF5_LIB:/bgsys/drivers/ppcfloor/comm/lib
-##
-## for HDF5,GSL,LZIP,SZIP these link to the current general-use versions of these libraries. the last command (adding these to the LD_LIBRARY_PATH)
-##   is also critical, since they are not in the paths by default and it will be unable to find them even with the links above.
-## for FFTW2, the pre-compiled libraries do not contain the correct mpi libraries, so you will have to compile your own. FFTW2 is installed and
-##   compiled in the directory shown for me: you have to install it and link it yourself since the directory cannot be shared. for the gcc
-##   compilers above, FFTW should be compiled with the following settings:
-##     for xl compilers:
-##       ./configure --prefix=$HOME/fftw --enable-mpi --enable-type-prefix --enable-float LDFLAGS=-L$HOME/lib CFLAGS=-I$HOME/include CC=mpixlc
-##
-## also in your .soft file, you want to enable:
-##   for XL compilers:
-##     +mpiwrapper-xl
-##     +python
-##     @default
-## to load the mpi compilers and mpi wrappers, and MPICH libraries (python there is optional)
-## xl appears to provide some improvement over gcc; xl-ndebug provides no noticeable further improvement, despite being more unsafe
-endif
 
 
 
@@ -639,6 +487,26 @@ OPT     += -DNOCALLSOFSYSTEM -DNO_ISEND_IRECV_IN_DOMAIN -DMPICH_IGNORE_CXX_SEEK
 ## 
 endif
 
+
+ifeq ($(SYSTYPE),"Quest")
+CC       =  mpiicc
+CXX      =  mpiicpc
+FC       =  $(CC)
+OPTIMIZE = -O2 -xhost -ipo -funroll-loops -no-prec-div -fp-model fast=2 
+GMP_INCL = #
+GMP_LIBS = #
+MKL_INCL = -I$(MKLROOT)/include
+MKL_LIBS = -L$(MKLROOT)/lib/intel64 -lm -lmkl_core -lmkl_sequential -lmkl_scalapack_lp64 -lmkl_intel_lp64 -lmkl_blacs_intelmpi_lp64
+GSL_INCL = -I/software/gsl/1.16-intel/include
+GSL_LIBS = -L/software/gsl/1.16-intel/lib -lgsl -lgslcblas -lm
+FFTW_INCL= -I/software/FFTW/2.1.5-intel/include
+FFTW_LIBS= -L/software/FFTW/2.1.5-intel/lib
+HDF5INCL = -I/software/hdf5/1.8.12-serial/include -DH5_USE_16_API
+HDF5LIB  = -L/software/hdf5/1.8.12-serial/lib -lhdf5 -lz
+OPT     += -DUSE_MPI_IN_PLACE
+endif
+
+
 #----------------------------------------------------------------------------------------------
 ifeq ($(SYSTYPE),"odyssey")
 CC       =  mpicc     # sets the C-compiler
@@ -654,20 +522,6 @@ HDF5INCL =  -DH5_USE_16_API
 HDF5LIB  =  -lhdf5 -lz
 endif
 
-#----------------------------------------------------------------------------------------------
-ifeq ($(SYSTYPE),"antares")
-CC       =  mpicc     # sets the C-compiler
-OPT      +=  -DMPICH_IGNORE_CXX_SEEK
-FC       =  $(CC)
-OPTIMIZE = -g -O2 -Wall -Wno-unused-but-set-variable
-GSL_INCL = -I/home/ptorrey/local/gsl-2.1/include
-GSL_LIBS = -L/home/ptorrey/local/gsl-2.1/lib -lgsl -lm
-FFTW_INCL= -I/home/ptorrey/local/fftw-2.1.5/include
-FFTW_LIBS= -L/home/ptorrey/local/fftw-2.1.5/libGSL_INCL
-MPICHLIB =
-HDF5INCL =  -DH5_USE_16_API
-HDF5LIB  =  -lhdf5 -lz
-endif
 
 #----------------------------------------------------------------------------------------------
 ifeq ($(SYSTYPE),"CITA")
@@ -723,6 +577,51 @@ MPICHLIB =
 HDF5INCL =  -I/afs/mpa/home/volker/Libs/include
 HDF5LIB  =  -L/afs/mpa/home/volker/Libs/lib -lhdf5 -lz 
 OPT     +=  -DOLD_HDF5
+endif
+
+#----------------------------
+ifeq ($(SYSTYPE),"denali")
+CC       =  mpicc
+CXX      =  mpicxx
+FC       =  mpifort
+OPTIMIZE = -O1 -funroll-loops
+OPTIMIZE += -g -Wall # compiler warnings
+GSL_INCL = 
+GSL_LIBS = 
+FFTW_INCL= 
+FFTW_LIBS= 
+HDF5INCL = -DH5_USE_16_API
+HDF5LIB  = -lhdf5 -lz
+OPT     += #
+
+
+tmp := $(shell cd grackle && csh ./configure)
+tmp := $(shell echo "CONFIG_MACHINE = darwin" > grackle/src/clib/Make.config.machine)
+
+tmp := $(shell git checkout grackle/src/clib/Make.mach.darwin)
+tmp := $(shell echo "MACH_INSTALL_PREFIX = $(PWD)/grackle/local" >> grackle/src/clib/Make.mach.darwin)
+
+endif
+
+#----------------------------
+ifeq ($(SYSTYPE),"hyades")
+CC       =  mpicc
+CXX      =  mpicxx
+OPTIMIZE =  -g -Wall
+GSL_INCL = -I$(HOME)/local/gsl-2.1/include
+GSL_LIBS = -L$(HOME)/local/gsl-2.1/lib
+FFTW_INCL= -I$(HOME)/local/fftw-2.1.5/include
+FFTW_LIBS= -L$(HOME)/local/fftw-2.1.5/lib
+HDF5INCL = -I$(HOME)/local/miniconda3/envs/hdf/include -DH5_USE_16_API
+HDF5LIB  = -L$(HOME)/local/miniconda3/envs/hdf/lib -lhdf5 -lz
+MPICHLIB = #
+
+tmp := $(shell cd grackle && csh ./configure)
+
+tmp := $(shell echo "CONFIG_MACHINE = linux-gnu " > grackle/src/clib/Make.config.machine)
+tmp := $(shell git checkout grackle/src/clib/Make.mach.linux-gnu)
+tmp := $(shell echo "MACH_INSTALL_PREFIX = $(PWD)/grackle/local" >> grackle/src/clib/Make.mach.linux-gnu)
+
 endif
 
 
@@ -793,18 +692,24 @@ ifeq (GALSF_FB_HII_HEATING,$(findstring GALSF_FB_HII_HEATING,$(CONFIGVARS)))
 OBJS    += galaxy_sf/hII_heating.o
 endif
 
-ifeq (RT_CHEM_PHOTOION,$(findstring RT_CHEM_PHOTOION,$(CONFIGVARS)))
-OBJS    += galaxy_sf/hII_heating.o
-endif
-
-
-
 ifeq (TWOPOINT_FUNCTION_COMPUTATION_ENABLED,$(findstring TWOPOINT_FUNCTION_COMPUTATION_ENABLED,$(CONFIGVARS)))
 OBJS    += structure/twopoint.o
 endif
 
 ifeq (GALSF_FB_SNE_HEATING,$(findstring GALSF_FB_SNE_HEATING,$(CONFIGVARS)))
 OBJS    += galaxy_sf/mechanical_fb.o
+endif
+
+ifeq (GALSF_FB_LUPI,$(findstring GALSF_FB_LUPI,$(CONFIGVARS)))
+OBJS    += galaxy_sf/lupi_fb.o
+endif
+
+ifeq (CREASEY,$(findstring CREASEY,$(CONFIGVARS)))
+OBJS    += creasey.o
+endif
+
+ifeq (GENTRY_FB,$(findstring GENTRY_FB,$(CONFIGVARS)))
+OBJS    += gentry_fb.o
 endif
 
 ifeq (GALSF_FB_RPWIND_LOCAL,$(findstring GALSF_FB_RPWIND_LOCAL,$(CONFIGVARS)))
@@ -820,6 +725,10 @@ OBJS    += galaxy_sf/blackholes/blackhole_swallow_and_kick.o
 INCL    += galaxy_sf/blackholes/blackhole.h
 endif
 
+ifeq (BH_LUPI,$(findstring BH_LUPI,$(CONFIGVARS)))
+OBJS	+= galaxy_sf/blackholes/blackhole_lupi.o
+OBJS	+= galaxy_sf/blackholes/blackhole_feed_lupi.o
+endif
 
 ifeq (SINGLE_STAR,$(findstring SINGLE_STAR,$(CONFIGVARS)))
 OBJS	+= radiation/rt_utilities.o radiation/rt_CGmethod.o radiation/rt_source_injection.o radiation/rt_chem.o radiation/rt_cooling.o
@@ -916,7 +825,7 @@ FFTW = $(FFTW_LIBS)  $(FFTW_LIBNAMES)
 
 LIBS   = -lm $(HDF5LIB) -g $(MPICHLIB) $(GSL_LIBS) -lgsl -lgslcblas $(FFTW) $(GRACKLELIBS)
 
-ifeq (PTHREADS_NUM_THREADS,$(findstring PTHREADS_NUM_THREADS,$(CONFIGVARS))) 
+ifeq (OMP_NUM_THREADS,$(findstring OMP_NUM_THREADS,$(CONFIGVARS))) 
 LIBS   +=  -lpthread
 endif
 
@@ -934,4 +843,14 @@ compile_time_info.c: $(CONFIG)
 clean:
 	rm -f $(OBJS) $(FOBJS) $(EXEC) *.oo *.c~ compile_time_info.c GIZMO_config.h
 
+all:
+	make -C grackle/src/clib/ HDF5_HOME="$(HDF5_HOME)"
+	mkdir -p grackle/local
+	mkdir -p grackle/local/include
+	mkdir -p grackle/local/lib
+	make -C grackle/src/clib/ install
+	make $(EXEC)
 
+cleanall:
+	make -C grackle/src/clib clean
+	make clean

@@ -128,8 +128,6 @@ void domain_Decomposition(int UseAllTimeBins, int SaveKeys, int do_particle_merg
     size_t bytes, all_bytes;
     double t0, t1;
     
-    /* call first -before- a merge-split, to be sure particles are in the correct order in the tree */
-    rearrange_particle_sequence();
     if((All.Ti_Current > All.TimeBegin)&&(do_particle_mergesplit_key==1))
     {
         merge_and_split_particles();
@@ -187,16 +185,11 @@ void domain_Decomposition(int UseAllTimeBins, int SaveKeys, int do_particle_merg
         }
     }
     
-#ifdef IO_REDUCED_MODE
-    if(All.HighestActiveTimeBin == All.HighestOccupiedTimeBin)
-#endif
     if(ThisTask == 0)
     {
         printf("domain decomposition... LevelToTimeBin[TakeLevel=%d]=%d  (presently allocated=%g MB)\n",
                TakeLevel, All.LevelToTimeBin[TakeLevel], AllocatedBytes / (1024.0 * 1024.0));
-#ifndef IO_REDUCED_MODE
         fflush(stdout);
-#endif
     }
     
     t0 = my_second();
@@ -253,16 +246,12 @@ void domain_Decomposition(int UseAllTimeBins, int SaveKeys, int do_particle_merg
 							(MaxTopNodes * sizeof(struct local_topnode_data)));
       all_bytes += bytes;
 
-#ifdef IO_REDUCED_MODE
-        if(All.HighestActiveTimeBin == All.HighestOccupiedTimeBin)
-#endif
       if(ThisTask == 0)
 	{
-	  printf("use of %g MB of temporary storage for domain decomposition... (presently allocated=%g MB)\n",
+	  printf
+	    ("use of %g MB of temporary storage for domain decomposition... (presently allocated=%g MB)\n",
 	     all_bytes / (1024.0 * 1024.0), AllocatedBytes / (1024.0 * 1024.0));
-#ifndef IO_REDUCED_MODE
 	  fflush(stdout);
-#endif
 	}
 
       maxLoad = (int) (All.MaxPart * REDUC_FAC);
@@ -325,13 +314,12 @@ void domain_Decomposition(int UseAllTimeBins, int SaveKeys, int do_particle_merg
 
 	  All.TopNodeAllocFactor *= 1.3;
 
-#ifndef IO_REDUCED_MODE
 	  if(ThisTask == 0)
 	    {
 	      printf("new value=%g\n", All.TopNodeAllocFactor);
 	      fflush(stdout);
 	    }
-#endif
+
 	  if(All.TopNodeAllocFactor > 1000)
 	    {
 	      if(ThisTask == 0)
@@ -345,13 +333,12 @@ void domain_Decomposition(int UseAllTimeBins, int SaveKeys, int do_particle_merg
 
   t1 = my_second();
 
-#ifndef IO_REDUCED_MODE
   if(ThisTask == 0)
     {
       printf("domain decomposition done. (took %g sec)\n", timediff(t0, t1));
       fflush(stdout);
     }
-#endif
+
   CPU_Step[CPU_DOMAIN] += measure_time();
 
   for(i = 0; i < NumPart; i++)
@@ -375,10 +362,9 @@ void domain_Decomposition(int UseAllTimeBins, int SaveKeys, int do_particle_merg
   TopNodes = (struct topnode_data *) myrealloc(TopNodes, bytes =
 					       (NTopnodes * sizeof(struct topnode_data) +
 						NTopnodes * sizeof(int)));
-#ifdef IO_REDUCED_MODE
-    if(All.HighestActiveTimeBin == All.HighestOccupiedTimeBin)
-#endif
-  if(ThisTask == 0) printf("Freed %g MByte in top-level domain structure\n", (MaxTopNodes - NTopnodes) * sizeof(struct topnode_data) / (1024.0 * 1024.0));
+  if(ThisTask == 0)
+    printf("Freed %g MByte in top-level domain structure\n",
+	   (MaxTopNodes - NTopnodes) * sizeof(struct topnode_data) / (1024.0 * 1024.0));
 
   DomainTask = (int *) (TopNodes + NTopnodes);
 
@@ -407,10 +393,8 @@ void domain_allocate(void)
 
   DomainTask = (int *) (TopNodes + MaxTopNodes);
 
-#ifdef IO_REDUCED_MODE
-    if(All.HighestActiveTimeBin == All.HighestOccupiedTimeBin)
-#endif
-  if(ThisTask == 0) printf("Allocated %g MByte for top-level domain structure\n", all_bytes / (1024.0 * 1024.0));
+  if(ThisTask == 0)
+    printf("Allocated %g MByte for top-level domain structure\n", all_bytes / (1024.0 * 1024.0));
 
   domain_allocated_flag = 1;
 }
@@ -452,39 +436,13 @@ void domain_allocate_trick(void)
 }
 
 
-/* this function determines how particle work-costs are 'weighted' for load-balancing. if you 
-    have additional, expensive physics which only apply to a subset of particles, it may be worth 
-    up-weighting those particles here, so the code knows to try and spread them around. otherwise, 
-    they may end up all bunched onto the same processor */
-double domain_particle_cost_multiplier(int i)
-{
-    double multiplier = 0;
-    
-    if(P[i].Type == 0) /* for gas, weight particles with large neighbor number more, since they require more work */
-    {
-        double nngb_reduced = PPP[i].NumNgb; /* remember, in density.c we reduce this by pow(1/NUMDIMS), for use in other routines: need to correct here */
-#if (NUMDIMS==3)
-        multiplier = nngb_reduced*nngb_reduced*nngb_reduced / All.DesNumNgb;
-#elif (NUMDIMS==2)
-        multiplier = nngb_reduced*nngb_reduced / All.DesNumNgb;
-#else
-        multiplier = nngb_reduced / All.DesNumNgb;
-#endif
-        if(multiplier < 0.5) {multiplier = 0.5;} // floor //
-    } // end gas check
-
-    
-    return multiplier;
-}
 
 
-/* simple function to return costfactor for pure gravity calculation: based just on gravcost calculation, with constant for safety */
 double domain_particle_costfactor(int i)
 {
-    return 0.1 + P[i].GravCost[TakeLevel];
+    double multiplier = 1.0;
+    return multiplier * (0.1 + P[i].GravCost[TakeLevel]);
 }
-
-
 
 
 /*! This function carries out the actual domain decomposition for all
@@ -510,12 +468,20 @@ int domain_decompose(void)
 
   for(i = 0, gravcost = sphcost = 0; i < NumPart; i++)
     {
-        NtypeLocal[P[i].Type]++;
-        double wt = domain_particle_cost_multiplier(i);
-        gravcost += (1 + wt) * domain_particle_costfactor(i);
-        if(TimeBinActive[P[i].TimeBin] || UseAllParticles) {sphcost += wt;}
+      NtypeLocal[P[i].Type]++;
+
+        gravcost += domain_particle_costfactor(i);
+        if(P[i].Type == 0)
+        {
+            if(TimeBinActive[P[i].TimeBin] || UseAllParticles)
+                sphcost += 1.0;
+        }
+
+        
     }
-  /* because Ntype[] is of type `long long', we cannot do a simple MPI_Allreduce() to sum the total particle numbers */
+  /* because Ntype[] is of type `long long', we cannot do a simple
+   * MPI_Allreduce() to sum the total particle numbers 
+   */
   sumup_large_ints(6, NtypeLocal, Ntype);
 
 
@@ -598,9 +564,15 @@ int domain_decompose(void)
 #endif
 	}
 
+//#ifdef SEPARATE_STELLARDOMAINDECOMP
+//        printf("gravity work-load balance=%g   memory-balance=%g   SPH work-load balance=%g   Stars work-load balance=%g\n",
+//               maxwork / (sumwork / NTask), maxload / (((double) sumload) / NTask),
+//               maxworksph / ((sumworksph + 1.0e-30) / NTask), maxworkstars / ((sumworkstars + 1.0e-30) / NTask));
+//#else
       printf("gravity work-load balance=%g   memory-balance=%g   SPH work-load balance=%g\n",
 	     maxwork / (sumwork / NTask), maxload / (((double) sumload) / NTask),
 	     maxworksph / ((sumworksph + 1.0e-30) / NTask));
+//#endif
     }
 
 
@@ -644,16 +616,11 @@ int domain_decompose(void)
 
       sumup_longs(1, &sumtogo, &sumtogo);
 
-#ifdef IO_REDUCED_MODE
-        if(All.HighestActiveTimeBin == All.HighestOccupiedTimeBin)
-#endif
       if(ThisTask == 0)
 	{
 	  printf("iter=%d exchange of %d%09d particles (ret=%d)\n", iter,
 		 (int) (sumtogo / 1000000000), (int) (sumtogo % 1000000000), ret);
-#ifndef IO_REDUCED_MODE
 	  fflush(stdout);
-#endif
 	}
 
       domain_exchange();
@@ -769,23 +736,23 @@ int domain_check_memory_bound(int multipledomains)
 
 void domain_exchange(void)
 {
-  long count_togo = 0, count_togo_sph = 0, count_get = 0, count_get_sph = 0;
-  long *count, *count_sph, *offset, *offset_sph;
-  long *count_recv, *count_recv_sph, *offset_recv, *offset_recv_sph;
-  long i, n, ngrp, no, target;
+  int count_togo = 0, count_togo_sph = 0, count_get = 0, count_get_sph = 0;
+  int *count, *count_sph, *offset, *offset_sph;
+  int *count_recv, *count_recv_sph, *offset_recv, *offset_recv_sph;
+  int i, n, ngrp, no, target;
   struct particle_data *partBuf;
   struct sph_particle_data *sphBuf;
   peanokey *keyBuf;
 
-  count = (long *) mymalloc("count", NTask * sizeof(long));
-  count_sph = (long *) mymalloc("count_sph", NTask * sizeof(long));
-  offset = (long *) mymalloc("offset", NTask * sizeof(long));
-  offset_sph = (long *) mymalloc("offset_sph", NTask * sizeof(long));
+  count = (int *) mymalloc("count", NTask * sizeof(int));
+  count_sph = (int *) mymalloc("count_sph", NTask * sizeof(int));
+  offset = (int *) mymalloc("offset", NTask * sizeof(int));
+  offset_sph = (int *) mymalloc("offset_sph", NTask * sizeof(int));
 
-  count_recv = (long *) mymalloc("count_recv", NTask * sizeof(long));
-  count_recv_sph = (long *) mymalloc("count_recv_sph", NTask * sizeof(long));
-  offset_recv = (long *) mymalloc("offset_recv", NTask * sizeof(long));
-  offset_recv_sph = (long *) mymalloc("offset_recv_sph", NTask * sizeof(long));
+  count_recv = (int *) mymalloc("count_recv", NTask * sizeof(int));
+  count_recv_sph = (int *) mymalloc("count_recv_sph", NTask * sizeof(int));
+  offset_recv = (int *) mymalloc("offset_recv", NTask * sizeof(int));
+  offset_recv_sph = (int *) mymalloc("offset_recv_sph", NTask * sizeof(int));
 
 #ifdef SEPARATE_STELLARDOMAINDECOMP
   int count_togo_stars = 0, count_get_stars = 0;
@@ -798,10 +765,10 @@ void domain_exchange(void)
 #endif
 
 
-  long prec_offset, prec_count;
-  long *decrease;
+  int prec_offset, prec_count;
+  int *decrease;
 
-  decrease = (long *) mymalloc("decrease", NTask * sizeof(long));
+  decrease = (int *) mymalloc("decrease", NTask * sizeof(int));
 
   for(i = 1, offset_sph[0] = 0, decrease[0] = 0; i < NTask; i++)
     {
@@ -931,7 +898,7 @@ void domain_exchange(void)
 	}
     }
 
-  long count_totget;
+  int count_totget;
 
   count_totget = count_get_sph;
 #ifdef SEPARATE_STELLARDOMAINDECOMP
@@ -2109,7 +2076,7 @@ int domain_check_for_local_refine(int i, double countlimit, double costlimit)
 			  break;
 		      }
 
-		  topNodes[sub].Cost += (1 + domain_particle_cost_multiplier(mp[p].index)) * domain_particle_costfactor(mp[p].index);
+		  topNodes[sub].Cost += domain_particle_costfactor(mp[p].index);
 		  topNodes[sub].Count++;
 		}
 
@@ -2339,7 +2306,12 @@ int domain_determineTopTree(void)
   MPI_Allreduce(&errflag, &errsum, 1, MPI_INT, MPI_SUM, MPI_COMM_WORLD);
   if(errsum)
     {
-      if(ThisTask == 0) printf("We are out of Topnodes. We'll try to repeat with a higher value than All.TopNodeAllocFactor=%g\n", All.TopNodeAllocFactor);
+      if(ThisTask == 0)
+	printf
+	  ("We are out of Topnodes. We'll try to repeat with a higher value than All.TopNodeAllocFactor=%g\n",
+	   All.TopNodeAllocFactor);
+      fflush(stdout);
+
       return errsum;
     }
 
@@ -2420,10 +2392,9 @@ int domain_determineTopTree(void)
 
   /* now let's see whether we should still append more nodes, based on the estimated cumulative cost/count in each cell */
 
-#ifndef IO_REDUCED_MODE
-  if(ThisTask == 0) printf("Before=%d\n", NTopnodes);
-#endif
-    
+  if(ThisTask == 0)
+    printf("Before=%d\n", NTopnodes);
+
   for(i = 0, errflag = 0; i < NTopnodes; i++)
     {
       if(topNodes[i].Daughter < 0)
@@ -2459,9 +2430,9 @@ int domain_determineTopTree(void)
   if(errsum)
     return errsum;
 
-#ifndef IO_REDUCED_MODE
-  if(ThisTask == 0) printf("After=%d\n", NTopnodes);
-#endif
+  if(ThisTask == 0)
+    printf("After=%d\n", NTopnodes);
+
   /* count toplevel leaves */
   domain_sumCost();
 
@@ -2508,10 +2479,8 @@ void domain_sumCost(void)
 #endif
     }
 
-#ifdef IO_REDUCED_MODE
-    if(All.HighestActiveTimeBin == All.HighestOccupiedTimeBin)
-#endif
-    if(ThisTask == 0) {printf("NTopleaves= %d  NTopnodes=%d (space for %d)\n", NTopleaves, NTopnodes, MaxTopNodes);}
+  if(ThisTask == 0)
+    printf("NTopleaves= %d  NTopnodes=%d (space for %d)\n", NTopleaves, NTopnodes, MaxTopNodes);
 
   for(n = 0; n < NumPart; n++)
     {
@@ -2522,15 +2491,24 @@ void domain_sumCost(void)
 	no = topNodes[no].Daughter + (Key[n] - topNodes[no].StartKey) / (topNodes[no].Size >> 3);
 
       no = topNodes[no].Leaf;
-      double wt = domain_particle_cost_multiplier(n);
 
-      local_domainWork[no] += (1 + wt) * domain_particle_costfactor(n);
+      local_domainWork[no] += (float) domain_particle_costfactor(n);
+
       local_domainCount[no] += 1;
-      if(TimeBinActive[P[n].TimeBin] || UseAllParticles) {local_domainWorkSph[no] += wt;}
-      if(P[n].Type == 0) {local_domainCountSph[no] += 1;}
         
+        if(P[n].Type == 0)
+        {
+            local_domainCountSph[no] += 1;
+            if(TimeBinActive[P[n].TimeBin] || UseAllParticles)
+                local_domainWorkSph[no] += 1.0;
+        }
 #ifdef SEPARATE_STELLARDOMAINDECOMP
-        if(P[n].Type == 4) {local_domainCountStars[no] += 1;}
+      if(P[n].Type == 4)
+        {
+        local_domainCountStars[no] += 1;
+        //if(TimeBinActive[P[n].TimeBin] || UseAllParticles)
+        //    local_domainWorkStars[no] += 1.0;
+        }
 #endif
     }
 

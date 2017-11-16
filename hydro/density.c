@@ -7,10 +7,10 @@
 #include "../allvars.h"
 #include "../proto.h"
 #include "../kernel.h"
-#ifdef PTHREADS_NUM_THREADS
+#ifdef OMP_NUM_THREADS
 #include <pthread.h>
 #endif
-#ifdef PTHREADS_NUM_THREADS
+#ifdef OMP_NUM_THREADS
 extern pthread_mutex_t mutex_nexport;
 extern pthread_mutex_t mutex_partnodedrift;
 #define LOCK_NEXPORT     pthread_mutex_lock(&mutex_nexport);
@@ -50,7 +50,7 @@ struct kernel_density
 static struct densdata_in
 {
   MyDouble Pos[3];
-#if defined(SPHAV_CD10_VISCOSITY_SWITCH)
+#if defined(SPHAV_CD10_FLAG_NOT_IN_PUBLIC_CODE_SWITCH)
   MyFloat Accel[3];
 #endif
   MyFloat Vel[3];
@@ -70,9 +70,6 @@ static struct densdata_out
 #ifdef HYDRO_SPH
     MyLongDouble DhsmlHydroSumFactor;
 #endif
-#ifdef RT_SOURCE_INJECTION
-    MyLongDouble KernelSum_Around_RT_Source;
-#endif
     
 #ifdef SPHEQ_DENSITY_INDEPENDENT_SPH
     MyLongDouble EgyRho;
@@ -82,7 +79,7 @@ static struct densdata_out
     MyFloat AGS_zeta;
 #endif
 
-#if defined(SPHAV_CD10_VISCOSITY_SWITCH)
+#if defined(SPHAV_CD10_FLAG_NOT_IN_PUBLIC_CODE_SWITCH)
     MyFloat NV_D[3][3];
     MyFloat NV_A[3][3];
 #endif
@@ -92,14 +89,11 @@ static struct densdata_out
 #endif
     
 
-#if defined(TURB_DRIVING) || defined(GRAIN_FLUID)
+#if defined(FLAG_NOT_IN_PUBLIC_CODE) || defined(FLAG_NOT_IN_PUBLIC_CODE) || defined(BH_LUPI)
     MyDouble GasVel[3];
 #endif
-#if defined(GRAIN_FLUID)
+#if defined(FLAG_NOT_IN_PUBLIC_CODE) || defined(GALSF_FB_LUPI)
     MyDouble Gas_InternalEnergy;
-#ifdef GRAIN_LORENTZFORCE
-    MyDouble Gas_B[3];
-#endif
 #endif
 
 }
@@ -124,7 +118,7 @@ void particle2in_density(struct densdata_in *in, int i)
     
     if(P[i].Type == 0)
     {
-#if defined(SPHAV_CD10_VISCOSITY_SWITCH)
+#if defined(SPHAV_CD10_FLAG_NOT_IN_PUBLIC_CODE_SWITCH)
         for(k = 0; k < 3; k++)
             in->Accel[k] = All.cf_a2inv*P[i].GravAccel[k] + SphP[i].HydroAccel[k]; // PHYSICAL units //
 #endif
@@ -160,12 +154,8 @@ void out2particle_density(struct densdata_out *out, int i, int mode)
         ASSIGN_ADD(SphP[i].EgyWtDensity,   out->EgyRho,   mode);
 #endif
 
-#if defined(TURB_DRIVING)
-        for(k = 0; k < 3; k++)
-            ASSIGN_ADD(SphP[i].SmoothedVel[k], out->GasVel[k], mode);
-#endif
 
-#if defined(SPHAV_CD10_VISCOSITY_SWITCH)
+#if defined(SPHAV_CD10_FLAG_NOT_IN_PUBLIC_CODE_SWITCH)
         for(k = 0; k < 3; k++)
             for(j = 0; j < 3; j++)
             {
@@ -175,17 +165,6 @@ void out2particle_density(struct densdata_out *out, int i, int mode)
 #endif
     } // P[i].Type == 0 //
 
-#if defined(GRAIN_FLUID)
-    if(P[i].Type > 0)
-    {
-        ASSIGN_ADD(P[i].Gas_Density, out->Rho, mode);
-        ASSIGN_ADD(P[i].Gas_InternalEnergy, out->Gas_InternalEnergy, mode);
-        for(k = 0; k<3; k++) {ASSIGN_ADD(P[i].Gas_Velocity[k], out->GasVel[k], mode);}
-#ifdef GRAIN_LORENTZFORCE
-        for(k = 0; k<3; k++) {ASSIGN_ADD(P[i].Gas_B[k], out->Gas_B[k], mode);}
-#endif
-    }
-#endif
 
 #ifdef DO_DENSITY_AROUND_STAR_PARTICLES
     if(P[i].Type != 0)
@@ -195,10 +174,15 @@ void out2particle_density(struct densdata_out *out, int i, int mode)
     }
 #endif
     
-#if defined(RT_SOURCE_INJECTION)
-    if((1 << P[i].Type) & (RT_SOURCES)) {ASSIGN_ADD(P[i].KernelSum_Around_RT_Source, out->KernelSum_Around_RT_Source, mode);}
+#ifdef GALSF_FB_LUPI
+    if(P[i].Type >= 4)
+        ASSIGN_ADD(P[i].InternalEnergyAroundStar   , out->Gas_InternalEnergy, mode);
 #endif
-    
+#ifdef BH_LUPI
+    if(P[i].Type == 5)
+        for(k = 0; k<3; k++) {ASSIGN_ADD(P[i].BH_GasVelocity[k] , out->GasVel[k] , mode);}
+#endif
+
 
 }
 
@@ -254,11 +238,15 @@ void density(void)
 
   /* allocate buffers to arrange communication */
   size_t MyBufferSize = All.BufferSize;
-  All.BunchSize = (int) ((MyBufferSize * 1024 * 1024) / (sizeof(struct data_index) + sizeof(struct data_nodelist) +
+  All.BunchSize =
+    (int) ((MyBufferSize * 1024 * 1024) / (sizeof(struct data_index) + sizeof(struct data_nodelist) +
 					     sizeof(struct densdata_in) + sizeof(struct densdata_out) +
-					     sizemax(sizeof(struct densdata_in),sizeof(struct densdata_out))));
-  DataIndexTable = (struct data_index *) mymalloc("DataIndexTable", All.BunchSize * sizeof(struct data_index));
-  DataNodeList = (struct data_nodelist *) mymalloc("DataNodeList", All.BunchSize * sizeof(struct data_nodelist));
+					     sizemax(sizeof(struct densdata_in),
+						     sizeof(struct densdata_out))));
+  DataIndexTable =
+    (struct data_index *) mymalloc("DataIndexTable", All.BunchSize * sizeof(struct data_index));
+  DataNodeList =
+    (struct data_nodelist *) mymalloc("DataNodeList", All.BunchSize * sizeof(struct data_nodelist));
 
   t0 = my_second();
 
@@ -281,10 +269,10 @@ void density(void)
 
 	  tstart = my_second();
 
-#ifdef PTHREADS_NUM_THREADS
-	  pthread_t mythreads[PTHREADS_NUM_THREADS - 1];
+#ifdef OMP_NUM_THREADS
+	  pthread_t mythreads[OMP_NUM_THREADS - 1];
 
-	  int threadid[PTHREADS_NUM_THREADS - 1];
+	  int threadid[OMP_NUM_THREADS - 1];
 
 	  pthread_attr_t attr;
 
@@ -295,7 +283,7 @@ void density(void)
 
 	  TimerFlag = 0;
 
-	  for(j = 0; j < PTHREADS_NUM_THREADS - 1; j++)
+	  for(j = 0; j < OMP_NUM_THREADS - 1; j++)
 	    {
 	      threadid[j] = j + 1;
 	      pthread_create(&mythreads[j], &attr, density_evaluate_primary, &threadid[j]);
@@ -313,8 +301,8 @@ void density(void)
 	    density_evaluate_primary(&mainthreadid);	/* do local particles and prepare export list */
 	  }
 
-#ifdef PTHREADS_NUM_THREADS
-	  for(j = 0; j < PTHREADS_NUM_THREADS - 1; j++)
+#ifdef OMP_NUM_THREADS
+	  for(j = 0; j < OMP_NUM_THREADS - 1; j++)
 	    pthread_join(mythreads[j], NULL);
 #endif
 
@@ -460,8 +448,8 @@ void density(void)
 
 	  NextJ = 0;
 
-#ifdef PTHREADS_NUM_THREADS
-	  for(j = 0; j < PTHREADS_NUM_THREADS - 1; j++)
+#ifdef OMP_NUM_THREADS
+	  for(j = 0; j < OMP_NUM_THREADS - 1; j++)
 	    pthread_create(&mythreads[j], &attr, density_evaluate_secondary, &threadid[j]);
 #endif
 #ifdef _OPENMP
@@ -476,8 +464,8 @@ void density(void)
 	    density_evaluate_secondary(&mainthreadid);
 	  }
 
-#ifdef PTHREADS_NUM_THREADS
-	  for(j = 0; j < PTHREADS_NUM_THREADS - 1; j++)
+#ifdef OMP_NUM_THREADS
+	  for(j = 0; j < OMP_NUM_THREADS - 1; j++)
 	    pthread_join(mythreads[j], NULL);
 
 	  pthread_mutex_destroy(&mutex_partnodedrift);
@@ -654,28 +642,22 @@ void density(void)
                 if(iter > 1) {desnumngbdev = DMIN( 0.25*desnumngb , desnumngbdev * exp(0.1*log(desnumngb/(16.*desnumngbdev))*(double)iter) );}
 
 
-#ifdef GRAIN_FLUID
-                /* for the grains, we only need to estimate neighboring gas properties, we don't need to worry about 
-                    condition numbers or conserving an exact neighbor number */
-                if(P[i].Type>0)
-                {
-                    desnumngb = All.DesNumNgb;
-                    desnumngbdev = All.DesNumNgb / 4;
-                }
-#endif
 
                 double minsoft = All.MinHsml;
                 double maxsoft = All.MaxHsml;
 
-#ifdef DO_DENSITY_AROUND_STAR_PARTICLES
+#if defined(DO_DENSITY_AROUND_STAR_PARTICLES) && !defined(GALSF_FB_LUPI)
                 /* use a much looser check for N_neighbors when the central point is a star particle,
                  since the accuracy is limited anyways to the coupling efficiency -- the routines use their
                  own estimators+neighbor loops, anyways, so this is just to get some nearby particles */
                 if((P[i].Type!=0)&&(P[i].Type!=5))
                 {
                     desnumngb = All.DesNumNgb;
-#if defined(RT_SOURCE_INJECTION)
+#ifdef GALSF
                     if(desnumngb < 64.0) {desnumngb = 64.0;} // we do want a decent number to ensure the area around the particle is 'covered'
+                    // if we're finding this for feedback routines, there isn't any good reason to search beyond a modest physical radius //
+                    double unitlength_in_kpc=All.UnitLength_in_cm/All.HubbleParam/3.086e21*All.cf_atime;
+                    maxsoft = 2.0 / unitlength_in_kpc;
 #endif
                     desnumngbdev = desnumngb / 2; // enforcing exact number not important
                 }
@@ -724,16 +706,21 @@ void density(void)
                     }
                 }
                 
+#if defined(GALSF) && !defined(GALSF_FB_LUPI)
+                if((All.ComovingIntegrationOn)&&(All.Time>All.TimeBegin))
+                {
+                    if((P[i].Type==4)&&(iter>1)&&(PPP[i].NumNgb>4)&&(PPP[i].NumNgb<100)&&(redo_particle==1)) {redo_particle=0;}
+                }
+#endif    
                 
                 if((redo_particle==0)&&(P[i].Type == 0))
                 {
                     /* ok we have reached the desired number of neighbors: save the condition number for next timestep */
                     if(ConditionNumber > 1000.0 * (double)CONDITION_NUMBER_DANGER)
                     {
-#ifndef IO_REDUCED_MODE
                         printf("Warning: Condition number=%g CNum_prevtimestep=%g Num_Ngb=%g desnumngb=%g Hsml=%g Hsml_min=%g Hsml_max=%g\n",
                                ConditionNumber,SphP[i].ConditionNumber,PPP[i].NumNgb,desnumngb,PPP[i].Hsml,All.MinHsml,All.MaxHsml);
-#endif
+                        fflush(stdout);
                     }
                     SphP[i].ConditionNumber = ConditionNumber;
                 }
@@ -746,6 +733,7 @@ void density(void)
                                i, ThisTask, (unsigned long long) P[i].ID, P[i].Type, PPP[i].Hsml, PPP[i].DhsmlNgbFactor, Left[i], Right[i],
                                (float) PPP[i].NumNgb, Right[i] - Left[i], particle_set_to_maxhsml_flag, particle_set_to_minhsml_flag, minsoft,
                                maxsoft, desnumngb, desnumngbdev, redo_particle, P[i].Pos[0], P[i].Pos[1], P[i].Pos[2]);
+                        fflush(stdout);
                     }
                     
                     /* need to redo this particle */
@@ -890,11 +878,9 @@ void density(void)
             iter++;
             if(iter > 0 && ThisTask == 0)
             {
-#ifdef IO_REDUCED_MODE
-                if(iter > 10)
-#endif
                 printf("ngb iteration %d: need to repeat for %d%09d particles.\n", iter,
                        (int) (ntot / 1000000000), (int) (ntot % 1000000000));
+                fflush(stdout);
             }
             if(iter > MAXITER)
             {
@@ -955,7 +941,7 @@ void density(void)
 #endif
                     
               
-#if defined(SPHAV_CD10_VISCOSITY_SWITCH)
+#if defined(SPHAV_CD10_FLAG_NOT_IN_PUBLIC_CODE_SWITCH)
                     for(k1 = 0; k1 < 3; k1++)
                         for(k2 = 0; k2 < 3; k2++)
                         {
@@ -986,16 +972,6 @@ void density(void)
 #endif
                     
                     
-#if defined(TURB_DRIVING)
-                    if(SphP[i].Density > 0)
-                    {
-                        SphP[i].SmoothedVel[0] /= SphP[i].Density;
-                        SphP[i].SmoothedVel[1] /= SphP[i].Density;
-                        SphP[i].SmoothedVel[2] /= SphP[i].Density;
-                    } else {
-                        SphP[i].SmoothedVel[0] = SphP[i].SmoothedVel[1] = SphP[i].SmoothedVel[2] = 0;
-                    }
-#endif
                 }
                 
 #ifndef HYDRO_SPH
@@ -1016,22 +992,26 @@ void density(void)
             } // P[i].Type == 0
 
             
-#if defined(GRAIN_FLUID)
-            if(P[i].Type > 0)
-            {
-                if(P[i].Gas_Density > 0)
-                {
-                    P[i].Gas_InternalEnergy /= P[i].Gas_Density;
-                    for(k = 0; k<3; k++) {P[i].Gas_Velocity[k] /= P[i].Gas_Density;}
-                } else {
-                    P[i].Gas_InternalEnergy = 0;
-                    for(k = 0; k<3; k++) {P[i].Gas_Velocity[k] = 0;}
-#ifdef GRAIN_LORENTZFORCE
-                    for(k = 0; k<3; k++) {P[i].Gas_B[k] = 0;}
+
+#ifdef GALSF_FB_LUPI
+	    if(P[i].Type >= 4)
+	    {
+	        if(P[i].DensAroundStar > 0)
+		    P[i].InternalEnergyAroundStar /= P[i].DensAroundStar;
+		else
+		    P[i].InternalEnergyAroundStar = 0;
+	    }
 #endif
-                }
-            }
+#ifdef BH_LUPI
+	    if(P[i].Type == 5)
+	    {
+		if(P[i].DensAroundStar > 0)
+		    for(k = 0; k<3; k++) {P[i].BH_GasVelocity[k] /= P[i].DensAroundStar;}
+		else
+		    for(k = 0; k<3; k++) {P[i].BH_GasVelocity[k] = 0;}
+	    }
 #endif
+
             
             
 #if defined(ADAPTIVE_GRAVSOFT_FORGAS) || defined(ADAPTIVE_GRAVSOFT_FORALL)
@@ -1058,13 +1038,6 @@ void density(void)
             }
 #endif
             
-#ifdef PM_HIRES_REGION_CLIPPING
-                if(P[i].Type == 0) if ((SphP[i].Density <= 0) || (PPP[i].NumNgb <= 0)) P[i].Mass = 0;
-                if ((PPP[i].Hsml <= 0) || (PPP[i].Hsml >= PM_HIRES_REGION_CLIPPING)) P[i].Mass = 0;
-                double vmag=0; for(k=0;k<3;k++) vmag+=P[i].Vel[k]*P[i].Vel[k]; vmag = sqrt(vmag);
-                if(vmag>5.e9*All.cf_atime/All.UnitVelocity_in_cm_per_s) P[i].Mass=0;
-                if(vmag>1.e9*All.cf_atime/All.UnitVelocity_in_cm_per_s) for(k=0;k<3;k++) P[i].Vel[k]*=(1.e9*All.cf_atime/All.UnitVelocity_in_cm_per_s)/vmag;
-#endif // ifdef PM_HIRES_REGION_CLIPPING
             
             
          /* finally, convert NGB to the more useful format, NumNgb^(1/NDIMS),
@@ -1156,9 +1129,6 @@ int density_evaluate(int target, int mode, int *exportflag, int *exportnodecount
                     
                     out.Ngb += kernel.wk;
                     out.Rho += kernel.mj_wk;
-#if defined(RT_SOURCE_INJECTION)
-                    if((1 << local.Type) & (RT_SOURCES)) {out.KernelSum_Around_RT_Source += 1.-u*u;}
-#endif
                     out.DhsmlNgb += -(NUMDIMS * kernel.hinv * kernel.wk + u * kernel.dwk);
 #ifdef HYDRO_SPH
                     double mass_eff = mass_j;
@@ -1226,17 +1196,78 @@ int density_evaluate(int target, int mode, int *exportflag, int *exportnodecount
 
 void *density_evaluate_primary(void *p)
 {
-#define CONDITION_FOR_EVALUATION if(density_isactive(i))
-#define EVALUATION_CALL density_evaluate(i, 0, exportflag, exportnodecount, exportindex, ngblist)
-#include "../system/code_block_primary_loop_evaluation.h"
-#undef CONDITION_FOR_EVALUATION
-#undef EVALUATION_CALL
+    int thread_id = *(int *) p;
+    int i, j;
+    int *exportflag, *exportnodecount, *exportindex, *ngblist;
+    ngblist = Ngblist + thread_id * NumPart;
+    exportflag = Exportflag + thread_id * NTask;
+    exportnodecount = Exportnodecount + thread_id * NTask;
+    exportindex = Exportindex + thread_id * NTask;
+    /* Note: exportflag is local to each thread */
+    for(j = 0; j < NTask; j++)
+        exportflag[j] = -1;
+    
+    while(1)
+    {
+        int exitFlag = 0;
+        LOCK_NEXPORT;
+#ifdef _OPENMP
+#pragma omp critical(_nexport_)
+#endif
+        {
+            if(BufferFullFlag != 0 || NextParticle < 0)
+            {
+                exitFlag = 1;
+            }
+            else
+            {
+                i = NextParticle;
+                ProcessedFlag[i] = 0;
+                NextParticle = NextActiveParticle[NextParticle];
+            }
+        }
+        UNLOCK_NEXPORT;
+        if(exitFlag)
+            break;
+        
+        if(density_isactive(i))
+        {
+            if(density_evaluate(i, 0, exportflag, exportnodecount, exportindex, ngblist) < 0)
+                break;		/* export buffer has filled up */
+        }
+        ProcessedFlag[i] = 1;	/* particle successfully finished */
+    }
+    return NULL;
 }
+
+
+
 void *density_evaluate_secondary(void *p)
 {
-#define EVALUATION_CALL density_evaluate(j, 1, &dummy, &dummy, &dummy, ngblist);
-#include "../system/code_block_secondary_loop_evaluation.h"
-#undef EVALUATION_CALL
+    int thread_id = *(int *) p;
+    int j, dummy, *ngblist;
+    ngblist = Ngblist + thread_id * NumPart;
+    
+    while(1)
+    {
+        LOCK_NEXPORT;
+#ifdef _OPENMP
+#pragma omp critical(_nexport_)
+#endif
+        {
+            j = NextJ;
+            NextJ++;
+        }
+        UNLOCK_NEXPORT;
+        
+        if(j >= Nimport)
+            break;
+        
+        density_evaluate(j, 1, &dummy, &dummy, &dummy, ngblist);
+    }
+    
+    return NULL;
+    
 }
 
 
@@ -1247,24 +1278,49 @@ int density_isactive(int n)
     /* first check our 'marker' for particles which have finished iterating to an Hsml solution (if they have, dont do them again) */
     if(P[n].TimeBin < 0) return 0;
     
-#if defined(GRAIN_FLUID)
-    /* all particles can potentially interact with the gas in this mode, if drag > 0 */
-    if(P[n].Type >= 0) return 1;
-#endif
     
 #if defined(RT_SOURCE_INJECTION)
-    if((1 << P[n].Type) & (RT_SOURCES)) 
-    {
-        if(Flag_FullStep) {return 1;} // only do on full timesteps
-    }
+    if((1 << P[n].Type) & (FLAG_NOT_IN_PUBLIC_CODE)) return 1;
 #endif
     
 #ifdef DO_DENSITY_AROUND_STAR_PARTICLES
     if(((P[n].Type == 4)||((All.ComovingIntegrationOn==0)&&((P[n].Type == 2)||(P[n].Type==3))))&&(P[n].Mass>0))
     {
+#if defined(FLAG_NOT_IN_PUBLIC_CODE) || defined(GALSF_FB_LUPI)
+        /* check if there is going to be a SNe this timestep, in which case, we want the density info! */
+        if(P[n].SNe_ThisTimeStep>0) return 1;
+#endif
+#if defined(GALSF)
+        if(P[n].DensAroundStar<=0) return 1;
+        // only do stellar age evaluation if we have to //
+        if(All.ComovingIntegrationOn==0)
+        {
+            float star_age=0;
+            star_age = evaluate_stellar_age_Gyr(P[n].StellarAge);
+            if(star_age < 0.035) return 1;
+        }
+#endif
+    }
+#ifdef GALSF_FB_LUPI
+    if(P[n].Type == 4 && P[n].Mass > 0)
+    {
+	float star_age=0,dt;
+        star_age = evaluate_stellar_age_Gyr(P[n].StellarAge)*1.0e3;
+#ifndef WAKEUP
+        dt = (P[n].TimeBin ? (1 << P[n].TimeBin) : 0) * All.Timebase_interval / All.cf_hubble_a;
+#else
+        dt = P[n].dt_step * All.Timebase_interval / All.cf_hubble_a;
+#endif
+	dt *= All.UnitTime_in_Megayears / All.HubbleParam;
+	if(dying_mass(P[n].Metallicity[0]/LUPI_SOLAR_MET,star_age,dt)>=1.0) return 1;
     }
 #endif
+
+#endif
     
+#if defined(FLAG_NOT_IN_PUBLIC_CODE) || defined(BH_LUPI)
+    if(P[n].Type == 5) return 1;
+#endif
     
     if(P[n].Type == 0 && P[n].Mass > 0) return 1;
     
@@ -1284,16 +1340,13 @@ void density_evaluate_extra_physics_gas(struct densdata_in *local, struct densda
     if(local->Type != 0)
     {
         
-#if defined(GRAIN_FLUID)
-        out->Gas_InternalEnergy += kernel->mj_wk * SphP[j].InternalEnergyPred;
+#if defined(FLAG_NOT_IN_PUBLIC_CODE) || defined(BH_LUPI)
         out->GasVel[0] += kernel->mj_wk * (local->Vel[0]-kernel->dv[0]);
         out->GasVel[1] += kernel->mj_wk * (local->Vel[1]-kernel->dv[1]);
         out->GasVel[2] += kernel->mj_wk * (local->Vel[2]-kernel->dv[2]);
-#ifdef GRAIN_LORENTZFORCE
-        out->Gas_B[0] += kernel->wk * SphP[j].BPred[0];
-        out->Gas_B[1] += kernel->wk * SphP[j].BPred[1];
-        out->Gas_B[2] += kernel->wk * SphP[j].BPred[2];
 #endif
+#if defined(FLAG_NOT_IN_PUBLIC_CODE) || defined(GALSF_FB_LUPI)
+        out->Gas_InternalEnergy += kernel->mj_wk * SphP[j].InternalEnergyPred;
 #endif
         
         
@@ -1309,13 +1362,8 @@ void density_evaluate_extra_physics_gas(struct densdata_in *local, struct densda
         
     } else { /* local.Type == 0 */
 
-#if defined(TURB_DRIVING)
-        out->GasVel[0] += kernel->mj_wk * (local->Vel[0]-kernel->dv[0]);
-        out->GasVel[1] += kernel->mj_wk * (local->Vel[1]-kernel->dv[1]);
-        out->GasVel[2] += kernel->mj_wk * (local->Vel[2]-kernel->dv[2]);
-#endif
 
-#if defined(SPHAV_CD10_VISCOSITY_SWITCH)
+#if defined(SPHAV_CD10_FLAG_NOT_IN_PUBLIC_CODE_SWITCH)
         double wk = kernel->wk;
         out->NV_A[0][0] += (local->Accel[0] - All.cf_a2inv*P[j].GravAccel[0] - SphP[j].HydroAccel[0]) * kernel->dp[0] * wk;
         out->NV_A[0][1] += (local->Accel[0] - All.cf_a2inv*P[j].GravAccel[0] - SphP[j].HydroAccel[0]) * kernel->dp[1] * wk;

@@ -4,19 +4,10 @@
 #include "../GIZMO_config.h"
 
 
-#if (defined(EOS_HELMHOLTZ) || defined(FLAG_NOT_IN_PUBLIC_CODE) || defined(EOS_TRUELOVE_PRESSURE) || defined(TRUELOVE_CRITERION_PRESSURE)) && !defined(EOS_GENERAL)
+#if (defined(FLAG_NOT_IN_PUBLIC_CODE) || defined(FLAG_NOT_IN_PUBLIC_CODE) || defined(EOS_TRUELOVE_PRESSURE) || defined(TRUELOVE_CRITERION_PRESSURE)) && !defined(EOS_GENERAL)
 #define EOS_GENERAL
 #endif
 
-#ifdef EOS_HELMHOLTZ
-#define EOS_TABULATED
-#define EOS_USES_CGS
-#define EOS_CARRIES_YE
-#define EOS_CARRIES_ABAR
-#define EOS_CARRIES_TEMPERATURE
-#define EOS_PROVIDES_ENTROPY
-#define EOS_PROVIDES_CV
-#endif
 
 struct eos_input
 {

@@ -7,7 +7,6 @@
 #include "allvars.h"
 #include "proto.h"
 
-
 /*! \file init.c
  *  \brief code for initialisation of a simulation from initial conditions
  */
@@ -43,7 +42,7 @@ void init(void)
     if(RestartFlag == 3 && RestartSnapNum < 0)
     {
         if(ThisTask == 0)
-            printf("Need to give the snapshot number if FOF/SUBFIND is selected for output\n");
+            printf("Need to give the snapshot number if FLAG_NOT_IN_PUBLIC_CODE/FLAG_NOT_IN_PUBLIC_CODE is selected for output\n");
         endrun(0);
     }
     
@@ -70,6 +69,15 @@ void init(void)
         endrun(0);
     }
     
+#ifdef GRACKLE_FIX_TEMPERATURE
+    if(RestartFlag == 7 && RestartSnapNum < 0)
+    {
+        if(ThisTask == 0)
+            printf
+            ("Need to give the snapshot number if temperature for gas should be calculated\n");
+        endrun(0);
+    }
+#endif
     
     switch (All.ICFormat)
     {
@@ -107,6 +115,9 @@ void init(void)
     
     
     
+#if defined(COOLING)
+    IonizeParams();
+#endif
     
     if(All.ComovingIntegrationOn)
     {
@@ -168,6 +179,16 @@ void init(void)
      to PartAllocFactor*TreeAllocFactor. */
     
     
+#ifdef GRACKLE_FIX_TEMPERATURE
+    if(RestartFlag == 7)
+    {
+        compute_temperature();
+        sprintf(All.SnapshotFileBase, "%s_temp", All.SnapshotFileBase);
+        printf("RestartSnapNum %d\n", RestartSnapNum);
+        savepositions(RestartSnapNum);
+        endrun(0);
+    }
+#endif
     
 #ifdef PERIODIC
     if(All.ComovingIntegrationOn) check_omega();
@@ -209,10 +230,6 @@ void init(void)
             P[i].DM_Hsml = -1;
 #endif
         
-#ifdef PMGRID
-        for(j = 0; j < 3; j++)
-            P[i].GravPM[j] = 0;
-#endif
         P[i].Ti_begstep = 0;
         P[i].Ti_current = 0;
         P[i].TimeBin = 0;
@@ -223,6 +240,12 @@ void init(void)
 #if defined(EVALPOTENTIAL) || defined(COMPUTE_POTENTIAL_ENERGY)    
         P[i].Potential = 0;
 #endif
+#ifdef GALSF
+        if(RestartFlag == 0)
+        {
+            P[i].StellarAge = 0;
+        }
+#endif
         
         if(RestartFlag != 1)
         {
@@ -232,6 +255,20 @@ void init(void)
             P[i].GradRho[1]=0;
             P[i].GradRho[2]=1;
 #endif
+#ifdef GALSF_FB_LUPI
+	    P[i].SNe_ThisTimeStep = 0;
+	    P[i].MassYield_ThisTimeStep = 0;
+	    P[i].MassLoss_ThisTimeStep = 0;
+	    P[i].MetalYield_ThisTimeStep[0] = 0; //Z is always evolved
+	    if(NUM_METAL_SPECIES>1)
+	    {
+		P[i].MetalYield_ThisTimeStep[1] = 0; //Oxygen
+		P[i].MetalYield_ThisTimeStep[2] = 0; //Iron
+	    }
+	    P[i].WeightNorm[0] = 0;
+	    P[i].WeightNorm[1] = 0;
+#endif
+
         }
         
 #if defined(FLAG_NOT_IN_PUBLIC_CODE) || defined(FLAG_NOT_IN_PUBLIC_CODE) || defined(FLAG_NOT_IN_PUBLIC_CODE) || defined(FLAG_NOT_IN_PUBLIC_CODE) || defined(FLAG_NOT_IN_PUBLIC_CODE)
@@ -240,24 +277,44 @@ void init(void)
             P[i].StellarAge = -2.0 * All.InitStellarAgeinGyr / (All.UnitTime_in_Megayears*0.001) * get_random_number(P[i].ID + 3);
         }
 #endif
-        
-#ifdef GRAIN_FLUID
-        if(RestartFlag == 0)
-        {
-            P[i].Grain_Size = All.Grain_Size_Min * exp( gsl_rng_uniform(random_generator) * log(All.Grain_Size_Max/All.Grain_Size_Min) );
-            P[i].Gas_Density = 0;
-            P[i].Gas_InternalEnergy = 0;
-            P[i].Gas_Velocity[0]=P[i].Gas_Velocity[1]=P[i].Gas_Velocity[2]=0;
-#ifdef GRAIN_LORENTZFORCE
-            P[i].Gas_B[0]=P[i].Gas_B[1]=P[i].Gas_B[2];
+
+#ifdef GALSF_FB_LUPI
+	if(RestartFlag == 0)
+	{
+	    P[i].StellarAge = MAX_REAL_NUMBER;
+	    P[i].StellarInitMass = 0;
+	}
 #endif
-        }
+
+#ifdef BH_LUPI
+	if(RestartFlag == 0)
+	    P[i].BH_StoredEnergy = 0;
+
+	if(RestartFlag != 1)
+	{
+	    P[i].BH_Luminosity = P[i].BH_AccretionRate = 0;
+	    P[i].BH_DeltaPos[0] = 0;
+	    P[i].BH_DeltaPos[1] = 0;
+	    P[i].BH_DeltaPos[2] = 0;
+	    P[i].BH_DeltaVel[0] = 0;
+	    P[i].BH_DeltaVel[1] = 0;
+	    P[i].BH_DeltaVel[2] = 0;
+	    P[i].BH_GasVelocity[0] = 0;
+	    P[i].BH_GasVelocity[1] = 0;
+	    P[i].BH_GasVelocity[2] = 0;
+	}
 #endif
+
         
         
         
         
         
+        
+#ifdef GRACKLE_OPTS
+            if(RestartFlag == 0 && P[i].Type!=1 && P[i].Type!=5)
+		P[i].Metallicity[0]=All.InitMetallicityinSolar*GENTRY_SOLAR_MET;
+#endif
         
         
     }
@@ -268,9 +325,6 @@ void init(void)
     
     reconstruct_timebins();
     
-#ifdef PMGRID
-    All.PM_Ti_endstep = All.PM_Ti_begstep = 0;
-#endif
         
     for(i = 0; i < N_gas; i++)	/* initialize sph_properties */
     {
@@ -304,17 +358,10 @@ void init(void)
 #endif
 #endif
         
-#ifdef CONDUCTION
-        SphP[i].Kappa_Conduction = 0;
-#endif
 #ifdef MHD_NON_IDEAL
         SphP[i].Eta_MHD_OhmicResistivity_Coeff = 0;
         SphP[i].Eta_MHD_HallEffect_Coeff = 0;
         SphP[i].Eta_MHD_AmbiPolarDiffusion_Coeff = 0;
-#endif
-#ifdef VISCOSITY
-        SphP[i].Eta_ShearViscosity = 0;
-        SphP[i].Zeta_BulkViscosity = 0;
 #endif
         
         
@@ -328,7 +375,17 @@ void init(void)
             PPP[i].Hsml = 0;
 #endif
             SphP[i].Density = -1;
+#ifdef COOLING
+            SphP[i].Ne = 1.0;
+#endif
         }
+#ifdef GALSF_FB_LUPI
+	if(RestartFlag == 0) SphP[i].DelayTimeCoolingSNe = 0;
+#endif
+
+#ifdef GALSF
+        SphP[i].Sfr = 0;
+#endif
 #ifdef MAGNETIC
 #if defined B_SET_IN_PARAMS
         if(RestartFlag == 0)
@@ -350,7 +407,7 @@ void init(void)
         SphP[i].Phi = SphP[i].PhiPred = SphP[i].DtPhi = 0;
 #endif
 #endif
-#ifdef SPHAV_CD10_VISCOSITY_SWITCH
+#ifdef SPHAV_CD10_FLAG_NOT_IN_PUBLIC_CODE_SWITCH
         SphP[i].alpha = 0.0;
 #endif
     }
@@ -393,11 +450,7 @@ void init(void)
     assign_unique_ids();
 #endif
     /* assign other ID parameters needed */
-    if(RestartFlag==0) {for(i = 0; i < NumPart; i++) {P[i].ID_child_number = 0; P[i].ID_generation = 0;}}
-#ifdef NO_CHILD_IDS_IN_ICS
-    if(RestartFlag != 1) {for(i = 0; i < NumPart; i++) {P[i].ID_child_number = 0; P[i].ID_generation = 0;}}
-#endif
-    
+    for(i = 0; i < NumPart; i++) {P[i].ID_child_number = 0; P[i].ID_generation = 0;}
     
 #ifdef TEST_FOR_IDUNIQUENESS
     test_id_uniqueness();
@@ -422,6 +475,9 @@ void init(void)
     
     
     Gas_split = 0;
+#ifdef GALSF
+    Stars_converted = 0;
+#endif
     domain_Decomposition(0, 0, 0);	/* do initial domain decomposition (gives equal numbers of particles) */
     
     set_softenings();
@@ -439,47 +495,24 @@ void init(void)
         ags_setup_smoothinglengths();
 #endif
     
-#ifdef GALSF_SUBGRID_DMDISPERSION
-    if(RestartFlag != 3 && RestartFlag != 5)
-        disp_setup_smoothinglengths();
-#endif
     
-#if defined GALSF_SFR_IMF_VARIATION
-    for(i = 0; i < NumPart; i++)
-    {
-        P[i].IMF_Mturnover = 2.0; // reset to normal IMF
-    }
-#endif
-    
-#if defined(WAKEUP) && defined(ADAPTIVE_GRAVSOFT_FORALL)
-    for(i=0;i<NumPart;i++) {P[i].wakeup=0;}
-#endif
 
-#if defined(TURB_DRIVING)
-    {
-        double mass = 0, glob_mass;
-        int i;
-        for(i=0; i< N_gas; i++)
-            mass += P[i].Mass;
-        MPI_Allreduce(&mass, &glob_mass, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
-        All.RefDensity = glob_mass / (boxSize_X*boxSize_Y*boxSize_Z);
-        All.RefInternalEnergy = All.IsoSoundSpeed*All.IsoSoundSpeed / (GAMMA*GAMMA_MINUS1);
-    }
-#endif
     
     /* HELLO! This here is where you should insert custom code for hard-wiring the ICs of various test problems */
 
     
     
     density();
+
+#if (GRACKLE_CHEMISTRY>=1) || defined(KROME)
+    if(RestartFlag == 0) init_species();
+#endif
+
+
     for(i = 0; i < N_gas; i++)	/* initialize sph_properties */
     {
         SphP[i].InternalEnergyPred = SphP[i].InternalEnergy;
         
-#if defined(TURB_DRIVING) && defined(EOS_ENFORCE_ADIABAT)
-        SphP[i].InternalEnergy = All.RefInternalEnergy;
-        SphP[i].InternalEnergyPred = All.RefInternalEnergy;
-#endif
         // re-match the predicted and initial velocities and B-field values, just to be sure //
         for(j=0;j<3;j++) SphP[i].VelPred[j]=P[i].Vel[j];
 #ifdef MAGNETIC
@@ -497,14 +530,29 @@ void init(void)
 #if defined(ADAPTIVE_GRAVSOFT_FORGAS) || defined(ADAPTIVE_GRAVSOFT_FORALL)
         PPPZ[i].AGS_zeta = 0;
 #endif
-#ifdef WAKEUP
-        if(RestartFlag!=0) {PPPZ[i].wakeup=0;}
-#endif
-#ifdef SUPER_TIMESTEP_DIFFUSION
-        SphP[i].Super_Timestep_Dt_Explicit = 0;
-        SphP[i].Super_Timestep_j = 0;
-#endif
         
+#ifdef GRACKLE
+        if(RestartFlag == 0)
+        {
+#if (GRACKLE_CHEMISTRY >= 1)
+            SphP[i].grHI    = HYDROGEN_MASSFRAC;
+            SphP[i].grHII   = 1.0e-20;
+            SphP[i].grHM    = 1.0e-20;
+            SphP[i].grHeI   = 1.0 - HYDROGEN_MASSFRAC;
+            SphP[i].grHeII  = 1.0e-20;
+            SphP[i].grHeIII = 1.0e-20;
+#endif
+#if (GRACKLE_CHEMISTRY >= 2)
+            SphP[i].grH2I   = 1.0e-20;
+            SphP[i].grH2II  = 1.0e-20;
+#endif
+#if (GRACKLE_CHEMISTRY >= 3)
+            SphP[i].grDI    = 2.0 * 3.4e-5;
+            SphP[i].grDII   = 1.0e-20;
+            SphP[i].grHDI   = 1.0e-20;
+#endif
+        }
+#endif
         
     }
     
@@ -525,26 +573,14 @@ void init(void)
         MPI_Allreduce(&mass_min, &mpi_mass_min, 1, MPI_DOUBLE, MPI_MIN, MPI_COMM_WORLD);
         MPI_Allreduce(&mass_max, &mpi_mass_max, 1, MPI_DOUBLE, MPI_MAX, MPI_COMM_WORLD);
         All.MinMassForParticleMerger = 0.49 * mpi_mass_min;
+#ifdef GALSF_GENERATIONS
+        All.MinMassForParticleMerger /= (float)GALSF_GENERATIONS;
+#endif
         /* All.MaxMassForParticleSplit  = 5.01 * mpi_mass_max; */
         All.MaxMassForParticleSplit  = 3.01 * mpi_mass_max;
-#ifdef MERGESPLIT_HARDCODE_MAX_MASS
-        All.MaxMassForParticleSplit = MERGESPLIT_HARDCODE_MAX_MASS;
-#endif
-#ifdef MERGESPLIT_HARDCODE_MIN_MASS
-        All.MinMassForParticleMerger = MERGESPLIT_HARDCODE_MIN_MASS;
-#endif
     }
     
     
-#ifdef PM_HIRES_REGION_CLIPDM
-    if(RestartFlag != 1)
-    {
-        double mpi_m_hires_max, m_hires_max=0.0;
-        for(i=0; i<NumPart; i++) {if(P[i].Type==1) {if(P[i].Mass > m_hires_max) {m_hires_max=P[i].Mass;}}}
-        MPI_Allreduce(&m_hires_max, &mpi_m_hires_max, 1, MPI_DOUBLE, MPI_MAX, MPI_COMM_WORLD);
-        All.MassOfClippedDMParticles = mpi_m_hires_max;
-    }
-#endif
     
     
     if(RestartFlag == 3)
@@ -558,9 +594,6 @@ void init(void)
             printf("*ADAPTIVE_GRAVSOFT_FORALL* Computation of softening lengths done. \n");
 #endif
         
-#ifdef FOF
-        fof_fof(RestartSnapNum);
-#endif
         endrun(0);
     }
     
@@ -568,9 +601,6 @@ void init(void)
     
     if(RestartFlag == 6)
     {
-#if defined(PERIODIC) && defined(ADJ_BOX_POWERSPEC)
-        adj_box_powerspec();
-#endif
         endrun(0);
     }
     
@@ -639,7 +669,7 @@ void setup_smoothinglengths(void)
     int i, no, p;
     if((RestartFlag == 0)||(RestartFlag==2)) // best for stability if we re-calc Hsml for snapshot restarts //
     {
-#if defined(DO_DENSITY_AROUND_STAR_PARTICLES) || defined(GRAIN_FLUID)
+#if defined(DO_DENSITY_AROUND_STAR_PARTICLES) || defined(FLAG_NOT_IN_PUBLIC_CODE)
         for(i = 0; i < NumPart; i++)
 #else
             for(i = 0; i < N_gas; i++)
@@ -686,14 +716,6 @@ void setup_smoothinglengths(void)
     
     
     
-#ifdef GRAIN_FLUID
-    if(RestartFlag == 0 || RestartFlag == 2)
-    {
-        for(i = 0; i < NumPart; i++)
-            if(P[i].Type > 0)
-                PPP[i].Hsml = All.SofteningTable[P[i].Type];
-    }
-#endif
  
     density();    
 }
@@ -759,41 +781,6 @@ void ags_setup_smoothinglengths(void)
 #endif // ADAPTIVE_GRAVSOFT_FORALL
 
 
-#ifdef GALSF_SUBGRID_DMDISPERSION
-void disp_setup_smoothinglengths(void)
-{
-    int i, no, p;
-    if(RestartFlag == 0 || RestartFlag == 2)
-    {
-        for(i = 0; i < NumPart; i++)
-        {
-            if(P[i].Type == 0)
-            {
-                no = Father[i];
-                while(10 * 2.0 * 64 * P[i].Mass > Nodes[no].u.d.mass)
-                {
-                    p = Nodes[no].u.d.father;
-                    if(p < 0)
-                        break;
-                    no = p;
-                }
-                SphP[i].HsmlDM = pow(1.0/NORM_COEFF * 2.0 * 64 * P[i].Mass / Nodes[no].u.d.mass, 1.0/NUMDIMS) * Nodes[no].len;
-                if(All.SofteningTable[P[i].Type] != 0)
-                {
-                    if((SphP[i].HsmlDM >1000.*All.SofteningTable[P[i].Type])||(PPP[i].Hsml<=0.01*All.SofteningTable[P[i].Type])||(Nodes[no].u.d.mass<=0)||(Nodes[no].len<=0))
-                        SphP[i].HsmlDM = All.SofteningTable[P[i].Type];
-                }
-            }
-        }
-    }
-    
-    if(ThisTask == 0)
-    {
-        printf("computing DM Vel_disp around gas particles.\n");
-    }
-    disp_density();
-}
-#endif
 
 
 void test_id_uniqueness(void)
@@ -807,6 +794,7 @@ void test_id_uniqueness(void)
     if(ThisTask == 0)
     {
         printf("Testing ID uniqueness...\n");
+        fflush(stdout);
     }
     
     if(NumPart == 0)
@@ -861,6 +849,7 @@ void test_id_uniqueness(void)
     if(ThisTask == 0)
     {
         printf("success.  took=%g sec\n", timediff(t0, t1));
+        fflush(stdout);
     }
 }
 
@@ -874,3 +863,14 @@ int compare_IDs(const void *a, const void *b)
     
     return 0;
 }
+
+#ifdef GRACKLE_FIX_TEMPERATURE
+void compute_temperature()
+{
+    int i;
+    for(i=0;i<N_gas;i++)
+    {
+       SphP[i].InternalEnergyPred = CallGrackle(SphP[i].InternalEnergy, SphP[i].Density, 0, &(SphP[i].Ne), i, 2);
+    }
+}
+#endif

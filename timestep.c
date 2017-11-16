@@ -82,18 +82,7 @@ void find_timesteps(void)
     
     if(All.HighestActiveTimeBin == All.HighestOccupiedTimeBin || dt_displacement == 0)
         find_dt_displacement_constraint(All.cf_hubble_a * All.cf_atime * All.cf_atime);
- 
-#ifdef BH_WIND_SPAWN
-    if(All.HighestActiveTimeBin >= All.HighestOccupiedTimeBin-5)
-    {
-        double local_max_u=0.0, global_max_u, global_max_t;
-        for(i = 0; i < NumPart; i++) {if(P[i].Type==0) {local_max_u = DMAX( local_max_u, SphP[i].InternalEnergy );}}
-        MPI_Allreduce(&local_max_u, &global_max_u, 1, MPI_DOUBLE, MPI_MAX, MPI_COMM_WORLD);
-        double u_to_temp_fac = PROTONMASS / BOLTZMANN * GAMMA_MINUS1 * All.UnitEnergy_in_cgs / All.UnitMass_in_g;
-        global_max_t = global_max_u * u_to_temp_fac;
-        if(ThisTask==0)  printf("Global Maximum SphP.u = %g (Max Temperature = %g) \n", global_max_u, global_max_t);
-    }
-#endif
+    
     
 #ifdef DIVBCLEANING_DEDNER
     /* need to calculate the global fastest wave speed to manage the damping terms stably */
@@ -197,6 +186,10 @@ void find_timesteps(void)
             if(P[i].Type == 0)
             {
                 TimeBinCountSph[binold]--;
+#ifdef SFR
+                TimeBinSfr[binold] -= SphP[i].Sfr;
+                TimeBinSfr[bin] += SphP[i].Sfr;
+#endif
             }
             
             
@@ -246,31 +239,6 @@ void find_timesteps(void)
     
     
     
-#ifdef PMGRID
-    if(All.PM_Ti_endstep == All.Ti_Current)	/* need to do long-range kick */
-    {
-        ti_step = TIMEBASE;
-        while(ti_step > (dt_displacement / All.Timebase_interval))
-            ti_step >>= 1;
-        
-        if(ti_step > (All.PM_Ti_endstep - All.PM_Ti_begstep))	/* PM-timestep wants to increase */
-        {
-            bin = get_timestep_bin(ti_step);
-            binold = get_timestep_bin(All.PM_Ti_endstep - All.PM_Ti_begstep);
-            
-            while(TimeBinActive[bin] == 0 && bin > binold)	/* make sure the new step is synchronized */
-                bin--;
-            
-            ti_step = bin ? (((integertime) 1) << bin) : 0;
-        }
-        
-        if(All.Ti_Current == TIMEBASE)	/* we here finish the last timestep. */
-            ti_step = 0;
-        
-        All.PM_Ti_begstep = All.PM_Ti_endstep;
-        All.PM_Ti_endstep = All.PM_Ti_begstep + ti_step;
-    }
-#endif
     
     
 #ifdef WAKEUP
@@ -313,28 +281,7 @@ integertime get_timestep(int p,		/*!< particle index */
         ay = All.cf_a2inv * P[p].GravAccel[1];
         az = All.cf_a2inv * P[p].GravAccel[2];
         
-#ifdef PMGRID
-        ax += All.cf_a2inv * P[p].GravPM[0];
-        ay += All.cf_a2inv * P[p].GravPM[1];
-        az += All.cf_a2inv * P[p].GravPM[2];
-#endif
         
-#ifdef TURB_DRIVING
-        if(P[p].Type==0)
-        {
-            ax += SphP[p].TurbAccel[0];
-            ay += SphP[p].TurbAccel[1];
-            az += SphP[p].TurbAccel[2];
-        }
-#endif
-#ifdef RT_RAD_PRESSURE_OUTPUT
-        if(P[p].Type==0)
-        {
-            ax += SphP[p].RadAccel[0];
-            ay += SphP[p].RadAccel[1];
-            az += SphP[p].RadAccel[2];
-        }
-#endif
         
         if(P[p].Type == 0)
         {
@@ -344,15 +291,6 @@ integertime get_timestep(int p,		/*!< particle index */
         }
         
         ac = sqrt(ax * ax + ay * ay + az * az);	/* this is now the physical acceleration */
-#ifdef TURB_DRIVING
-        if(P[p].Type==0)
-        {
-            /* because the turbulent acceleration is a random variable, we dont want it to catch us by surprise if it moves up, so 
-                we include a safety factor here which (very crudely) approximates the maximum amplitude it could reach */
-            double a_max_safety = 1.4 * sqrt(pow(All.StKmax,NUMDIMS) * All.StEnergy / All.StDecay);
-            ac = sqrt(ac*ac + a_max_safety*a_max_safety);
-        }
-#endif
         *aphys = ac;
     }
     else
@@ -399,29 +337,23 @@ integertime get_timestep(int p,		/*!< particle index */
     {
         if(PPP[p].AGS_Hsml > 1.01*All.ForceSoftening[P[p].Type])
         {
-            double dt_divv = 0.25 / (MIN_REAL_NUMBER + All.cf_a2inv*fabs(P[p].Particle_DivVel));
-            if(dt_divv < dt) {dt = dt_divv;}
-            double dt_cour = All.CourantFac * (KERNEL_CORE_SIZE*PPP[p].AGS_Hsml*All.cf_atime) / (MIN_REAL_NUMBER + 0.5*P[p].AGS_vsig*All.cf_afac3);
-            if(dt_cour < dt) {dt = dt_cour;}
+            double divVel = fabs(P[p].Particle_DivVel);
+            double tmp_divVel = 0, tmp_ags_h = PPP[p].AGS_Hsml;
+            int k; for(k=0;k<3;k++) {tmp_divVel += P[p].Vel[k]*P[p].Vel[k];}
+#ifdef GALSF
+            if(((P[p].Type == 4)||((All.ComovingIntegrationOn==0)&&((P[p].Type == 2)||(P[p].Type==3))))&&(P[p].Mass>0)) {tmp_ags_h = DMAX(tmp_ags_h , PPP[p].Hsml);}
+#endif
+            tmp_divVel = sqrt(tmp_divVel) / tmp_ags_h;
+            divVel = All.cf_a2inv * DMIN(divVel , tmp_divVel);
+            if(divVel != 0)
+            {
+                dt_divv = 0.25 / divVel;
+                if(dt_divv < dt) {dt = dt_divv;}
+            }
         }
     }
 #endif
 
-#ifdef GRAIN_FLUID
-    if(P[p].Type > 0)
-    {
-        csnd = GAMMA * GAMMA_MINUS1 * P[p].Gas_InternalEnergy;
-        int k;
-        for(k=0;k<3;k++) {csnd += (P[p].Gas_Velocity[k]-P[p].Vel[k])*(P[p].Gas_Velocity[k]-P[p].Vel[k]);}
-#ifdef GRAIN_LORENTZFORCE
-        for(k=0;k<3;k++) {csnd += P[p].Gas_B[k]*P[p].Gas_B[k] / (2.0 * P[p].Gas_Density);}
-#endif
-        csnd = sqrt(csnd);
-        double L_particle = Get_Particle_Size(p);
-        dt_courant = 0.5 * All.CourantFac * (L_particle*All.cf_atime) / csnd;
-        if(dt_courant < dt) dt = dt_courant;
-    }
-#endif
     
     
     if((P[p].Type == 0) && (P[p].Mass > 0))
@@ -434,33 +366,12 @@ integertime get_timestep(int p,		/*!< particle index */
 
             double dt_prefac_diffusion;
             dt_prefac_diffusion = 0.5;
-#if defined(FLAG_NOT_IN_PUBLIC_CODE) || defined(DIFFUSION_OPTIMIZERS)
+#if defined(GALSF) || defined(DIFFUSION_OPTIMIZERS)
             dt_prefac_diffusion = 1.8;
 #endif
-#ifdef SUPER_TIMESTEP_DIFFUSION
-            double dt_superstep_explicit = 1.e10 * dt;
-#endif
             
             
             
-#ifdef CONDUCTION
-            {
-                double L_cond_inv = sqrt(SphP[p].Gradients.InternalEnergy[0]*SphP[p].Gradients.InternalEnergy[0] +
-                                         SphP[p].Gradients.InternalEnergy[1]*SphP[p].Gradients.InternalEnergy[1] +
-                                         SphP[p].Gradients.InternalEnergy[2]*SphP[p].Gradients.InternalEnergy[2]) / SphP[p].InternalEnergy;
-                double L_cond = DMAX(L_particle , 1./(L_cond_inv + 1./L_particle)) * All.cf_atime;
-                double dt_conduction = dt_prefac_diffusion * L_cond*L_cond / (MIN_REAL_NUMBER + SphP[p].Kappa_Conduction);
-                // since we use CONDUCTIVITIES, not DIFFUSIVITIES, we need to add a power of density to get the right units //
-                dt_conduction *= SphP[p].Density * All.cf_a3inv;
-#ifdef SUPER_TIMESTEP_DIFFUSION
-                if(dt_conduction < dt_superstep_explicit) dt_superstep_explicit = dt_conduction; // explicit time-step
-                double dt_advective = dt_conduction * DMAX(1,DMAX(L_particle , 1/(MIN_REAL_NUMBER + L_cond_inv))*All.cf_atime / L_cond);
-                if(dt_advective < dt) dt = dt_advective; // 'advective' timestep: needed to limit super-stepping
-#else
-                if(dt_conduction < dt) dt = dt_conduction; // normal explicit time-step
-#endif
-            }
-#endif
 
 
 #ifdef MHD_NON_IDEAL
@@ -481,13 +392,7 @@ integertime get_timestep(int p,		/*!< particle index */
                 double L_cond = DMAX(L_particle , 1./(L_cond_inv + 1./L_particle)) * All.cf_atime;
                 double diff_coeff = SphP[p].Eta_MHD_OhmicResistivity_Coeff + SphP[p].Eta_MHD_HallEffect_Coeff + SphP[p].Eta_MHD_AmbiPolarDiffusion_Coeff;
                 double dt_conduction = dt_prefac_diffusion * L_cond*L_cond / (1.0e-37 + diff_coeff);
-#ifdef SUPER_TIMESTEP_DIFFUSION
-                if(dt_conduction < dt_superstep_explicit) dt_superstep_explicit = dt_conduction; // explicit time-step
-                double dt_advective = dt_conduction * DMAX(1,DMAX(L_particle , 1/(MIN_REAL_NUMBER + L_cond_inv))*All.cf_atime / L_cond);
-                if(dt_advective < dt) dt = dt_advective; // 'advective' timestep: needed to limit super-stepping
-#else
                 if(dt_conduction < dt) dt = dt_conduction; // normal explicit time-step
-#endif
             }
 #endif
             
@@ -496,45 +401,11 @@ integertime get_timestep(int p,		/*!< particle index */
             
     
     
-#ifdef VISCOSITY
-            {
-                int kv1,kv2; double dv_mag=0,v_mag=1.0e-33;
-                for(kv1=0;kv1<3;kv1++) {v_mag+=P[p].Vel[kv1]*P[p].Vel[kv1];}
-                double dv_mag_all = 0.0;
-                for(kv1=0;kv1<3;kv1++)
-                {
-                    double dvmag_tmp = 0;
-                    for(kv2=0;kv2<3;kv2++) {dvmag_tmp+=SphP[p].Gradients.Velocity[kv1][kv2]*SphP[p].Gradients.Velocity[kv1][kv2];}
-                    dv_mag += dvmag_tmp /DMAX(P[p].Vel[kv1]*P[p].Vel[kv1],0.01*v_mag);
-                    dv_mag_all += dvmag_tmp;
-                }
-                dv_mag = sqrt(DMAX(dv_mag, dv_mag_all/v_mag));
-                double L_visc = DMAX(L_particle , 1. / (dv_mag + 1./L_particle)) * All.cf_atime;
-                double visc_coeff = sqrt(SphP[p].Eta_ShearViscosity*SphP[p].Eta_ShearViscosity + SphP[p].Zeta_BulkViscosity*SphP[p].Zeta_BulkViscosity);
-                double dt_viscosity = 0.25 * L_visc*L_visc / (1.0e-33 + visc_coeff) * SphP[p].Density * All.cf_a3inv;
-                // since we use VISCOSITIES, not DIFFUSIVITIES, we need to add a power of density to get the right units //
-#ifdef SUPER_TIMESTEP_DIFFUSION
-                if(dt_viscosity < dt_superstep_explicit) dt_superstep_explicit = dt_viscosity; // explicit time-step
-                double dt_advective = dt_viscosity * DMAX(1,DMAX(L_particle , 1/(MIN_REAL_NUMBER + dv_mag))*All.cf_atime / L_visc);
-                if(dt_advective < dt) dt = dt_advective; // 'advective' timestep: needed to limit super-stepping
-#else
-                if(dt_viscosity < dt) dt = dt_viscosity; // normal explicit time-step
-#endif
-            }
-#endif
             
             
 
 #ifdef TURB_DIFFUSION
             {
-#ifdef TURB_DIFF_METALS
-                int k_species; double L_tdiff = L_particle * All.cf_atime; // don't use gradient b/c ill-defined pre-enrichment
-                for(k_species=0;k_species<NUM_METAL_SPECIES;k_species++)
-                {
-                    double dt_tdiff = L_tdiff*L_tdiff / (1.0e-33 + SphP[p].TD_DiffCoeff); // here, we use DIFFUSIVITIES, so there is no extra density power in the equation //
-                    if(dt_tdiff < dt) dt = dt_tdiff; // normal explicit time-step
-                }
-#endif
             }
 #endif
             
@@ -562,59 +433,6 @@ integertime get_timestep(int p,		/*!< particle index */
             
             
             
-#ifdef SUPER_TIMESTEP_DIFFUSION
-            /* now use the timestep information above to limit the super-stepping timestep */
-            {
-                int N_substeps = 5; /*!< number of sub-steps per super-timestep for super-timestepping algorithm */
-                double nu_substeps = 0.04; /*!< damping parameter (0<nu<1), optimal behavior around ~1/sqrt[N_substeps] */
-                
-                /*!< pre-calculate the multipliers needed for the super-timestep sub-step */
-                if(SphP[p].Super_Timestep_j == 0) {SphP[p].Super_Timestep_Dt_Explicit = dt_superstep_explicit;} // reset dt_explicit //
-                double j_p_super = (double)(SphP[p].Super_Timestep_j + 1);
-                double dt_superstep = SphP[p].Super_Timestep_Dt_Explicit / ((nu_substeps+1) + (nu_substeps-1) * cos(M_PI * (2*j_p_super - 1) / (2*(double)N_substeps)));
-
-                double dt_touse = dt_superstep;
-                if((dt <= dt_superstep)||(SphP[p].Super_Timestep_j > 0))
-                {
-                    /* if(dt <= dt_superstep): other constraints beat our super-step, so it doesn't matter: iterate */
-                    /* if(SphP[p].Super_Timestep_j > 0): don't break mid-cycle, so iterate */
-                    SphP[p].Super_Timestep_j++; if(SphP[p].Super_Timestep_j>=N_substeps) {SphP[p].Super_Timestep_j=0;} /*!< increment substep 'j' and loop if it cycles fully */
-                } else {
-                    /* ok, j=0 and dt > dt_superstep [the next super-step matters for starting a new cycle]: think about whether to start */
-                    double dt_pred = dt_superstep * All.cf_hubble_a;
-                    if(dt_pred > All.MaxSizeTimestep) {dt_pred = All.MaxSizeTimestep;}
-                    if(dt_pred < All.MinSizeTimestep) {dt_pred = All.MinSizeTimestep;}
-                    /* convert our physical timestep into the dimensionless units of the code */
-                    integertime ti_min=TIMEBASE, ti_step = (integertime) (dt_pred / All.Timebase_interval);
-                    /* check against valid limits */
-                    if(ti_step<=1) {ti_step=2;}
-                    if(ti_step>=TIMEBASE) {ti_step=TIMEBASE-1;}
-                    while(ti_min > ti_step) {ti_min >>= 1;}  /* make it a power 2 subdivision */
-                    ti_step = ti_min;
-                    /* now turn it into a timebin */
-                    int bin = get_timestep_bin(ti_step);
-                    int binold = P[p].TimeBin;
-                    if(bin > binold)  /* timestep wants to increase: check whether it wants to move into a valid timebin */
-                    {
-                        while(TimeBinActive[bin] == 0 && bin > binold) {bin--;} /* make sure the new step is synchronized */
-                    }
-                    /* now convert this -back- to a physical timestep */
-                    double dt_allowed = (bin ? (((integertime) 1) << bin) : 0) * All.Timebase_interval / All.cf_hubble_a;
-                    if(dt_superstep > 1.5*dt_allowed)
-                    {
-                        /* the next allowed timestep [because of synchronization] is not big enough to fit the 'big step' 
-                            part of the super-stepping cycle. rather than 'waste' our timestep which will knock us into a 
-                            lower bin and defeat the super-stepping, we simply take the -safe- explicit timestep and 
-                            wait until the desired time-bin synchs up, so we can super-step */
-                        dt_touse = dt_superstep_explicit; // use the safe [normal explicit] timestep and -do not- cycle j //
-                    } else {
-                        /* ok, we can jump up in bins to use our super-step; begin the cycle! */
-                        SphP[p].Super_Timestep_j++; if(SphP[p].Super_Timestep_j>=N_substeps) {SphP[p].Super_Timestep_j=0;}
-                    }
-                }
-                if(dt < dt_touse) {dt = dt_touse;} // set the actual timestep [now that we've appropriately checked everything above] //
-            }
-#endif
             
         } // closes if(P[p].Type == 0) [gas particle check] //
     
@@ -644,7 +462,32 @@ integertime get_timestep(int p,		/*!< particle index */
                 dt = dt_stellar_evol;
     }
 #endif
+
+#ifdef GALSF_FB_LUPI
+    if(P[p].Type == 4 && All.SNeIIFraction == 0)
+    {
+        double star_age = StellarLifeTime(SNII_MAX_MASS,P[p].Metallicity[0]/LUPI_SOLAR_MET);
+	double current_age = evaluate_stellar_age_Gyr(P[p].StellarAge)*1.e3;
+        double dt_stellar_evol = star_age / All.UnitTime_in_Megayears * All.HubbleParam * 0.1; //1/10th of the stellar lifetime
+	if(dt_stellar_evol>0 && current_age< SNI_MIN_AGE)
+            if(dt_stellar_evol<dt)
+		dt = dt_stellar_evol;
+    }
+#endif
     
+#if defined(GRACKLE_CHEMISTRY) && (GRACKLE_CHEMISTRY>0)
+    if(P[p].Type==0)
+#ifdef GALSF_FB_LUPI
+      if(SphP[p].DelayTimeCoolingSNe<=0.)
+#endif
+      {
+	double dt_cool = CallGrackle(SphP[p].InternalEnergyPred, SphP[p].Density, 0, &(SphP[p].Ne), p, 1);
+       	dt_cool *= All.HubbleParam;
+        if(dt_cool>0)
+            if(dt_cool<0.1*dt)
+                dt=dt_cool;
+      }
+#endif
     
     
 
@@ -666,7 +509,7 @@ integertime get_timestep(int p,		/*!< particle index */
         dt = dt_displacement;
     
     
-    if((dt < All.MinSizeTimestep)||(((integertime) (dt / All.Timebase_interval)) <= 1))
+    if(dt < All.MinSizeTimestep)
     {
 #ifdef STOP_WHEN_BELOW_MINTIMESTEP
         printf("warning: Timestep wants to be below the limit `MinSizeTimestep'\n");
@@ -723,9 +566,6 @@ integertime get_timestep(int p,		/*!< particle index */
                All.Timebase_interval, ti_step, ac,
                P[p].Pos[0], P[p].Pos[1], P[p].Pos[2], P[p].GravAccel[0], P[p].GravAccel[1],
                P[p].GravAccel[2]);
-#ifdef PMGRID
-        printf("pm_force=(%g|%g|%g)\n", P[p].GravPM[0], P[p].GravPM[1], P[p].GravPM[2]);
-#endif
         
         fflush(stdout);
         endrun(818);
@@ -746,7 +586,7 @@ void find_dt_displacement_constraint(double hfac /*!<  should be  a^2*H(a)  */ )
     int i, type;
     int count[6];
     long long count_sum[6];
-    double v[6], v_sum[6], mim[6], mnm[6], min_mass[6], mean_mass[6];
+    double v[6], v_sum[6], mim[6], min_mass[6];
     double dt, dmean, asmth = 0;
     
     dt_displacement = All.MaxSizeTimestep;
@@ -758,46 +598,47 @@ void find_dt_displacement_constraint(double hfac /*!<  should be  a^2*H(a)  */ )
             count[type] = 0;
             v[type] = 0;
             mim[type] = 1.0e30;
-            mnm[type] = 0;
         }
         
         for(i = 0; i < NumPart; i++)
         {
+            v[P[i].Type] += P[i].Vel[0] * P[i].Vel[0] + P[i].Vel[1] * P[i].Vel[1] + P[i].Vel[2] * P[i].Vel[2];
             if(P[i].Mass > 0)
             {
-                count[P[i].Type]++;
-                v[P[i].Type] += P[i].Vel[0] * P[i].Vel[0] + P[i].Vel[1] * P[i].Vel[1] + P[i].Vel[2] * P[i].Vel[2];
-                if(mim[P[i].Type] > P[i].Mass) {mim[P[i].Type] = P[i].Mass;}
-                mnm[P[i].Type] += P[i].Mass;
+                if(mim[P[i].Type] > P[i].Mass)
+                    mim[P[i].Type] = P[i].Mass;
             }
+            count[P[i].Type]++;
         }
         
         MPI_Allreduce(v, v_sum, 6, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
         MPI_Allreduce(mim, min_mass, 6, MPI_DOUBLE, MPI_MIN, MPI_COMM_WORLD);
-        MPI_Allreduce(mnm, mean_mass, 6, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
+        
         sumup_large_ints(6, count, count_sum);
         
+#ifdef SFR
+        /* add star and gas particles together to treat them on equal footing, using the original gas particle spacing. */
+        v_sum[0] += v_sum[4];
+        count_sum[0] += count_sum[4];
+        v_sum[4] = v_sum[0];
+        count_sum[4] = count_sum[0];
+#endif
         
         for(type = 0; type < 6; type++)
         {
             if(count_sum[type] > 0)
             {
+#ifdef GALSF
+                if(type == 0 || type == 4)
+#else
                 if(type == 0)
+#endif
                     dmean = pow(min_mass[type] / (All.OmegaBaryon * 3 * All.Hubble_H0_CodeUnits * All.Hubble_H0_CodeUnits / (8 * M_PI * All.G)), 1.0 / 3);
                 else
                     dmean = pow(min_mass[type] / ((All.Omega0 - All.OmegaBaryon) * 3 * All.Hubble_H0_CodeUnits * All.Hubble_H0_CodeUnits / (8 * M_PI * All.G)), 1.0 / 3);
                 
                 dt = All.MaxRMSDisplacementFac * hfac * dmean / sqrt(v_sum[type] / count_sum[type]);
                 
-#ifdef PMGRID
-                asmth = All.Asmth[0];
-#ifdef PM_PLACEHIGHRESREGION
-                if(((1 << type) & (PM_PLACEHIGHRESREGION)))
-                    asmth = All.Asmth[1];
-#endif
-                if(asmth < dmean)
-                    dt = All.MaxRMSDisplacementFac * hfac * asmth / sqrt(v_sum[type] / count_sum[type]);
-#endif
                 
                 if(ThisTask == 0)
                     printf("type=%d  dmean=%g asmth=%g minmass=%g a=%g  sqrt(<p^2>)=%g  dlogmax=%g\n",
@@ -869,9 +710,9 @@ void process_wake_ups(void)
     
     MPI_Allreduce(&ti_next_kick, &ti_next_kick_global, 1, MPI_INT, MPI_MIN, MPI_COMM_WORLD);
     
-#ifndef IO_REDUCED_MODE
-    if(ThisTask == 0) printf("predicting next timestep: %g\n", (ti_next_kick_global - All.Ti_Current) * All.Timebase_interval);
-#endif
+    if(ThisTask == 0)
+        printf("predicting next timestep: %g\n", (ti_next_kick_global - All.Ti_Current) * All.Timebase_interval);
+    
     max_time_bin_active = 0;
     /* get the highest bin, that is active next time */
     for(n = 0; n < TIMEBINS; n++)
@@ -896,14 +737,13 @@ void process_wake_ups(void)
     
     for(i = 0; i < NumPart; i++)
     {
-#if !defined(ADAPTIVE_GRAVSOFT_FORALL)
-        if(P[i].Type != 0) {continue;} // only gas particles can be awakened
-#endif
+        if(P[i].Type != 0)
+            continue;
         
         if(P[i].Mass <= 0)
             continue;
         
-        if(!PPPZ[i].wakeup)
+        if(!SphP[i].wakeup)
             continue;
         
         binold = P[i].TimeBin;

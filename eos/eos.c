@@ -15,25 +15,14 @@
 /* return the pressure of particle i */
 double get_pressure(int i)
 {
+#if (GRACKLE_CHEMISTRY>=2)
+    MyFloat press = (SphP[i].Gamma - 1) * SphP[i].InternalEnergyPred * Particle_density_for_energy_i(i); /* ideal gas EOS (will get over-written it more complex EOS assumed) */
+#else
     MyFloat press = GAMMA_MINUS1 * SphP[i].InternalEnergyPred * Particle_density_for_energy_i(i); /* ideal gas EOS (will get over-written it more complex EOS assumed) */
-    
-    
-    
-#ifdef EOS_HELMHOLTZ
-    /* pass the necessary quantities to wrappers for the Timms EOS */
-    struct eos_input eos_in;
-    struct eos_output eos_out;
-    eos_in.rho  = SphP[i].Density;
-    eos_in.eps  = SphP[i].InternalEnergyPred;
-    eos_in.Ye   = SphP[i].Ye;
-    eos_in.Abar = SphP[i].Abar;
-    eos_in.temp = SphP[i].Temperature;
-    int ierr = eos_compute(&eos_in, &eos_out);
-    assert(!ierr);
-    press              = eos_out.press;
-    SphP[i].SoundSpeed = eos_out.csound;
-    SphP[i].Temperature= eos_out.temp;
 #endif
+    
+    
+    
 
     
 #ifdef EOS_ENFORCE_ADIABAT

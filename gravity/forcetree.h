@@ -97,15 +97,20 @@ void   ngb_update_nodes(void);
 void   ngb_treesearch_notsee(int no);
 
 int ngb_treefind_fof_primary(MyDouble searchcenter[3], MyFloat hsml, int target, int *startnode, int mode,
-			    int *nexport, int *nsend_local, int MyFOF_PRIMARY_LINK_TYPES);
+			    int *nexport, int *nsend_local, int MyFLAG_NOT_IN_PUBLIC_CODE_PRIMARY_LINK_TYPES);
 int ngb_clear_buf(MyDouble searchcenter[3], MyFloat hguess, int numngb);
 void ngb_treefind_flagexport(MyDouble searchcenter[3], MyFloat hguess);
 
+int ngb_treefind_blackhole(MyDouble searchcenter[3], MyFloat hsml, int target, int *startnode, int mode,
+			  int *nexport, int *nsend_local);
 
+
+int ngb_treefind_pairs(MyDouble searchcenter[3], MyFloat hsml, int target, int *startnode,
+		       int mode, int *nexport, int *nsend_local);
 int ngb_treefind_pairs_threads(MyDouble searchcenter[3], MyFloat hsml, int target, int *startnode,
 		       int mode, int *exportflag, int *exportnodecount, int *exportindex, int *ngblist);		       
-int ngb_treefind_variable_targeted(MyDouble searchcenter[3], MyFloat hsml, int target, int *startnode, int mode,
- 			  int *nexport, int *nsend_local, int TARGET_BITMASK);
+int ngb_treefind_variable(MyDouble searchcenter[3], MyFloat hsml, int target, int *startnode, int mode,
+ 			  int *nexport, int *nsend_local);
 int ngb_treefind_variable_threads(MyDouble searchcenter[3], MyFloat hsml, int target, int *startnode, int mode,
 			  int *exportflag, int *exportnodecount, int *exportindex, int *ngblist);
 

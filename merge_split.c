@@ -32,13 +32,7 @@ int does_particle_need_to_be_merged(int i)
 #ifdef PREVENT_PARTICLE_MERGE_SPLIT
     return 0;
 #else
-#ifdef BH_WIND_SPAWN
-    MyFloat vr2 = P[i].Vel[0]*P[i].Vel[0] + P[i].Vel[1]*P[i].Vel[1] + P[i].Vel[2]*P[i].Vel[2] ;
-    MyFloat r2  = P[i].Pos[0]*P[i].Pos[0] + P[i].Pos[1]*P[i].Pos[1] + P[i].Pos[2]*P[i].Pos[2] ;
-    if( (r2 < 1.0) && (vr2 > All.BAL_v_outflow*All.BAL_v_outflow/100.0)) return 0;
-#endif
     if(P[i].Mass <= 0) return 0;
-    if((P[i].Type>0) && (P[i].Mass > 0.5*All.MinMassForParticleMerger*ref_mass_factor(i))) return 0;
     if(P[i].Mass <= (All.MinMassForParticleMerger* ref_mass_factor(i))) return 1;
     return 0;
 #endif
@@ -52,15 +46,6 @@ int does_particle_need_to_be_split(int i)
 #ifdef PREVENT_PARTICLE_MERGE_SPLIT
     return 0;
 #else
-#ifdef BH_WIND_SPAWN
-    MyFloat vr2 = P[i].Vel[0]*P[i].Vel[0] + P[i].Vel[1]*P[i].Vel[1] + P[i].Vel[2]*P[i].Vel[2] ;
-    MyFloat r2  = P[i].Pos[0]*P[i].Pos[0] + P[i].Pos[1]*P[i].Pos[1] + P[i].Pos[2]*P[i].Pos[2] ;
-    if( (r2 < 1.0) && (vr2 > All.BAL_v_outflow*All.BAL_v_outflow/100.0)) return 0;
-    
-    double fac = All.Time * All.Time / (0.001*0.001 + All.Time * All.Time);
-    if( (P[i].Hsml * fac > sqrt(P[i].min_dist_to_bh+0.005) ) && (All.ExtraRef==1) ) return 1;
-    
-#endif
     if(P[i].Mass >= (All.MaxMassForParticleSplit * ref_mass_factor(i))) return 1;
     return 0;
 #endif
@@ -90,80 +75,15 @@ void merge_and_split_particles(void)
     /* loop over active particles */
     for(i=0; i<NumPart; i++)
     {
-        int Pi_BITFLAG = (1 << (int)P[i].Type); // bitflag for particles of type matching "i", used for restricting neighbor search
-#ifdef PM_HIRES_REGION_CLIPDM
-        /* here we need to check whether a low-res DM particle is surrounded by all high-res particles, 
-            in which case we clip its mass down or split it to prevent the most problematic contamination artifacts */
-        if(((P[i].Type==2)||(P[i].Type==3)||(P[i].Type==5))&&(TimeBinActive[P[i].TimeBin]))
-        {
-#ifdef BLACKHOLES
-            if(P[i].Type==5) continue;
-#endif
-            /* do a neighbor loop ON THE SAME DOMAIN to determine the neighbors */
-            int n_search_min = 32;
-            int n_search_max = 320;
-            double h_search_max = 10. * All.ForceSoftening[P[i].Type];
-            double h_search_min = 0.1 * All.ForceSoftening[P[i].Type];
-            double h_guess; numngb_inbox=0; int NITER=0, NITER_MAX=30;
-#ifdef ADAPTIVE_GRAVSOFT_FORALL
-            h_guess = PPP[i].AGS_Hsml; if(h_guess > h_search_max) {h_search_max=h_guess;} if(h_guess < h_search_min) {h_search_min=h_guess;}
-#else
-            h_guess = 5.0 * All.ForceSoftening[P[i].Type];
-#endif
-            startnode=All.MaxPart; 
-            do {
-                numngb_inbox = ngb_treefind_variable_threads_targeted(P[i].Pos,h_guess,-1,&startnode,0,&dummy,&dummy,&dummy,Ngblist,62); // search for all particle types -except- gas: 62=2^1+2^2+2^3+2^4+2^5
-                if((numngb_inbox < n_search_min) && (h_guess < h_search_max) && (NITER < NITER_MAX))
-                {
-                    h_guess *= 1.27;
-                    startnode=All.MaxPart; // this will trigger the while loop to continue
-                }
-                if((numngb_inbox > n_search_max) && (h_guess > h_search_min) && (NITER < NITER_MAX))
-                {
-                    h_guess /= 1.25;
-                    startnode=All.MaxPart; // this will trigger the while loop to continue
-                }
-                NITER++;
-            } while(startnode >= 0);
-            int do_clipping = 0;
-            if(numngb_inbox >= n_search_min-1) // if can't find enough neighbors, don't clip //
-            {
-                do_clipping = 1;
-                for(n=0; n<numngb_inbox; n++)
-                {
-                    j = Ngblist[n];
-                    if(j == i) {if(numngb_inbox > 1) continue;}
-#ifdef BLACKHOLES
-                    if((P[j].Type == 2) || (P[j].Type == 3))
-#else
-                    if((P[j].Type == 2) || (P[j].Type == 3) || (P[j].Type == 5))
-#endif
-                    {
-                        /* found a neighbor with a low-res particle type, so don't clip this particle */
-                        do_clipping = 0;
-                        break;
-                    }
-                } // for(n=0; n<numngb_inbox; n++)
-            }
-            //printf("Particle %d clipping %d low/hi-res DM: neighbors=%d h_search=%g soft=%g iterations=%d \n",i,do_clipping,numngb_inbox,h_guess,All.ForceSoftening[P[i].Type],NITER);
-            if(do_clipping)
-            {
-                /* ok, the particle has neighbors but is completely surrounded by high-res particles, it should be clipped */
-                printf("Particle %d clipping low/hi-res DM: neighbors=%d h_search=%g soft=%g iterations=%d \n",i,numngb_inbox,h_guess,All.ForceSoftening[P[i].Type],NITER);
-                P[i].Type = 1; // 'graduate' to high-res DM particle
-                P[i].Mass = All.MassOfClippedDMParticles; // set mass to the 'safe' mass of typical high-res particles
-            }
-        }
-#endif
-        
-        if((P[i].Type==0)&&(TimeBinActive[P[i].TimeBin])) /* default mode, only gas particles merged */
+        /* check if we're a gas particle */
+        if((P[i].Type==0)&&(TimeBinActive[P[i].TimeBin]))
         {
             /* we have a gas particle, ask if it needs to be merged */
             if(does_particle_need_to_be_merged(i))
             {
                 /* if merging: do a neighbor loop ON THE SAME DOMAIN to determine the target */
                 startnode=All.MaxPart;
-                numngb_inbox = ngb_treefind_variable_threads_targeted(P[i].Pos,PPP[i].Hsml,-1,&startnode,0,&dummy,&dummy,&dummy,Ngblist,Pi_BITFLAG); // search for particles of matching type
+                numngb_inbox = ngb_treefind_variable_threads(P[i].Pos,PPP[i].Hsml,-1,&startnode,0,&dummy,&dummy,&dummy,Ngblist);
                 if(numngb_inbox>0)
                 {
                     target_for_merger = -1;
@@ -173,7 +93,7 @@ void merge_and_split_particles(void)
                     {
                         j = Ngblist[n];
                         /* make sure we're not taking the same particle (and that its available to be merged into)! */
-                        if((j>=0)&&(j!=i)&&(P[j].Type==P[i].Type)&&(P[j].Mass > P[i].Mass)&&(P[i].Mass+P[j].Mass < All.MaxMassForParticleSplit))
+                        if((j>=0)&&(j!=i)&&(P[j].Type==0)&&(P[j].Mass > P[i].Mass)&&(P[i].Mass+P[j].Mass < All.MaxMassForParticleSplit))
                         {
                             if(P[j].Mass<threshold_val) {threshold_val=P[j].Mass; target_for_merger=j;} // mass-based //
                         }
@@ -187,16 +107,13 @@ void merge_and_split_particles(void)
                 } // if(numngb_inbox>0)
             } // if(does_particle_need_to_be_merged(i))
             /* alright, the particle merger operations are complete! */
-        }
-        
-        /* now ask if the particle needs to be split */
-        if((P[i].Type==0)&&(TimeBinActive[P[i].TimeBin])) /* default mode, only gas particles split */
-        {
+            
+            /* now ask if the particle needs to be split */
             if(does_particle_need_to_be_split(i))
             {
                 /* if splitting: do a neighbor loop ON THE SAME DOMAIN to determine the nearest particle (so dont overshoot it) */
                 startnode=All.MaxPart;
-                numngb_inbox = ngb_treefind_variable_threads_targeted(P[i].Pos,PPP[i].Hsml,-1,&startnode,0,&dummy,&dummy,&dummy,Ngblist,Pi_BITFLAG); // search for particles of matching type
+                numngb_inbox = ngb_treefind_variable_threads(P[i].Pos,PPP[i].Hsml,-1,&startnode,0,&dummy,&dummy,&dummy,Ngblist);
                 if(numngb_inbox>0)
                 {
                     target_for_merger = -1;
@@ -206,7 +123,7 @@ void merge_and_split_particles(void)
                     {
                         j = Ngblist[n];
                         /* make sure we're not taking the same particle */
-                        if((j>=0)&&(j!=i)&&(P[j].Type==P[i].Type))
+                        if((j>=0)&&(j!=i))
                         {
                             double dp[3]; int k; double r2=0;
                             for(k=0;k<3;k++) {dp[k]=P[i].Pos[k]-P[j].Pos[k];}
@@ -219,14 +136,14 @@ void merge_and_split_particles(void)
                     } // for(n=0; n<numngb_inbox; n++)
                     if(target_for_merger>=0)
                     {
-                        /* some neighbors were found, we can trust we're not going to crash the tree by splitting */
+                        /* some neighbors were found, we can true we're not going to crash the tree by splitting */
                         split_particle_i(i, n_particles_split,target_for_merger,threshold_val);
                         n_particles_split++;
                     }
                 } // if(numngb_inbox>0)
             }
             /* alright, particle splitting operations are complete! */
-        } // P[i].Type & active timebin check
+        } // P[i].Type==0
     } // for(i = 0; i < NumPart; i++)
 #ifdef PERIODIC
     /* map the particles back onto the box (make sure they get wrapped if they go off the edges). this is redundant here,
@@ -240,15 +157,11 @@ void merge_and_split_particles(void)
     MPI_Allreduce(&n_particles_split, &MPI_n_particles_split, 1, MPI_INT, MPI_SUM, MPI_COMM_WORLD);
     if(ThisTask == 0)
     {
-        if(MPI_n_particles_merged > 0 || MPI_n_particles_split > 0)
-        {
-            printf("Particle split/merge check: %d particles merged, %d particles split \n", MPI_n_particles_merged,MPI_n_particles_split);
-#ifndef IO_REDUCED_MODE
-            fflush(stdout);
-#endif
-        }
+        printf("Particle split/merge check: %d particles merged, %d particles split \n",
+               MPI_n_particles_merged,MPI_n_particles_split);
+        fflush(stdout);
     }
-    /* the reduction or increase of n_part by MPI_n_particles_merged will occur in rearrange_particle_sequence, which -must-
+    /* the reduction or increase of n_part by MPI_n_particles_merged will occur in rearrange_particle_sequence, which -must- 
         be called immediately after this routine! */
     All.TotNumPart += (long long)MPI_n_particles_split;
     All.TotN_gas += (long long)MPI_n_particles_split;
@@ -269,12 +182,6 @@ void split_particle_i(int i, int n_particles_split, int i_nearest, double r2_nea
         printf ("On Task=%d with NumPart=%d we try to split a particle. Sorry, no space left...(All.MaxPart=%d)\n", ThisTask, NumPart, All.MaxPart);
         fflush(stdout);
         endrun(8888);
-    }
-    if(P[i].Type != 0)
-    {
-        printf("SPLITTING NON-GAS-PARTICLE: i=%d ID=%d Type=%d \n",i,P[i].ID,P[i].Type);
-        fflush(stdout);
-        endrun(8889);
     }
     
     /* here is where the details of the split are coded, the rest is bookkeeping */
@@ -302,10 +209,8 @@ void split_particle_i(int i, int n_particles_split, int i_nearest, double r2_nea
     /* find the first non-gas particle and move it to the end of the particle list */
     long j = NumPart + n_particles_split;
     /* set the pointers equal to one another -- all quantities get copied, we only have to modify what needs changing */
-    P[j] = P[i]; SphP[j] = SphP[i];
-    //memcpy(P[j],P[i],sizeof(struct particle_data)); // safer copy to make sure we don't just end up with a pointer re-direct
-    //memcpy(SphP[j],SphP[i],sizeof(struct sph_particle_data)); // safer copy to make sure we don't just end up with a pointer re-direct
-
+    P[j] = P[i];
+    SphP[j] = SphP[i];
     /* the particle needs to be 'born active' and added to the active set */
     NextActiveParticle[j] = FirstActiveParticle;
     FirstActiveParticle = j;
@@ -327,9 +232,8 @@ void split_particle_i(int i, int n_particles_split, int i_nearest, double r2_nea
     P[i].ID += ((MyIDType) 1 << (sizeof(MyIDType) * 8 - bits));
     */
     // new method: preserve the original "ID" field, but assign a unique -child- ID: this is unique up to ~32 *GENERATIONS* of repeated splitting!
-    P[j].ID_child_number = P[i].ID_child_number + (MyIDType)(1 << ((int)P[i].ID_generation)); // particle 'i' retains its child number; this ensures uniqueness
-    P[i].ID_generation = P[i].ID_generation + 1;
-    if(P[i].ID_generation > 30) {P[i].ID_generation=0;} // roll over at 32 generations (unlikely to ever reach this)
+    P[j].ID_child_number = P[i].ID_child_number + (1 << P[i].ID_generation); // particle 'i' retains its child number; this ensures uniqueness
+    P[i].ID_generation++; if(P[i].ID_generation > 30) {P[i].ID_generation=0;} // roll over at 32 generations (unlikely to ever reach this)
     P[j].ID_generation = P[i].ID_generation; // ok, all set!
     
     /* boost the condition number to be conservative, so we don't trigger madness in the kernel */
@@ -377,6 +281,7 @@ void split_particle_i(int i, int n_particles_split, int i_nearest, double r2_nea
     SphP[j].MassTrue = mass_of_new_particle * SphP[i].MassTrue;
     SphP[i].MassTrue -= SphP[j].MassTrue;
 #endif
+    
     
     /* shift the particle locations according to the random number we drew above */
     double dx, dy, dz;
@@ -428,6 +333,10 @@ void split_particle_i(int i, int n_particles_split, int i_nearest, double r2_nea
     /* this is allowed to push particles over the 'edges' of periodic boxes, because we will call the box-wrapping routine immediately below. 
         but it is important that the periodicity of the box be accounted for in relative positions and that we correct for this before allowing
         any other operations on the particles */
+#ifdef GALSF
+    SphP[j].Sfr /= 2;
+    SphP[i].Sfr /= 2;
+#endif
     
     /* Note: New tree construction can be avoided because of  `force_add_star_to_tree()' */
     force_add_star_to_tree(i, j);// (buggy)
@@ -444,13 +353,6 @@ void split_particle_i(int i, int n_particles_split, int i_nearest, double r2_nea
     particle splitting */
 void merge_particles_ij(int i, int j)
 {
-#ifndef IO_REDUCED_MODE
-    if((P[i].Type != 0)||(P[j].Type != 0))
-    {
-        printf("Merging non-gas particle: ij=%d/%d ID=%d/%d type=%d/%d mass=%g/%g \n",i,j,P[i].ID,P[j].ID,P[i].Type,P[j].Type,P[i].Mass,P[j].Mass);
-        fflush(stdout);
-    }
-#endif
     int k;
     if(P[i].Mass <= 0)
     {
@@ -465,51 +367,10 @@ void merge_particles_ij(int i, int j)
     double mtot = P[j].Mass + P[i].Mass;
     double wt_i = P[i].Mass / mtot;
     double wt_j = P[j].Mass / mtot;
-    
-    // block for merging non-gas particles (much simpler, assume collisionless)
-    if((P[i].Type>0)&&(P[j].Type>0))
-    {
-        double pos_new_xyz[3], dp[3];
-        for(k=0;k<3;k++) {dp[k]=P[j].Pos[k]-P[i].Pos[k];}
-#ifdef PERIODIC
-        NEAREST_XYZ(dp[0],dp[1],dp[2],-1);
-#endif
-        for(k=0;k<3;k++) {pos_new_xyz[k] = P[i].Pos[k] + wt_j * dp[k];}
-        
-        double p_old_i[3],p_old_j[3];
-        for(k=0;k<3;k++)
-        {
-            p_old_i[k] = P[i].Mass * P[i].Vel[k];
-            p_old_j[k] = P[j].Mass * P[j].Vel[k];
-        }
-        for(k=0;k<3;k++)
-        {
-            P[j].Pos[k] = pos_new_xyz[k]; // center-of-mass conserving //
-            P[j].Vel[k] = wt_j*P[j].Vel[k] + wt_i*P[i].Vel[k]; // momentum-conserving //
-            P[j].GravAccel[k] = wt_j*P[j].GravAccel[k] + wt_i*P[i].GravAccel[k]; // force-conserving //
-#ifdef PMGRID
-            P[j].GravPM[k] = wt_j*P[j].GravPM[k] + wt_i*P[i].GravPM[k]; // force-conserving //
-#endif
-        }
-        PPP[j].Hsml = pow(pow(PPP[j].Hsml,NUMDIMS)+pow(PPP[i].Hsml,NUMDIMS),1.0/NUMDIMS);
-        /* finally zero out the particle mass so it will be deleted */
-        P[i].Mass = 0;
-        P[j].Mass = mtot;
-        for(k=0;k<3;k++)
-        {
-            /* momentum shift for passing to tree (so we know how to move it) */
-            P[i].dp[k] += P[i].Mass*P[i].Vel[k] - p_old_i[k];
-            P[j].dp[k] += P[j].Mass*P[j].Vel[k] - p_old_j[k];
-        }
-        return;
-    } // closes merger of non-gas particles, only gas particles will see the blocks below //
-    
-    
-    // now we have to deal with gas particle mergers //
     if(P[i].TimeBin < P[j].TimeBin)
     {
 #ifdef WAKEUP
-        PPPZ[j].wakeup = 1;
+        SphP[j].wakeup = 1;
 #endif
     }
     double dm_i=0,dm_j=0,de_i=0,de_j=0,dp_i[3],dp_j[3],dm_ij,de_ij,dp_ij[3];
@@ -559,10 +420,6 @@ void merge_particles_ij(int i, int j)
         // Egrav = m*g*h = m * (-grav_acc) * (position relative to zero point) //
         egy_old += mtot*wt_j * (P[i].Pos[k]+dp[k] - pos_new_xyz[k])*All.cf_atime * (-P[j].GravAccel[k])*All.cf_a2inv; // work (j) //
         egy_old += mtot*wt_i * (P[i].Pos[k] - pos_new_xyz[k])*All.cf_atime * (-P[i].GravAccel[k])*All.cf_a2inv; // work (i) //
-#ifdef PMGRID
-        egy_old += mtot*wt_j * (P[i].Pos[k]+dp[k] - pos_new_xyz[k])*All.cf_atime * (-P[j].GravPM[k])*All.cf_a2inv; // work (j) [PMGRID] //
-        egy_old += mtot*wt_i * (P[i].Pos[k] - pos_new_xyz[k])*All.cf_atime * (-P[i].GravPM[k])*All.cf_a2inv; // work (i) [PMGRID] //
-#endif
 #ifdef HYDRO_MESHLESS_FINITE_VOLUME
         SphP[j].GravWorkTerm[k] = 0; // since we're accounting for the work above and dont want to accidentally double-count //
 #endif
@@ -583,9 +440,6 @@ void merge_particles_ij(int i, int j)
         P[j].Vel[k] = wt_j*P[j].Vel[k] + wt_i*P[i].Vel[k]; // momentum-conserving //
         SphP[j].VelPred[k] = wt_j*SphP[j].VelPred[k] + wt_i*SphP[i].VelPred[k]; // momentum-conserving //
         P[j].GravAccel[k] = wt_j*P[j].GravAccel[k] + wt_i*P[i].GravAccel[k]; // force-conserving //
-#ifdef PMGRID
-        P[j].GravPM[k] = wt_j*P[j].GravPM[k] + wt_i*P[i].GravPM[k]; // force-conserving //
-#endif
     }
 #ifdef MAGNETIC
     // we evolve the conservative variables VB and Vpsi, these should simply add in particle-merge operations //
@@ -628,7 +482,40 @@ void merge_particles_ij(int i, int j)
 #endif
     
     // below, we need to take care of additional physics //
-    
+#if defined(FLAG_NOT_IN_PUBLIC_CODE) || defined(GRACKLE_OPTS)
+    for(k=0;k<NUM_METAL_SPECIES;k++)
+        P[j].Metallicity[k] = wt_j*P[j].Metallicity[k] + wt_i*P[i].Metallicity[k]; /* metal-mass conserving */
+#endif
+#if defined(GRACKLE_CHEMISTRY)
+#if (GRACKLE_CHEMISTRY>0)
+    SphP[j].grHI    = wt_j*SphP[j].grHI    + wt_i*SphP[i].grHI;
+    SphP[j].grHII   = wt_j*SphP[j].grHII   + wt_i*SphP[i].grHII;
+    SphP[j].grHeI   = wt_j*SphP[j].grHeI   + wt_i*SphP[i].grHeI;
+    SphP[j].grHeII  = wt_j*SphP[j].grHeII  + wt_i*SphP[i].grHeII;
+    SphP[j].grHeIII = wt_j*SphP[j].grHeIII + wt_i*SphP[i].grHeIII;
+    SphP[j].grHM    = wt_j*SphP[j].grHM    + wt_i*SphP[i].grHM;
+#endif
+#if (GRACKLE_CHEMISTRY>1)
+    SphP[j].grH2I  = wt_j*SphP[j].grH2I  + wt_i*SphP[i].grH2I;
+    SphP[j].grH2II = wt_j*SphP[j].grH2II + wt_i*SphP[i].grH2II;
+    SphP[j].Gamma  = wt_j*SphP[j].Gamma  + wt_i*SphP[i].Gamma;
+#endif
+#if (GRACKLE_CHEMISTRY>2)
+    SphP[j].grDI  = wt_j*SphP[j].grDI  + wt_i*SphP[i].grDI;
+    SphP[j].grDII = wt_j*SphP[j].grDII + wt_i*SphP[i].grDII;
+    SphP[j].grHDI = wt_j*SphP[j].grHDI + wt_i*SphP[i].grHDI;
+#endif
+#endif
+#ifdef GALSF_FB_LUPI
+/*  //old runs
+    if(SphP[i].DelayTime>0 && SphP[j].DelayTime>0)
+        SphP[j].DelayTime=DMIN(SphP[i].DelayTime,SphP[j].DelayTime);
+    else
+        SphP[j].DelayTime=DMAX(SphP[i].DelayTime,SphP[j].DelayTime);*/
+    SphP[j].DelayTimeCoolingSNe = wt_j*DMAX(SphP[j].DelayTimeCoolingSNe,0) + wt_i*DMAX(SphP[i].DelayTimeCoolingSNe,0);
+#endif
+
+
     /* finally zero out the particle mass so it will be deleted */
     P[i].Mass = 0;
     P[j].Mass = mtot;
@@ -638,6 +525,10 @@ void merge_particles_ij(int i, int j)
         P[i].dp[k] += P[i].Mass*P[i].Vel[k] - p_old_i[k];
         P[j].dp[k] += P[j].Mass*P[j].Vel[k] - p_old_j[k];
     }
+
+#ifdef GALSF
+    SphP[j].Sfr = get_starformation_rate(j);
+#endif
     /* call the pressure routine to re-calculate pressure (and sound speeds) as needed */
     SphP[j].Pressure = get_pressure(j);
     return;
@@ -670,6 +561,14 @@ void rearrange_particle_sequence(void)
         Gas_split = 0;
         do_loop_check = 1;
     }
+#ifdef GALSF
+    if(Stars_converted)
+    {
+        N_gas -= Stars_converted;
+        Stars_converted = 0;
+        do_loop_check = 1;
+    }
+#endif
     if(NumPart <= N_gas) do_loop_check=0;
     if(N_gas <= 0) do_loop_check=0;
     
@@ -742,13 +641,9 @@ void rearrange_particle_sequence(void)
     
     if(ThisTask == 0)
     {
-        if(tot_elim > 0)
-        {
-        printf("Rearrange: Eliminated %d/%d gas/star particles and merged away %d black holes.\n", tot_gaselim, tot_elim - tot_gaselim - tot_bhelim, tot_bhelim);
-#ifndef IO_REDUCED_MODE
+        printf("Rearrange: Eliminated %d/%d gas/star particles and merged away %d black holes.\n",
+               tot_gaselim, tot_elim - tot_gaselim - tot_bhelim, tot_bhelim);
         fflush(stdout);
-#endif
-        }
     }
     
     All.TotNumPart -= tot_elim;

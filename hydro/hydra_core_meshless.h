@@ -16,20 +16,22 @@
     /* define volume elements and interface position */
     /* --------------------------------------------------------------------------------- */
     V_j = P[j].Mass / SphP[j].Density;
+    /*
+#if defined(HYDRO_MESHLESS_FINITE_VOLUME) || defined(CONSTRAINED_GRADIENT_MHD)
     s_star_ij = 0;
-    //
-#if !defined(CONSTRAINED_GRADIENT_MHD)
-     //s_star_ij = 0.5 * kernel.r * (PPP[j].Hsml - local.Hsml) / (local.Hsml + PPP[j].Hsml); // old test, doesn't account for Hsml changing for condition number reasons
-     //s_star_ij = 0.5 * kernel.r * (local.Density - SphP[j].Density) / (local.Density + SphP[j].Density); // frame with zero mass flux in a first-order reconstruction //
+#else
+    s_star_ij = 0.5 * kernel.r * (PPP[j].Hsml - local.Hsml) / (local.Hsml + PPP[j].Hsml);
 #endif
-    //
+    */
+    s_star_ij = 0;
     /* ------------------------------------------------------------------------------------------------------------------- */
     /* now we're ready to compute the volume integral of the fluxes (or equivalently an 'effective area'/face orientation) */
     /* ------------------------------------------------------------------------------------------------------------------- */
     double wt_i,wt_j;
+#ifdef AGGRESSIVE_SLOPE_LIMITERS
     wt_i=V_i; wt_j=V_j;
-#if (!defined(FLAG_NOT_IN_PUBLIC_CODE) || (SLOPE_LIMITER_TOLERANCE == 0)) && (SLOPE_LIMITER_TOLERANCE != 2)
-#if defined(FLAG_NOT_IN_PUBLIC_CODE) || (SLOPE_LIMITER_TOLERANCE==0)
+#else
+#ifdef COOLING
     //wt_i=wt_j = 2.*V_i*V_j / (V_i + V_j); // more conservatively, could use DMIN(V_i,V_j), but that is less accurate
     if((fabs(V_i-V_j)/DMIN(V_i,V_j))/NUMDIMS > 1.25) {wt_i=wt_j=2.*V_i*V_j/(V_i+V_j);} else {wt_i=V_i; wt_j=V_j;}
 #else
@@ -37,27 +39,26 @@
     if((fabs(V_i-V_j)/DMIN(V_i,V_j))/NUMDIMS > 1.50) {wt_i=wt_j=(V_i*PPP[j].Hsml+V_j*local.Hsml)/(local.Hsml+PPP[j].Hsml);} else {wt_i=V_i; wt_j=V_j;}
 #endif
 #endif
-    /* the effective gradient matrix is well-conditioned: we can safely use the consistent EOM */
-    // note the 'default' formulation from Lanson and Vila takes wt_i=V_i, wt_j=V_j; but this assumes negligible variation in h between particles;
-    //      it is more accurate to use a centered wt (centered face area), which we get by linear interpolation //
-    double facenormal_dot_dp = 0;
-    for(k=0;k<3;k++)
+    if(SphP[j].ConditionNumber*SphP[j].ConditionNumber > 1.0e12 + cnumcrit2)
     {
-        Face_Area_Vec[k] = kernel.wk_i * wt_i * (local.NV_T[k][0]*kernel.dp[0] + local.NV_T[k][1]*kernel.dp[1] + local.NV_T[k][2]*kernel.dp[2])
-                         + kernel.wk_j * wt_j * (SphP[j].NV_T[k][0]*kernel.dp[0] + SphP[j].NV_T[k][1]*kernel.dp[1] + SphP[j].NV_T[k][2]*kernel.dp[2]);
-        Face_Area_Vec[k] *= All.cf_atime*All.cf_atime; /* Face_Area_Norm has units of area, need to convert to physical */
-        Face_Area_Norm += Face_Area_Vec[k]*Face_Area_Vec[k];
-        facenormal_dot_dp += Face_Area_Vec[k] * kernel.dp[k]; /* check that face points same direction as vector normal: should be true for positive-definite (well-conditioned) NV_T */
-    }
-    if((SphP[j].ConditionNumber*SphP[j].ConditionNumber > 1.0e12 + cnumcrit2) || (facenormal_dot_dp < 0))
-    {
-        /* the effective gradient matrix is ill-conditioned (or not positive-definite!): for stability, we revert to the "RSPH" EOM */
+        /* the effective gradient matrix is ill-conditioned: for stability, we revert to the "RSPH" EOM */
         Face_Area_Norm = -(wt_i*V_i*kernel.dwk_i + wt_j*V_j*kernel.dwk_j) / kernel.r;
         Face_Area_Norm *= All.cf_atime*All.cf_atime; /* Face_Area_Norm has units of area, need to convert to physical */
         Face_Area_Vec[0] = Face_Area_Norm * kernel.dp[0];
         Face_Area_Vec[1] = Face_Area_Norm * kernel.dp[1];
         Face_Area_Vec[2] = Face_Area_Norm * kernel.dp[2];
         Face_Area_Norm = Face_Area_Norm * Face_Area_Norm * r2;
+    } else {
+        /* the effective gradient matrix is well-conditioned: we can safely use the consistent EOM */
+        // note the 'default' formulation from Lanson and Vila takes wt_i=V_i, wt_j=V_j; but this assumes negligible variation in h between particles;
+        //      it is more accurate to use a centered wt (centered face area), which we get by linear interpolation //
+        for(k=0;k<3;k++)
+        {
+            Face_Area_Vec[k] = kernel.wk_i * wt_i * (local.NV_T[k][0]*kernel.dp[0] + local.NV_T[k][1]*kernel.dp[1] + local.NV_T[k][2]*kernel.dp[2])
+                       + kernel.wk_j * wt_j * (SphP[j].NV_T[k][0]*kernel.dp[0] + SphP[j].NV_T[k][1]*kernel.dp[1] + SphP[j].NV_T[k][2]*kernel.dp[2]);
+            Face_Area_Vec[k] *= All.cf_atime*All.cf_atime; /* Face_Area_Norm has units of area, need to convert to physical */
+            Face_Area_Norm += Face_Area_Vec[k]*Face_Area_Vec[k];
+        }
     }
     if(Face_Area_Norm == 0)
     {
@@ -71,32 +72,11 @@
         {
             printf("PANIC! Face_Area_Norm=%g Mij=%g/%g wk_ij=%g/%g Vij=%g/%g dx/dy/dz=%g/%g/%g NVT=%g/%g/%g NVT_j=%g/%g/%g \n",Face_Area_Norm,local.Mass,P[j].Mass,kernel.wk_i,
                    kernel.wk_j,V_i,V_j,kernel.dp[0],kernel.dp[1],kernel.dp[2],local.NV_T[0][0],local.NV_T[0][1],local.NV_T[0][2],SphP[j].NV_T[0][0],SphP[j].NV_T[0][1],
-                   SphP[j].NV_T[0][2]);
-            fflush(stdout);
+                   SphP[j].NV_T[0][2]);fflush(stdout);
         }
         Face_Area_Norm = sqrt(Face_Area_Norm);
         for(k=0;k<3;k++) {n_unit[k] = Face_Area_Vec[k] / Face_Area_Norm;}
         
-#ifndef PROTECT_FROZEN_FIRE
-        /* check if face area exceeds maximum geometric allowed limit (can occur when particles with -very- different
-            Hsml interact at the edge of the kernel, must be limited to geometric max to prevent numerical instability */
-        double Amax = Amax_i; // minimum of area "i" or area "j": this is "i"
-        if(V_j < V_i) // if Vj<Vi, Aj<Ai, so we need to use A_j
-        {
-#if (NUMDIMS==2)
-            Amax = 2. * sqrt(V_j/M_PI); // 2d Aj
-#endif
-#if (NUMDIMS==3)
-            Amax = M_PI * pow((3.*V_j)/(4.*M_PI), 2./3.); // 3d Aj
-#endif
-        }
-        Amax *= 2.0;
-        if(Face_Area_Norm > Amax)
-        {
-            Face_Area_Norm = Amax; /* set the face area to the maximum limit, and reset the face vector as well */
-            for(k=0;k<3;k++) {Face_Area_Vec[k] = n_unit[k] * Face_Area_Norm;} /* direction is preserved, just area changes */
-        }
-#endif
 
         /* --------------------------------------------------------------------------------- */
         /* extrapolate the conserved quantities to the interaction face between the particles */
@@ -122,44 +102,23 @@
         for(k=0;k<3;k++) {v_frame[k] = rinv * (-s_i*VelPred_j[k] + s_j*local.Vel[k]);} // allows for face to be off-center (to second-order)
         // (note that in the above, the s_i/s_j terms are crossed with the opposing velocity terms: this is because the face is closer to the
         //   particle with the smaller smoothing length; so it's values are slightly up-weighted //
-    
-        /* we need the face velocities, dotted into the face vector, for correction back to the lab frame */
-        for(k=0;k<3;k++) {face_vel_i+=local.Vel[k]*n_unit[k]; face_vel_j+=VelPred_j[k]*n_unit[k];}
-        face_vel_i /= All.cf_atime; face_vel_j /= All.cf_atime;
-        face_area_dot_vel = rinv*(-s_i*face_vel_j + s_j*face_vel_i);
-        
-        /* also will need approach velocities to determine maximum upwind pressure */
-        double v2_approach = 0;
-        double vdotr2_phys = kernel.vdotr2;
-        if(All.ComovingIntegrationOn) {vdotr2_phys -= All.cf_hubble_a2 * r2;}
-        vdotr2_phys *= 1/(kernel.r * All.cf_atime);
-        if(vdotr2_phys < 0) {v2_approach = vdotr2_phys*vdotr2_phys;}
-        double vdotf2_phys = face_vel_i - face_vel_j; // need to be careful of sign here //
-        if(vdotf2_phys < 0) {v2_approach = DMAX( v2_approach , vdotf2_phys*vdotf2_phys );}
         
         
         /* now we do the reconstruction (second-order reconstruction at the face) */
-        int recon_mode = 1; // default to 'normal' reconstruction: some special physics will set this to zero for low-order reconstructions
-#ifdef BH_WIND_SPAWN
-        if((P[j].ID==All.AGNWindID)||(local.ConditionNumber<0)) {recon_mode = 0;} // one of the particles is a wind particle: use a low-order reconstruction for safety
-#endif
-#if defined(FLAG_NOT_IN_PUBLIC_CODE) || defined(FLAG_NOT_IN_PUBLIC_CODE)
-        if(fabs(vdotr2_phys)*All.UnitVelocity_in_cm_per_s > 1.0e8) {recon_mode = 0;} // particle approach/recession velocity > 1000 km/s: be extra careful here!
-#endif
         reconstruct_face_states(local.Density, local.Gradients.Density, SphP[j].Density, SphP[j].Gradients.Density,
-                                distance_from_i, distance_from_j, &Riemann_vec.L.rho, &Riemann_vec.R.rho, recon_mode);
+                                distance_from_i, distance_from_j, &Riemann_vec.L.rho, &Riemann_vec.R.rho, 1);
         reconstruct_face_states(local.Pressure, local.Gradients.Pressure, SphP[j].Pressure, SphP[j].Gradients.Pressure,
-                                distance_from_i, distance_from_j, &Riemann_vec.L.p, &Riemann_vec.R.p, recon_mode);
+                                distance_from_i, distance_from_j, &Riemann_vec.L.p, &Riemann_vec.R.p, 1);
 #ifdef EOS_GENERAL
         reconstruct_face_states(local.InternalEnergyPred, local.Gradients.InternalEnergy, SphP[j].InternalEnergyPred, SphP[j].Gradients.InternalEnergy,
-                                distance_from_i, distance_from_j, &Riemann_vec.L.u, &Riemann_vec.R.u, recon_mode);
+                                distance_from_i, distance_from_j, &Riemann_vec.L.u, &Riemann_vec.R.u, 1);
         reconstruct_face_states(kernel.sound_i, local.Gradients.SoundSpeed, kernel.sound_j, SphP[j].Gradients.SoundSpeed,
-                                distance_from_i, distance_from_j, &Riemann_vec.L.cs, &Riemann_vec.R.cs, recon_mode);
+                                distance_from_i, distance_from_j, &Riemann_vec.L.cs, &Riemann_vec.R.cs, 1);
 #endif
         for(k=0;k<3;k++)
         {
             reconstruct_face_states(local.Vel[k]-v_frame[k], local.Gradients.Velocity[k], VelPred_j[k]-v_frame[k], SphP[j].Gradients.Velocity[k],
-                                    distance_from_i, distance_from_j, &Riemann_vec.L.v[k], &Riemann_vec.R.v[k], recon_mode);
+                                    distance_from_i, distance_from_j, &Riemann_vec.L.v[k], &Riemann_vec.R.v[k], 1);
         }
 #ifdef MAGNETIC
         int slim_mode = 1;
@@ -176,7 +135,6 @@
                                 distance_from_i, distance_from_j, &Riemann_vec.L.phi, &Riemann_vec.R.phi, 2);
 #endif
 #endif
-        
 
 #ifdef DO_HALFSTEP_FOR_MESHLESS_METHODS
         /* advance the faces a half-step forward in time (given our leapfrog scheme, this actually has
@@ -191,14 +149,37 @@
             Riemann_vec.L.p -= dt_half * GAMMA * SphP[j].Pressure * SphP[j].Gradients.Velocity[k][k];
             double dv_l_half = -dt_half * local.Gradients.Pressure[k] / local.Density;
             double dv_r_half = -dt_half * SphP[j].Gradients.Pressure[k] / SphP[j].Density;
+            /* // this part doesn't need to be done, because our derivatives are co-moving; but if they are not, use it //
+             Riemann_vec.R.rho -= dt_half * (local.Vel[k]-v_frame[k]) * local.Gradients.Density[k];
+             Riemann_vec.L.rho -= dt_half * (VelPred_j[k]-v_frame[k]) * SphP[j].Gradients.Density[k];
+             Riemann_vec.R.p -= dt_half * (local.Vel[k]-v_frame[k]) * local.Gradients.Pressure[k];
+             Riemann_vec.L.p -= dt_half * (VelPred_j[k]-v_frame[k]) * SphP[j].Gradients.Pressure[k];
+             for(int kx=0;kx<3;kx++)
+             {
+                dv_r_half -= dt_half * (local.Vel[kx]-v_frame[kx]) * local.Gradients.Velocity[k][kx];
+                dv_l_half -= dt_half * (VelPred_j[kx]-v_frame[kx]) * SphP[j].Gradients.Velocity[k][kx];
+             }
+            */
             Riemann_vec.R.v[k] += 0.5 * (dv_l_half - dv_r_half);
             Riemann_vec.L.v[k] += 0.5 * (dv_r_half - dv_l_half);
-            v_frame[k] += 0.5*(dv_l_half + dv_r_half);
+            v_frame[k] += 0.5*(dv_l_half + dv_l_half);
         }
 #endif
         
-       
-        /* estimate maximum upwind pressure */
+        /* we need the face velocities, dotted into the face vector, for correction back to the lab frame */
+        for(k=0;k<3;k++) {face_vel_i+=local.Vel[k]*n_unit[k]; face_vel_j+=VelPred_j[k]*n_unit[k];}
+        face_vel_i /= All.cf_atime; face_vel_j /= All.cf_atime;
+        face_area_dot_vel = rinv*(-s_i*face_vel_j + s_j*face_vel_i);
+
+        /* also will need approach velocities to determine maximum upwind pressure */
+        double v2_approach = 0;
+        double vdotr2_phys = kernel.vdotr2;
+        if(All.ComovingIntegrationOn) {vdotr2_phys -= All.cf_hubble_a2 * r2;}
+        vdotr2_phys *= 1/(kernel.r * All.cf_atime);
+        if(vdotr2_phys < 0) {v2_approach = vdotr2_phys*vdotr2_phys;}
+        double vdotf2_phys = face_vel_i - face_vel_j; // need to be careful of sign here //
+        if(vdotf2_phys < 0) {v2_approach = DMAX( v2_approach , vdotf2_phys*vdotf2_phys );}
+        
         double press_i_tot = local.Pressure + local.Density * v2_approach;
         double press_j_tot = SphP[j].Pressure + SphP[j].Density * v2_approach;
 #ifdef MAGNETIC
@@ -214,10 +195,9 @@
 #ifdef EOS_GENERAL
         press_tot_limiter *= 2.0;
 #endif
-#if (SLOPE_LIMITER_TOLERANCE==2)
+#ifdef AGGRESSIVE_SLOPE_LIMITERS
         press_tot_limiter *= 100.0; // large number
 #endif
-        if(recon_mode==0) {press_tot_limiter = DMAX(press_tot_limiter , DMAX(DMAX(local.Pressure,SphP[j].Pressure),2.*DMAX(local.Density,SphP[j].Density)*v2_approach));}
         
         
         /* --------------------------------------------------------------------------------- */
@@ -225,10 +205,6 @@
         /* --------------------------------------------------------------------------------- */
         Riemann_solver(Riemann_vec, &Riemann_out, n_unit, press_tot_limiter);
         /* before going on, check to make sure we have a valid Riemann solution */
-#ifdef BH_WIND_SPAWN
-        // check if two wind-spawned particles found each other
-        //if((P[j].ID==All.AGNWindID)&&(local.ConditionNumber<0)) {Riemann_out.P_M=1.e-20; Riemann_out.S_M=0.; Face_Area_Norm=0.; for(k=0;k<3;k++) {Face_Area_Vec[k]=0.;}}
-#endif
         if((Riemann_out.P_M<0)||(isnan(Riemann_out.P_M))||(Riemann_out.P_M>1.4*press_tot_limiter))
         {
             /* go to a linear reconstruction of P, rho, and v, and re-try */
@@ -246,7 +222,7 @@
             Riemann_vec.R.cs = kernel.sound_i; Riemann_vec.L.cs = kernel.sound_j;
 #endif
             Riemann_solver(Riemann_vec, &Riemann_out, n_unit, 1.4*press_tot_limiter);
-            if((Riemann_out.P_M<0)||(isnan(Riemann_out.P_M)))
+            if((Riemann_out.P_M<0)||(isnan(Riemann_out.P_M))||(Riemann_out.P_M>2.0*press_tot_limiter))
             {
                 /* ignore any velocity difference between the particles: this should gaurantee we have a positive pressure! */
                 Riemann_vec.R.p = local.Pressure; Riemann_vec.L.p = SphP[j].Pressure;
@@ -285,22 +261,20 @@
             }
         } // closes loop of alternative reconstructions if invalid pressures are found //
         
+        
         /* --------------------------------------------------------------------------------- */
         /* Calculate the fluxes (EQUATION OF MOTION) -- all in physical units -- */
         /* --------------------------------------------------------------------------------- */
         if((Riemann_out.P_M>0)&&(!isnan(Riemann_out.P_M)))
         {
             if(All.ComovingIntegrationOn) {for(k=0;k<3;k++) v_frame[k] /= All.cf_atime;}
-#ifdef TURB_DIFF_METALS
-            mdot_estimated = Riemann_out.Mdot_estimated * Face_Area_Norm;
-#endif            
             
 #if defined(HYDRO_MESHLESS_FINITE_MASS) && !defined(MAGNETIC)
             double facenorm_pm = Face_Area_Norm * Riemann_out.P_M;
             for(k=0;k<3;k++) {Fluxes.v[k] = facenorm_pm * n_unit[k];} /* total momentum flux */
             Fluxes.p = facenorm_pm * (Riemann_out.S_M + face_area_dot_vel); // default: total energy flux = v_frame.dot.mom_flux //
             
-#if (SLOPE_LIMITER_TOLERANCE < 2)
+#ifndef AGGRESSIVE_SLOPE_LIMITERS
             /* for MFM, do the face correction for adiabatic flows here */
             int use_entropic_energy_equation = 0;
             double du_new = 0;
@@ -313,8 +287,7 @@
                 double PdV_j = kernel.dwk_j * V_j*V_j * PPP[j].DhsmlNgbFactor * PdV_fac;
                 du_new = 0.5 * (PdV_i - PdV_j + facenorm_pm * (face_vel_i+face_vel_j));
                 // check if, for the (weakly) diffusive case, heat is (correctly) flowing from hot to cold after particle averaging (flux-limit) //
-                double cnum2 = SphP[j].ConditionNumber*SphP[j].ConditionNumber;
-                if(SM_over_ceff > epsilon_entropic_eos_small && cnum2 < cnumcrit2)
+                if(SM_over_ceff > epsilon_entropic_eos_small)
                 {
                     double du_old = facenorm_pm * (Riemann_out.S_M + face_area_dot_vel);
                     if(local.Pressure/local.Density > SphP[j].Pressure/SphP[j].Density)
@@ -328,10 +301,10 @@
                             if(dtoi > du_new-facenorm_pm*face_vel_i) {use_entropic_energy_equation=0;}}
                     }
                 }
-                if(cnum2 >= cnumcrit2) {use_entropic_energy_equation=1;}
                 // alright, if we've come this far, we need to subtract -off- the thermal energy part of the flux, and replace it //
-                if(use_entropic_energy_equation) {Fluxes.p = du_new;}
             }
+            if(SphP[j].ConditionNumber*SphP[j].ConditionNumber > cnumcrit2) {use_entropic_energy_equation=1;}
+            if(use_entropic_energy_equation) {Fluxes.p = du_new;}
 #endif
             
 #else
@@ -371,7 +344,7 @@
 #endif
 #endif // MAGNETIC
 
-#if defined(HYDRO_MESHLESS_FINITE_MASS) && (SLOPE_LIMITER_TOLERANCE < 2)
+#if defined(HYDRO_MESHLESS_FINITE_MASS) && !defined(AGGRESSIVE_SLOPE_LIMITERS)
             /* for MFM, do the face correction for adiabatic flows here */
             double SM_over_ceff = fabs(Riemann_out.S_M) / DMIN(kernel.sound_i,kernel.sound_j); // for now use sound speed here (more conservative) vs magnetosonic speed //
             /* if SM is sufficiently large, we do nothing to the equations */
@@ -390,8 +363,7 @@
                 double du_old = facenorm_pm * (Riemann_out.S_M + face_area_dot_vel);
                 double du_new = 0.5 * (PdV_i - PdV_j + facenorm_pm * (face_vel_i+face_vel_j));
                 // more detailed check for intermediate cases //
-                double cnum2 = SphP[j].ConditionNumber*SphP[j].ConditionNumber;
-                if(SM_over_ceff > epsilon_entropic_eos_small && cnum2 < cnumcrit2)
+                if(SM_over_ceff > epsilon_entropic_eos_small)
                 {
                     if(local.Pressure/local.Density > SphP[j].Pressure/SphP[j].Density)
                     {
@@ -404,7 +376,7 @@
                             if(dtoi > du_new-facenorm_pm*face_vel_i) {use_entropic_energy_equation=0;}}
                     }
                 }
-                if(cnum2 >= cnumcrit2) {use_entropic_energy_equation=1;}
+                if(SphP[j].ConditionNumber*SphP[j].ConditionNumber > cnumcrit2) {use_entropic_energy_equation=1;}
                 // alright, if we've come this far, we need to subtract -off- the thermal energy part of the flux, and replace it //
                 if(use_entropic_energy_equation) {Fluxes.p += du_new - du_old;}
             }

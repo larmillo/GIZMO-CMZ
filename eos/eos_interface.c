@@ -13,9 +13,6 @@
 #include "eos.h"
 #include "../allvars.h"
 
-#ifdef EOS_HELMHOLTZ
-#include "helmholtz/helm_wrap.h"
-#endif
 
 #define BITMASK_SET_FLAG(BITMASK,FLAG)      (BITMASK) |= (FLAG)
 #define BITMASK_SET_ALL_FLAGS(BITMASK)      (BITMASK = ~(0))
@@ -44,9 +41,6 @@ int eos_init(char const * eos_table_fname)
     fprintf(stderr, "Could not read \"%s\"\n", eos_table_fname);
     return 1;
   }
-#ifdef EOS_HELMHOLTZ
-  helm_read_table_c(eos_table_fname);
-#endif
   return 0;
 }
 
@@ -132,91 +126,12 @@ static int eos_validate(struct eos_input const * vars, struct eos_input * vars_a
   *bitmask = EOS_ERR_VALID;
   memcpy(vars_adj, vars, sizeof(*vars));
 
-#ifdef EOS_HELMHOLTZ
-  if(vars->Ye < 0)
-  {
-    BITMASK_SET_FLAG(*bitmask, EOS_ERR_COMPOSITION);
-    vars_adj->Ye = 0;
-  }
-  if(vars->Ye > 1)
-  {
-    BITMASK_SET_FLAG(*bitmask, EOS_ERR_COMPOSITION);
-    vars_adj->Ye = 1;
-  }
-  if(vars->Abar < 1)
-  {
-    BITMASK_SET_FLAG(*bitmask, EOS_ERR_COMPOSITION);
-    vars_adj->Abar = 1;
-  }
- 
-  double rho_ye_min, rho_ye_max;
-  helm_range_rho_ye_c(&rho_ye_min, &rho_ye_max);
-  if(vars->rho * vars_adj->Ye < rho_ye_min)
-  {
-    BITMASK_SET_FLAG(*bitmask, EOS_ERR_RHO_LT_RHOMIN);
-    vars_adj->rho = rho_ye_min / vars_adj->Ye;
-  }
-  if(vars->rho * vars_adj->Ye > rho_ye_max)
-  {
-    BITMASK_SET_FLAG(*bitmask, EOS_ERR_RHO_GT_RHOMAX);
-    vars_adj->rho = rho_ye_max / vars_adj->Ye;
-  }
-
-#ifdef _OPENMP
-  int rank = omp_get_thread_num();
-#else
-  int rank = 0;
-#endif
-  int fail;
-  double eps_min, eps_max;
-  helm_range_eps_c(&rank, &vars_adj->rho, &vars_adj->Abar, &vars_adj->Ye, &eps_min,
-      &eps_max, &fail);
-  if(fail)
-  {
-    fprintf(stderr, "%s:%d unexpected EOS failure!\n", __FILE__, __LINE__);
-    return 1;
-  }
-  if(vars->eps < eps_min)
-  {
-    BITMASK_SET_FLAG(*bitmask, EOS_ERR_EPS_LT_EPSMIN);
-    vars_adj->eps = eps_min;
-  }
-  if(vars->eps > eps_max)
-  {
-    BITMASK_SET_FLAG(*bitmask, EOS_ERR_EPS_GT_EPSMAX);
-    vars_adj->eps = eps_max;
-  }
-#endif
 
   return 0;
 }
 
 static int eos_compute_from_valid(struct eos_input const * in, struct eos_output * out)
 {
-#ifdef EOS_HELMHOLTZ
-  out->temp = in->temp;
-  double temp_min, temp_max;
-  helm_range_temp_c(&temp_min, &temp_max);
-  if(in->temp < temp_min || in->temp > temp_max)
-  {
-    /* Initial guess from gamma = 5/3, electron gas EOS */
-    out->temp = 2.0/3.0 * in->Abar * in->eps * GSL_CONST_CGSM_MASS_ELECTRON/GSL_CONST_CGSM_BOLTZMANN;
-  }
-
-#ifdef _OPENMP
-  int rank = omp_get_thread_num();
-#else
-  int rank = 0;
-#endif
-  int fail;
-  helm_eos_e_c(&rank, &in->rho, &in->eps, &in->Abar, &in->Ye, &out->temp,
-      &out->press, &out->entropy, &out->csound, &out->cv, &fail);
-  if(fail)
-  {
-    fprintf(stderr, "%s:%d unexpected EOS failure!\n", __FILE__, __LINE__);
-    return 1;
-  }
-#endif
 
   return 0;
 }

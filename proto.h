@@ -3,8 +3,8 @@
 #endif
 #include "gravity/forcetree.h"
 #include "domain.h"
-#ifdef ADJ_BOX_POWERSPEC
-#include "power_spec/adj_box_powerspec_proto.h"
+#ifdef COOLING
+#include "cooling/cooling.h"
 #endif
 
 
@@ -24,6 +24,7 @@ void write_parameters_attributes_in_hdf5(hid_t handle);
 void write_units_attributes_in_hdf5(hid_t handle);
 void write_constants_attributes_in_hdf5(hid_t handle);
 #endif
+void report_VmRSS(void);
 void output_compile_time_options(void);
 
 void report_pinning(void);
@@ -52,6 +53,9 @@ void split_particle_i(int i, int n_particles_split, int i_nearest, double r2_nea
 void do_first_halfstep_kick(void);
 void do_second_halfstep_kick(void);
 void find_timesteps(void);
+#ifdef GALSF
+void compute_stellar_feedback(void);
+#endif
 void compute_hydro_densities_and_forces(void);
 void compute_grav_accelerations(void);
 void calc_memory_checksum(void *base, size_t bytes);
@@ -69,6 +73,7 @@ void   sub_turb_parent_halo_accel(double dx, double dy, double dz, double *acc);
 double sub_turb_enclosed_mass(double r, double msub, double vmax, double radvmax, double c);
 
 
+int powerspec_turb_treefind(MyDouble searchcenter[3], MyFloat hsml, int target, int *startnode, int mode, int *nexport, int *nsend_local);
 int powerspec_turb_find_nearest_evaluate(int target, int mode, int *nexport, int *nsend_local);
 void powerspec_turb_calc_dispersion(void);
 double powerspec_turb_obtain_fields(void);
@@ -107,11 +112,6 @@ static inline double MINMOD_G(double a, double b) {return a;}
 #ifdef SHEARING_BOX
 void calc_shearing_box_pos_offset(void);
 #endif
-
-
-int ngb_treefind_variable_threads_targeted(MyDouble searchcenter[3], MyFloat hsml, int target, int *startnode,
-                                           int mode, int *exportflag, int *exportnodecount, int *exportindex,
-                                           int *ngblist, int TARGET_BITMASK);
 
 
 void do_distortion_tensor_kick(int i, double dt_gravkick);
@@ -259,15 +259,14 @@ double INLINE_FUNC hubble_function(double a);
 
 
 void blackhole_accretion(void);
-#ifdef BH_WIND_SPAWN
-int blackhole_spawn_particle_wind_shell( int i, int dummy_sph_i_to_clone );
-void spawn_bh_wind_feedback(void);
-#endif
 int blackhole_evaluate(int target, int mode, int *nexport, int *nsend_local);
 int blackhole_evaluate_swallow(int target, int mode, int *nexport, int *nsend_local);
 
 int  blackhole_compare_key(const void *a, const void *b);
 
+
+int ngb_treefind_fof_nearest(MyDouble searchcenter[3], MyFloat hsml, int target, int *startnode, int mode,
+			     int *nexport, int *nsend_local, int MyFLAG_NOT_IN_PUBLIC_CODE_PRIMARY_LINK_TYPES);
 
 void fof_fof(int num);
 void fof_import_ghosts(void);
@@ -306,7 +305,7 @@ int blockpresent(enum iofields blocknr);
 void fill_write_buffer(enum iofields blocknr, int *pindex, int pc, int type);
 void empty_read_buffer(enum iofields blocknr, int offset, int pc, int type);
 
-long get_particles_in_block(enum iofields blocknr, int *typelist);
+int get_particles_in_block(enum iofields blocknr, int *typelist);
 
 int get_bytes_per_blockelement(enum iofields blocknr, int mode);
 
@@ -398,42 +397,40 @@ void allocate_commbuffers(void);
 void allocate_memory(void);
 void begrun(void);
 void check_omega(void);
+void close_outputfiles(void);
 void compute_accelerations(void);
 void compute_global_quantities_of_system(void);
 void compute_potential(void);
 void construct_timetree(void);
-void star_formation_parent_routine(void);
+void cooling_and_starformation(void);
 
-#if defined(TURB_DRIVING)
-void do_turb_driving_step_first_half(void);
-void do_turb_driving_step_second_half(void);
-#endif
 
 double evaluate_NH_from_GradRho(MyFloat gradrho[3], double hsml, double rho, double numngb_ndim, double include_h);
 
-
-#ifdef GRAIN_FLUID
-void apply_grain_dragforce(void);
+#ifdef GALSF
+double evaluate_stellar_age_Gyr(double stellar_tform);
+double evaluate_l_over_m_ssp(double stellar_age_in_gyr);
+double calculate_relative_light_to_mass_ratio_from_imf(int i);
 #endif
 
 
-#if defined(FLAG_NOT_IN_PUBLIC_CODE) || (defined(FLAG_NOT_IN_PUBLIC_CODE) && defined(FLAG_NOT_IN_PUBLIC_CODE))
-double particle_ionizing_luminosity_in_cgs(long i);
-#endif
 
 
 
 #if defined(FLAG_NOT_IN_PUBLIC_CODE) || defined(FLAG_NOT_IN_PUBLIC_CODE)
 void snII_heating_singledomain(void);
-void determine_where_SNe_occur(void);
 void mechanical_fb_calc(int feedback_type);
-int addFB_evaluate(int target, int mode, int *exportflag, int *exportnodecount, int *exportindex, int *ngblist, int feedback_type);
-void *addFB_evaluate_primary(void *p, int feedback_type);
-void *addFB_evaluate_secondary(void *p, int feedback_type);
-#ifdef GALSF_FB_SNE_HEATING_USEMULTIDOMAINSHARE
+#ifdef FLAG_NOT_IN_PUBLIC_CODE_USEMULTIDOMAINSHARE
 void snII_heating_withMPIcomm(void);
 int snIIheating_evaluate(int target, int mode, int *nexport, int *nsend_local);
 #endif
+#endif
+
+#if defined(FLAG_NOT_IN_PUBLIC_CODE) || defined(FLAG_NOT_IN_PUBLIC_CODE) || defined(GALSF_FB_LUPI)
+void determine_where_SNe_occur(void);
+int addFB_evaluate(int target, int mode, int *exportflag, int *exportnodecount, int *exportindex, int *ngblist, int feedback_type);
+void *addFB_evaluate_primary(void *p, int feedback_type);
+void *addFB_evaluate_secondary(void *p, int feedback_type);
 #endif
 
 
@@ -446,19 +443,14 @@ double bh_angleweight_localcoupling(int j, double hR, double theta);
 void assign_wind_kick_from_sf_routine(int i, double sm, double dtime, double* pvtau_return);
 #endif
 
-
-
-#ifdef  GALSF_SUBGRID_DMDISPERSION
-void disp_setup_smoothinglengths(void);
-void disp_density(void);
-int disp_density_evaluate(int target, int mode, int *exportflag, int *exportnodecount, int *exportindex, int *ngblist);
-void *disp_density_evaluate_primary(void *p);
-void *disp_density_evaluate_secondary(void *p);
-int disp_density_isactive(int i);
+#if defined(GALSF_FB_RPWIND_FROMSTARS) && !defined(FLAG_NOT_IN_PUBLIC_CODE)
+void radiation_pressure_winds_consolidated(void);
 #endif
 
 
-void cooling_parent_routine(void);
+
+
+void cooling_only(void);
 void count_hot_phase(void);
 void delete_node(int i);
 void density(void);
@@ -468,9 +460,7 @@ int dissolvegas(void);
 void do_box_wrapping(void);
 double enclosed_mass(double R);
 void endrun(int);
-#ifndef IO_REDUCED_MODE
 void energy_statistics(void);
-#endif
 void ensure_neighbours(void);
 
 void output_log_messages(void);
@@ -496,6 +486,7 @@ void hydro_force(void);
 void init(void);
 void do_the_cooling_for_particle(int i);
 double get_starformation_rate(int i);
+int determine_sf_flag(int i);
 void update_internalenergy_for_galsf_effective_eos(int i, double tcool, double tsfr, double x, double rateOfSF);
 void init_clouds(void);
 void integrate_sfr(void);
@@ -589,9 +580,12 @@ void find_block(char *label,FILE *fd);
 
 
 
-int ags_gravity_kernel_shared_BITFLAG(short int particle_type_primary);
+int ags_gravity_kernel_shared_check(short int particle_type_primary, short int particle_type_secondary);
 #ifdef ADAPTIVE_GRAVSOFT_FORALL
 void ags_setup_smoothinglengths(void);
+int ags_ngb_treefind_variable_threads(MyDouble searchcenter[3], MyFloat hsml, int target, int *startnode,
+                                      int mode, int *exportflag, int *exportnodecount, int *exportindex,
+                                      int *ngblist, int type_of_searching_particle);
 void ags_density(void);
 int ags_density_evaluate(int target, int mode, int *exportflag, int *exportnodecount, int *exportindex, int *ngblist);
 void *ags_density_evaluate_primary(void *p);
@@ -614,3 +608,32 @@ void *GasGrad_evaluate_secondary(void *p, int gradient_iteration);
 void apply_excision();
 #endif
 
+
+#if defined(GRACKLE_CHEMISTRY) && (GRACKLE_CHEMISTRY>0)
+void init_species();
+#endif
+
+#ifdef GRACKLE_FIX_TEMPERATURE
+void fix_temperature();
+void compute_temperature();
+#endif
+
+#ifdef GALSF_FB_LUPI
+void lupi_fb_calc(int feedback_type);
+double compute_yield(double Min_Parameter_in_step,double Max_Parameter_in_step,int i,int mode);
+double dying_mass(double Metallicity,double age,double rollback_deltat);
+double StellarLifeTime(double m,double met_solar);
+#endif
+
+#ifdef BH_LUPI
+void blackhole_accretion_calc();
+int addBH_evaluate(int target, int mode, int *exportflag, int *exportnodecount, int *exportindex, int *ngblist);
+void *addBH_evaluate_primary(void *p);
+void *addBH_evaluate_secondary(void *p);
+void blackhole_feedback_calc();
+int addBHFB_evaluate(int target, int mode, int *exportflag, int *exportnodecount, int *exportindex, int *ngblist);
+void *addBHFB_evaluate_primary(void *p);
+void *addBHFB_evaluate_secondary(void *p);
+double compute_released_energy(int);
+double compute_feedback_luminosity(int i);
+#endif

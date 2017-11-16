@@ -7,7 +7,7 @@
 #include "../allvars.h"
 #include "../proto.h"
 #include "../kernel.h"
-#ifdef PTHREADS_NUM_THREADS
+#ifdef OMP_NUM_THREADS
 #include <pthread.h>
 #endif
 
@@ -47,25 +47,37 @@ static int first_flag = 0;
 static int tree_allocated_flag = 0;
 
 
-#ifdef PTHREADS_NUM_THREADS
-extern pthread_mutex_t mutex_nexport, mutex_partnodedrift;
+#ifdef OMP_NUM_THREADS
+extern pthread_mutex_t mutex_nexport, mutex_partnodedrift, mutex_workcount;
 
 #define LOCK_NEXPORT         pthread_mutex_lock(&mutex_nexport);
 #define UNLOCK_NEXPORT       pthread_mutex_unlock(&mutex_nexport);
 #define LOCK_PARTNODEDRIFT   pthread_mutex_lock(&mutex_partnodedrift);
 #define UNLOCK_PARTNODEDRIFT pthread_mutex_unlock(&mutex_partnodedrift);
+
 /*! The cost computation for the tree-gravity (required for the domain
  decomposition) is not exactly thread-safe if THREAD_SAFE_COSTS is not defined.
  However using locks for an exactly thread-safe cost computiation results in a
  significant (~25%) performance penalty in the tree-walk while having only an
  extremely small effect on the obtained costs. The domain decomposition should
- thus not be significantly changed if THREAD_SAFE_COSTS is not used.
- (modern code no longer includes this option - need to consult legacy code) */
+ thus not be significantly changed if THREAD_SAFE_COSTS is not used.*/
+#ifdef THREAD_SAFE_COSTS
+#define LOCK_WORKCOUNT       pthread_mutex_lock(&mutex_workcount);
+#define UNLOCK_WORKCOUNT     pthread_mutex_unlock(&mutex_workcount);
 #else
+#define LOCK_WORKCOUNT
+#define UNLOCK_WORKCOUNT
+#endif
+
+#else
+
 #define LOCK_NEXPORT
 #define UNLOCK_NEXPORT
 #define LOCK_PARTNODEDRIFT
 #define UNLOCK_PARTNODEDRIFT
+#define LOCK_WORKCOUNT
+#define UNLOCK_WORKCOUNT
+
 #endif
 
 
@@ -1102,11 +1114,6 @@ int force_treeevaluate(int target, int mode, int *exportflag, int *exportnodecou
     int no, nodesinlist, ptype, ninteractions, nexp, task, listindex = 0;
     double r2, dx, dy, dz, mass, r, fac, u, h, h_inv, h3_inv;
     double pos_x, pos_y, pos_z, aold;
-#ifdef PMGRID
-    int tabindex;
-    double eff_dist, rcut, asmth, asmthfac, rcut2, dist, xtmp;
-    dist = 0;
-#endif
     MyLongDouble acc_x, acc_y, acc_z;
     // cache some global vars in local vars to help compiler with alias analysis
     int maxPart = All.MaxPart;
@@ -1115,7 +1122,7 @@ int force_treeevaluate(int target, int mode, int *exportflag, int *exportnodecou
     integertime ti_Current = All.Ti_Current;
     double errTol2 = All.ErrTolTheta * All.ErrTolTheta;
     
-#if defined(REDUCE_TREEWALK_BRANCHING) && defined(PMGRID)
+#ifdef DO_NOT_BRACH_IF
     double dxx, dyy, dzz, pdxx, pdyy, pdzz;
 #endif
     
@@ -1131,8 +1138,7 @@ int force_treeevaluate(int target, int mode, int *exportflag, int *exportnodecou
 #if defined(ADAPTIVE_GRAVSOFT_FORALL) || defined(ADAPTIVE_GRAVSOFT_FORGAS) || defined(RT_USE_GRAVTREE)
     double soft=0, pmass;
 #if defined(ADAPTIVE_GRAVSOFT_FORALL) || defined(ADAPTIVE_GRAVSOFT_FORGAS)
-    double h_p_inv=0, h_p3_inv=0, u_p=0, zeta, zeta_sec=0;
-    int ptype_sec=-1;
+    double h_p_inv=0, h_p3_inv=0, u_p=0, zeta, ptype_sec=-1, zeta_sec=0;
 #endif
 #endif
 #ifdef EVALPOTENTIAL
@@ -1147,15 +1153,6 @@ int force_treeevaluate(int target, int mode, int *exportflag, int *exportnodecou
     ninteractions = 0;
     nodesinlist = 0;
     
-#ifdef PMGRID
-    rcut = All.Rcut[0];
-    asmth = All.Asmth[0];
-    if(mode != 0 && mode != 1)
-    {
-        printf("%d %d %d %d %d\n", target, mode, *exportflag, *exportnodecount, *exportindex);
-        endrun(444);
-    }
-#endif
     
     if(mode == 0)
     {
@@ -1190,13 +1187,6 @@ int force_treeevaluate(int target, int mode, int *exportflag, int *exportnodecou
             zeta = 0;
         }
 #endif
-#if defined(PMGRID) && defined(PM_PLACEHIGHRESREGION)
-        if(pmforce_is_particle_high_res(ptype, P[target].Pos))
-        {
-            rcut = All.Rcut[1];
-            asmth = All.Asmth[1];
-        }
-#endif
     }
     else
     {
@@ -1214,23 +1204,11 @@ int force_treeevaluate(int target, int mode, int *exportflag, int *exportnodecou
         zeta = GravDataGet[target].AGS_zeta;
 #endif
 #endif
-#if defined(PMGRID) && defined(PM_PLACEHIGHRESREGION)
-        if(pmforce_is_particle_high_res(ptype, GravDataGet[target].Pos))
-        {
-            rcut = All.Rcut[1];
-            asmth = All.Asmth[1];
-        }
-#endif
     }
     
 #if defined(ADAPTIVE_GRAVSOFT_FORALL) || defined(ADAPTIVE_GRAVSOFT_FORGAS)
     /* quick check if particle has mass: if not, we won't deal with it */
     if(pmass<=0) return 0;
-    int AGS_kernel_shared_BITFLAG = ags_gravity_kernel_shared_BITFLAG(ptype); // determine allowed particle types for correction terms for adaptive gravitational softening terms
-#endif
-#ifdef PMGRID
-    rcut2 = rcut * rcut;
-    asmthfac = 0.5 / asmth * (NTAB / 3.0);
 #endif
     
     
@@ -1293,11 +1271,7 @@ int force_treeevaluate(int target, int mode, int *exportflag, int *exportnodecou
                 r2 = dx * dx + dy * dy + dz * dz;
                 
                 mass = P[no].Mass;
-
-                /* only proceed if the mass is positive and there is separation! */
-                if((r2 > 0) && (mass > 0))
-                {
-
+                
 
                 
 #ifdef RT_USE_GRAVTREE
@@ -1350,9 +1324,19 @@ int force_treeevaluate(int target, int mode, int *exportflag, int *exportnodecou
                 
                 
                 
-                } // closes (if((r2 > 0) && (mass > 0))) check
                 
-                if(TakeLevel >= 0) {P[no].GravCost[TakeLevel] += 1.0;}
+                
+                if(TakeLevel >= 0)
+                {
+                    LOCK_WORKCOUNT;
+#ifdef _OPENMP
+#ifdef THREAD_SAFE_COSTS
+#pragma omp critical(_workcount_)
+#endif
+#endif
+                    P[no].GravCost[TakeLevel] += 1.0;
+                    UNLOCK_WORKCOUNT;
+                }
                 no = Nextnode[no];
             }
             else			/* we have an  internal node */
@@ -1461,47 +1445,6 @@ int force_treeevaluate(int target, int mode, int *exportflag, int *exportnodecou
                 
                 
                 
-#ifdef PMGRID
-#ifdef REDUCE_TREEWALK_BRANCHING
-                dxx = (nop->center[0] - pos_x);
-                dyy = (nop->center[1] - pos_y);
-                dzz = (nop->center[2] - pos_z);
-                eff_dist = rcut + 0.5 * nop->len;
-                pdxx = NGB_PERIODIC_LONG_X(dxx,dyy,dzz,-1);
-                pdyy = NGB_PERIODIC_LONG_Y(dxx,dyy,dzz,-1);
-                pdzz = NGB_PERIODIC_LONG_Z(dxx,dyy,dzz,-1);
-                /* check whether we can stop walking along this branch */
-                if((r2 > rcut2) & ((pdxx > eff_dist) | (pdyy > eff_dist) | (pdzz > eff_dist)))
-                {
-                    no = nop->u.d.sibling;
-                    continue;
-                }
-#else
-                /* check whether we can stop walking along this branch */
-                if(r2 > rcut2)
-                {
-                    eff_dist = rcut + 0.5 * nop->len;
-                    dist = NGB_PERIODIC_LONG_X(nop->center[0] - pos_x, nop->center[1] - pos_y, nop->center[2] - pos_z, -1);
-                    if(dist > eff_dist)
-                    {
-                        no = nop->u.d.sibling;
-                        continue;
-                    }
-                    dist = NGB_PERIODIC_LONG_Y(nop->center[0] - pos_x, nop->center[1] - pos_y, nop->center[2] - pos_z, -1);
-                    if(dist > eff_dist)
-                    {
-                        no = nop->u.d.sibling;
-                        continue;
-                    }
-                    dist = NGB_PERIODIC_LONG_Z(nop->center[0] - pos_x, nop->center[1] - pos_y, nop->center[2] - pos_z, -1);
-                    if(dist > eff_dist)
-                    {
-                        no = nop->u.d.sibling;
-                        continue;
-                    }
-                }
-#endif
-#endif // PMGRID //
                 
                 
                 if(errTol2)	/* check Barnes-Hut opening criterion */
@@ -1525,7 +1468,7 @@ int force_treeevaluate(int target, int mode, int *exportflag, int *exportnodecou
                         continue;
                     }
                     
-#if defined(REDUCE_TREEWALK_BRANCHING) && defined(PMGRID)
+#ifdef DO_NOT_BRACH_IF
                     if((mass * nop->len * nop->len > r2 * r2 * aold) |
                        ((pdxx < 0.60 * nop->len) & (pdyy < 0.60 * nop->len) & (pdzz < 0.60 * nop->len)))
                     {
@@ -1587,13 +1530,21 @@ int force_treeevaluate(int target, int mode, int *exportflag, int *exportnodecou
                 }
 #endif
                 
-                if(TakeLevel >= 0) {nop->GravCost += 1.0;}
+                if(TakeLevel >= 0)
+                {
+                    LOCK_WORKCOUNT;
+#ifdef _OPENMP
+#ifdef THREAD_SAFE_COSTS
+#pragma omp critical(_workcount_)
+#endif
+#endif
+                    nop->GravCost += 1.0;
+                    UNLOCK_WORKCOUNT;
+                }
+                
                 no = nop->u.d.sibling;	/* ok, node can be used */
                 
             }
-            
-            if((r2 > 0) && (mass > 0)) // only go forward if mass positive and there is separation
-            {
             
             r = sqrt(r2);
             
@@ -1630,13 +1581,13 @@ int force_treeevaluate(int target, int mode, int *exportflag, int *exportnodecou
                     }
                     // correction only applies to 'shared-kernel' particles: so this needs to check if
                     // these are the same particles for which the kernel lengths are computed
-                    if((1 << ptype_sec) & (AGS_kernel_shared_BITFLAG))
+                    if(ags_gravity_kernel_shared_check(ptype, ptype_sec))
                     {
-                        double dWdr, wp, fac_corr = 0;
+                        double dWdr, wp;
                         if((r>0) && (u<1) && (pmass>0)) // checks that these aren't the same particle
                         {
                             kernel_main(u, h3_inv, h3_inv*h_inv, &wp, &dWdr, 1);
-                            fac_corr += -(zeta/pmass) * dWdr / r;   // 0.5 * zeta * omega * dWdr / r;
+                            fac -= (zeta/pmass) * dWdr / r;   // 0.5 * zeta * omega * dWdr / r;
                         } // if(ptype==0)
                         
                         if(zeta_sec != 0) // secondary is adaptively-softened particle (set above)
@@ -1644,68 +1595,57 @@ int force_treeevaluate(int target, int mode, int *exportflag, int *exportnodecou
                                 if((r>0) && (u_p<1) && (pmass>0))
                                 {
                                     kernel_main(u_p, h_p3_inv, h_p3_inv*h_p_inv, &wp, &dWdr, 1);
-                                    fac_corr += -(zeta_sec/pmass) * dWdr / r;   // 0.5 * zeta * omega * dWdr / r;
+                                    fac -= (zeta_sec/pmass) * dWdr / r;
                                 } // if(zeta_sec != 0)
-                        if(!isnan(fac_corr)) {fac += fac_corr;}
                     } // if(ptype==ptype_sec)
 #else
                     if(h_p_inv < h_inv)
                     {
                         h_p3_inv = h_p_inv * h_p_inv * h_p_inv;
                         u_p = r * h_p_inv;
-                        double fac2 = mass * kernel_gravity(u_p, h_p_inv, h_p3_inv, 1);
-                        if(!isnan(fac2)) {fac=fac2;}
+                        fac = mass * kernel_gravity(u_p, h_p_inv, h_p3_inv, 1);
                     }
                     // correction only applies to 'shared-kernel' particles: so this needs to check if
                     // these are the same particles for which the kernel lengths are computed
                     // (also checks that these aren't the same particle)
-#if (defined(MAGNETIC) || defined(FLAG_NOT_IN_PUBLIC_CODE) || defined(FLAG_NOT_IN_PUBLIC_CODE) || defined(FLAG_NOT_IN_PUBLIC_CODE))
+#if (defined(MAGNETIC) || defined(COOLING) || defined(GALSF) || defined(FLAG_NOT_IN_PUBLIC_CODE))
                     /* since these modules imply nonstandard cross-particel interactions for certain types, need to limit the correction terms here */
                     if((ptype>0) && (ptype<4) && (ptype_sec>0) && (ptype_sec<4) && (r > 0) && (pmass > 0))
 #else
-                    if((r > 0) && (pmass > 0)) // check for entering correction terms
+                    if((r > 0) && (pmass > 0))
 #endif
                     {
-                        if((1 << ptype_sec) & (AGS_kernel_shared_BITFLAG))
+                        if(ags_gravity_kernel_shared_check(ptype, ptype_sec))
                         {
-                            double dWdr, wp, fac_corr=0;
+                            double dWdr, wp;
                             if(h_p_inv >= h_inv)
                             {
                                 if((zeta != 0) && (u < 1))
                                 {
                                     kernel_main(u, h3_inv, h3_inv*h_inv, &wp, &dWdr, 1);
-                                    fac_corr += -2. * (zeta/pmass) * dWdr / sqrt(r2 + 0.0001/(h_inv*h_inv));   // 0.5 * zeta * omega * dWdr / r;
+                                    fac -= 2. * (zeta/pmass) * dWdr / sqrt(r2 + 0.0001/(h_inv*h_inv));   // 0.5 * zeta * omega * dWdr / r;
                                 }
                             } else {
                                 if((zeta_sec != 0) && (u_p < 1)) // secondary is adaptively-softened particle (set above)
                                 {
                                     kernel_main(u_p, h_p3_inv, h_p3_inv*h_p_inv, &wp, &dWdr, 1);
-                                    fac_corr += -2. * (zeta_sec/pmass) * dWdr / sqrt(r2 + 0.0001/(h_p_inv*h_p_inv));
+                                    fac -= 2. * (zeta_sec/pmass) * dWdr / sqrt(r2 + 0.0001/(h_p_inv*h_p_inv));
                                 }
                             }
-                            if(!isnan(fac_corr)) {fac += fac_corr;}
                         } // if(ptype==ptype_sec)
-                    } // check for entering correction terms
+                    }
 #endif
-                } // closes (if((h_p_inv > 0) && (ptype_sec > -1)))
+                }
+                
 #endif // #if defined(ADAPTIVE_GRAVSOFT_FORGAS) || defined(ADAPTIVE_GRAVSOFT_FORALL) //
-
                 
 #ifdef EVALPOTENTIAL
                 facpot = mass * kernel_gravity(u, h_inv, h3_inv, -1);
 #endif
-            } // closes r < h (else) clause
+            } // closes r < h clause
             
-                
-#ifdef PMGRID
-            tabindex = (int) (asmthfac * r);
-            if(tabindex < NTAB && tabindex >= 0)
-#endif // PMGRID //
             {
                 
-#ifdef PMGRID
-                fac *= shortrange_table[tabindex];
-#endif
                 
 #ifdef EVALPOTENTIAL
 #if defined(PERIODIC) && !defined(GRAVITY_NOT_PERIODIC)
@@ -1733,14 +1673,12 @@ int force_treeevaluate(int target, int mode, int *exportflag, int *exportnodecou
                 if((soft>r)&&(soft>0)) fac *= (r2/(soft*soft)); // don't allow cross-section > r2
                 
                 
-            } // closes if(valid_gas_particle_for_rt)
+            }
 #endif // RT_USE_GRAVTREE
             
             
-                
-        } // closes (if((r2 > 0) && (mass > 0))) check
-            
-        } // closes inner (while(no>=0)) check
+        }
+        
         if(mode == 1)
         {
             listindex++;
@@ -1753,9 +1691,8 @@ int force_treeevaluate(int target, int mode, int *exportflag, int *exportnodecou
                     no = Nodes[no].u.d.nextnode;	/* open it */
                 }
             }
-        } // closes (mode == 1) check
-    } // closes outer (while(no>=0)) check
-    
+        }
+    }
     
     
     
@@ -1970,7 +1907,6 @@ int force_treeevaluate_ewald_correction(int target, int mode, int *exportflag, i
             {
                 openflag = 0;
                 r2 = dx * dx + dy * dy + dz * dz;
-                if(r2 <= 0) {r2=MIN_REAL_NUMBER;}
                 if(All.ErrTolTheta)	/* check Barnes-Hut opening criterion */
                 {
                     if(nop->len * nop->len > r2 * All.ErrTolTheta * All.ErrTolTheta)
@@ -2173,20 +2109,12 @@ int force_treeevaluate_potential(int target, int mode, int *nexport, int *nsend_
     double r2, dx, dy, dz, mass, r, u, h, h_inv;
     double pos_x, pos_y, pos_z, aold;
     double fac, dxx, dyy, dzz;
-#ifdef PMGRID
-    int tabindex;
-    double eff_dist, rcut, asmth, asmthfac;
-#endif
 #if defined(ADAPTIVE_GRAVSOFT_FORGAS) || defined(ADAPTIVE_GRAVSOFT_FORALL)
     double soft = 0;
 #endif
     
     nexport_save = *nexport;
     pot = 0;
-#ifdef PMGRID
-    rcut = All.Rcut[0];
-    asmth = All.Asmth[0];
-#endif
     if(mode == 0)
     {
         pos_x = P[target].Pos[0];
@@ -2210,13 +2138,6 @@ int force_treeevaluate_potential(int target, int mode, int *nexport, int *nsend_
             soft = All.ForceSoftening[ptype];
         }
 #endif
-#if defined(PMGRID) && defined(PM_PLACEHIGHRESREGION)
-        if(pmforce_is_particle_high_res(ptype, P[target].Pos))
-        {
-            rcut = All.Rcut[1];
-            asmth = All.Asmth[1];
-        }
-#endif
     }
     else
     {
@@ -2226,23 +2147,14 @@ int force_treeevaluate_potential(int target, int mode, int *nexport, int *nsend_
         ptype = GravDataGet[target].Type;
         aold = All.ErrTolForceAcc * GravDataGet[target].OldAcc;
 #ifdef ADAPTIVE_GRAVSOFT_FORGAS
-        if(ptype == 0) {soft = GravDataGet[target].Soft;}
-#endif
-#if defined(PMGRID) && defined(PM_PLACEHIGHRESREGION)
-        if(pmforce_is_particle_high_res(ptype, GravDataGet[target].Pos))
-        {
-            rcut = All.Rcut[1];
-            asmth = All.Asmth[1];
-        }
+        if(ptype == 0)
+            soft = GravDataGet[target].Soft;
 #endif
 #ifdef ADAPTIVE_GRAVSOFT_FORALL
         soft = GravDataGet[target].Soft;
 #endif
     }
     
-#ifdef PMGRID
-    asmthfac = 0.5 / asmth * (NTAB / 3.0);
-#endif
     if(mode == 0)
     {
         no = All.MaxPart;		/* root node */
@@ -2360,61 +2272,10 @@ int force_treeevaluate_potential(int target, int mode, int *nexport, int *nsend_
             }
             else			/* we have an internal node. Need to check opening criterion */
             {
-#ifdef PMGRID
-                /* check whether we can stop walking along this branch */
-                if(no >= All.MaxPart + MaxNodes)	/* pseudo particle */
-                {
-                    if(mode == 0)
-                    {
-                        if(Exportflag[task = DomainTask[no - (All.MaxPart + MaxNodes)]] != target)
-                        {
-                            Exportflag[task] = target;
-                            DataIndexTable[*nexport].Index = target;
-                            DataIndexTable[*nexport].Task = task;	/* Destination task */
-                            *nexport = *nexport + 1;
-                            nsend_local[task]++;
-                        }
-                    }
-                    no = Nextnode[no - MaxNodes];
-                    continue;
-                }
-                
-                eff_dist = rcut + 0.5 * nop->len;
                 dxx = nop->center[0] - pos_x;	/* observe the sign ! */
                 dyy = nop->center[1] - pos_y;	/* this vector is -y in my thesis notation */
                 dzz = nop->center[2] - pos_z;
                 NEAREST_XYZ(dxx,dyy,dzz,-1);
-#ifdef REDUCE_TREEWALK_BRANCHING
-                if((fabs(dxx) > eff_dist) | (fabs(dyy) > eff_dist) | (fabs(dzz) > eff_dist))
-                {
-                    no = nop->u.d.sibling;
-                    continue;
-                }
-#else
-                if(dxx < -eff_dist || dxx > eff_dist)
-                {
-                    no = nop->u.d.sibling;
-                    continue;
-                }
-                
-                if(dyy < -eff_dist || dyy > eff_dist)
-                {
-                    no = nop->u.d.sibling;
-                    continue;
-                }
-                
-                if(dzz < -eff_dist || dzz > eff_dist)
-                {
-                    no = nop->u.d.sibling;
-                    continue;
-                }
-#endif // REDUCE_TREEWALK_BRANCHING
-#else // PMGRID
-                dxx = nop->center[0] - pos_x;	/* observe the sign ! */
-                dyy = nop->center[1] - pos_y;	/* this vector is -y in my thesis notation */
-                dzz = nop->center[2] - pos_z;
-                NEAREST_XYZ(dxx,dyy,dzz,-1);
-#endif // PMGRID
                 if(All.ErrTolTheta)	/* check Barnes-Hut opening criterion */
                 {
                     if(nop->len * nop->len > r2 * All.ErrTolTheta * All.ErrTolTheta)
@@ -2428,7 +2289,7 @@ int force_treeevaluate_potential(int target, int mode, int *nexport, int *nsend_
                 {
                     
                     /* force node to open if we are within the gravitational softening length */
-#if defined(NOGRAVITY) || defined(FLAG_NOT_IN_PUBLIC_CODE) || (!(defined(ADAPTIVE_GRAVSOFT_FORALL) || defined(ADAPTIVE_GRAVSOFT_FORGAS)))
+#if defined(NOGRAVITY) || defined(FLAG_NOT_IN_PUBLIC_CODE) || (!(defined(ADAPTIVE_GRAVSOFT_FORALL) || defined(ADAPTIVE_GRAVSOFT_FORGAS) || defined(RT_USE_GRAVTREE)))
                     double soft = All.ForceSoftening[ptype];
 #endif
                     if((r2 < (soft+0.6*nop->len)*(soft+0.6*nop->len)) || (r2 < (nop->maxsoft+0.6*nop->len)*(nop->maxsoft+0.6*nop->len)))
@@ -2437,7 +2298,7 @@ int force_treeevaluate_potential(int target, int mode, int *nexport, int *nsend_
                         continue;
                     }
 
-#ifdef REDUCE_TREEWALK_BRANCHING
+#ifdef DO_NOT_BRACH_IF
                     if((mass * nop->len * nop->len > r2 * r2 * aold) |
                        ((fabs(dxx) < 0.60 * nop->len) & (fabs(dyy) < 0.60 * nop->len) & (fabs(dzz) <
                                                                                          0.60 * nop->len)))
@@ -2465,7 +2326,7 @@ int force_treeevaluate_potential(int target, int mode, int *nexport, int *nsend_
                             }
                         }
                     }
-#endif // REDUCE_TREEWALK_BRANCHING //
+#endif // DO_NOT_BRACH_IF //
                 }
                 
 #if defined(ADAPTIVE_GRAVSOFT_FORGAS) || defined(ADAPTIVE_GRAVSOFT_FORALL)
@@ -2509,16 +2370,8 @@ int force_treeevaluate_potential(int target, int mode, int *nexport, int *nsend_
             }
             
             r = sqrt(r2);
-#ifdef PMGRID
-            tabindex = (int) (r * asmthfac);
-            if(tabindex < NTAB && tabindex >= 0)
-#endif
             {
-#ifdef PMGRID
-                fac = shortrange_table_potential[tabindex];
-#else
                 fac = 1;
-#endif
                 if(r >= h)
                     pot += FLT(-fac * mass / r);
                 
@@ -2698,9 +2551,7 @@ void ewald_init(void)
     if(ThisTask == 0)
     {
         printf("initialize Ewald correction...\n");
-#ifndef IO_REDUCED_MODE
         fflush(stdout);
-#endif
     }
     
 #ifdef DOUBLEPRECISION
@@ -2710,6 +2561,12 @@ void ewald_init(void)
 #endif
     if((fd = fopen(buf, "r")))
     {
+        if(ThisTask == 0)
+        {
+            printf("\nreading Ewald tables from file `%s'\n", buf);
+            fflush(stdout);
+        }
+        
         my_fread(&fcorrx[0][0][0], sizeof(MyFloat), (EN + 1) * (EN + 1) * (EN + 1), fd);
         my_fread(&fcorry[0][0][0], sizeof(MyFloat), (EN + 1) * (EN + 1) * (EN + 1), fd);
         my_fread(&fcorrz[0][0][0], sizeof(MyFloat), (EN + 1) * (EN + 1) * (EN + 1), fd);
@@ -2721,9 +2578,7 @@ void ewald_init(void)
         if(ThisTask == 0)
         {
             printf("\nNo Ewald tables in file `%s' found.\nRecomputing them...\n", buf);
-#ifndef IO_REDUCED_MODE
             fflush(stdout);
-#endif
         }
         
         /* ok, let's recompute things. Actually, we do that in parallel. */
@@ -2742,13 +2597,11 @@ void ewald_init(void)
                     {
                         if(ThisTask == 0)
                         {
-#ifndef IO_REDUCED_MODE
                             if((count % (len / 20)) == 0)
                             {
                                 printf("%4.1f percent done\n", count / (len / 100.0));
                                 fflush(stdout);
                             }
-#endif
                         }
                         
                         x[0] = 0.5 * ((double) i) / EN;
@@ -2781,6 +2634,7 @@ void ewald_init(void)
         if(ThisTask == 0)
         {
             printf("\nwriting Ewald tables to file `%s'\n", buf);
+            fflush(stdout);
             if((fd = fopen(buf, "w")))
             {
                 my_fwrite(&fcorrx[0][0][0], sizeof(MyFloat), (EN + 1) * (EN + 1) * (EN + 1), fd);
@@ -2806,6 +2660,7 @@ void ewald_init(void)
     if(ThisTask == 0)
     {
         printf("initialization of periodic boundaries finished.\n");
+        fflush(stdout);
     }
 #endif // #ifndef NOGRAVITY
 }

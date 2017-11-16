@@ -47,6 +47,7 @@ void begrun(void)
 #endif
   if(ThisTask == 0)
     {
+      printf("\nThis is GIZMO, version %s.\n", GIZMO_VERSION);
       printf("\nRunning on %d MPI tasks.\n", NTask);
 #ifdef _OPENMP
 #pragma omp parallel private(tid)
@@ -60,6 +61,9 @@ void begrun(void)
 	 */
       }
 #endif
+      printf("\nCode was compiled with settings:\n\n");
+
+      output_compile_time_options();
 
       printf("Size of particle structure       %d  [bytes]\n", (int) sizeof(struct particle_data));
       printf("\nSize of sph particle structure   %d  [bytes]\n", (int) sizeof(struct sph_particle_data));
@@ -80,6 +84,9 @@ void begrun(void)
   set_cosmo_factors_for_current_time();
   All.Time = All.TimeBegin;
     
+#ifdef COOLING
+  InitCool();
+#endif
 
 
 
@@ -124,12 +131,6 @@ void begrun(void)
 
   set_random_numbers();
 
-#ifdef PMGRID
-#ifndef ADAPTIVE_GRAVSOFT_FORALL
-  if(RestartFlag != 3 && RestartFlag != 4)
-#endif
-    long_range_init();
-#endif
 
 
 #ifdef EOS_TABULATED
@@ -142,14 +143,15 @@ void begrun(void)
 
 
 
-#ifdef TURB_DRIVING
-    init_turb();
-#endif
 
 
   All.TimeLastRestartFile = CPUThisRun;
 
-  if(RestartFlag == 0 || RestartFlag == 2 || RestartFlag == 3 || RestartFlag == 4 || RestartFlag == 5 || RestartFlag == 6)
+  if(RestartFlag == 0 || RestartFlag == 2 || RestartFlag == 3 || RestartFlag == 4 || RestartFlag == 5 || RestartFlag == 6
+#ifdef GRACKLE_FIX_TEMPERATURE
+   || RestartFlag == 7
+#endif
+  )
     {
       init();			/* ... read in initial model */
     }
@@ -211,10 +213,14 @@ void begrun(void)
       memcpy(All.OutputListTimes, all.OutputListTimes, sizeof(double) * All.OutputListLength);
       memcpy(All.OutputListFlag, all.OutputListFlag, sizeof(char) * All.OutputListLength);
 
+#ifdef GALSF
+      All.CritPhysDensity = all.CritPhysDensity;
+      All.MaxSfrTimescale = all.MaxSfrTimescale;
+#endif
         
 
 
-#ifdef SPHAV_CD10_VISCOSITY_SWITCH
+#ifdef SPHAV_CD10_FLAG_NOT_IN_PUBLIC_CODE_SWITCH
       All.ArtBulkViscConst = all.ArtBulkViscConst;
       All.ViscosityAMin = all.ViscosityAMin;
       All.ViscosityAMax = all.ViscosityAMax;
@@ -261,6 +267,9 @@ void begrun(void)
       */
       strcpy(All.SnapshotFileBase, all.SnapshotFileBase);
 
+#ifdef GRACKLE
+      strcpy(All.GrackleDataFile, all.GrackleDataFile);
+#endif
 
 #ifdef EOS_TABULATED
         strcpy(All.EosTable, all.EosTable);
@@ -277,9 +286,6 @@ void begrun(void)
 
   open_outputfiles();
 
-#ifdef PMGRID
-  long_range_init_regionsize();
-#endif
   reconstruct_timebins();
 
 
@@ -304,6 +310,9 @@ void begrun(void)
 #endif
 
 
+#if defined(RT_DIFFUSION_CG)
+    All.Radiation_Ti_begstep = 0;
+#endif
 
     
   if(All.ComovingIntegrationOn)
@@ -317,6 +326,84 @@ void begrun(void)
     All.Ti_nextoutput = find_next_outputtime(All.Ti_Current);
 
   All.TimeLastRestartFile = CPUThisRun;
+
+
+#ifdef GENTRY_FB
+  // to do - have this be read from my text files
+
+    All.N_SNe = 11;
+
+    All.SN_position_x = (double*) malloc(All.N_SNe*sizeof(double));
+    All.SN_position_y = (double*) malloc(All.N_SNe*sizeof(double));
+    All.SN_position_z = (double*) malloc(All.N_SNe*sizeof(double));
+    {
+      int i;
+      for(i=0; i<All.N_SNe; i++) 
+      {
+        All.SN_position_x[i] = 250*(CM_PER_MPC/1e6)/All.UnitLength_in_cm;
+        All.SN_position_y[i] = 250*(CM_PER_MPC/1e6)/All.UnitLength_in_cm;
+        All.SN_position_z[i] = 250*(CM_PER_MPC/1e6)/All.UnitLength_in_cm;
+      }
+    }
+
+
+    All.SN_time     = (double*) malloc(All.N_SNe * sizeof(double));
+    All.SN_time[ 0] = 0           / All.UnitTime_in_s;
+    All.SN_time[ 1] = 1.99471e+13 / All.UnitTime_in_s;
+    All.SN_time[ 2] = 8.02558e+13 / All.UnitTime_in_s;
+    All.SN_time[ 3] = 9.92043e+13 / All.UnitTime_in_s;
+    All.SN_time[ 4] = 1.22073e+14 / All.UnitTime_in_s;
+    All.SN_time[ 5] = 2.36641e+14 / All.UnitTime_in_s;
+    All.SN_time[ 6] = 2.46039e+14 / All.UnitTime_in_s;
+    All.SN_time[ 7] = 4.41575e+14 / All.UnitTime_in_s;
+    All.SN_time[ 8] = 5.08510e+14 / All.UnitTime_in_s;
+    All.SN_time[ 9] = 8.57144e+14 / All.UnitTime_in_s;
+    All.SN_time[10] = 9.02104e+14 / All.UnitTime_in_s;
+
+
+    All.SN_mass     = (double*) malloc(All.N_SNe * sizeof(double));
+    All.SN_mass[ 0] = 1.32339e+34 / All.UnitMass_in_g;
+    All.SN_mass[ 1] = 2.99848e+34 / All.UnitMass_in_g;
+    All.SN_mass[ 2] = 3.02113e+34 / All.UnitMass_in_g;
+    All.SN_mass[ 3] = 3.10834e+34 / All.UnitMass_in_g;
+    All.SN_mass[ 4] = 3.14317e+34 / All.UnitMass_in_g;
+    All.SN_mass[ 5] = 2.51504e+34 / All.UnitMass_in_g;
+    All.SN_mass[ 6] = 2.46495e+34 / All.UnitMass_in_g;
+    All.SN_mass[ 7] = 2.07013e+34 / All.UnitMass_in_g;
+    All.SN_mass[ 8] = 1.93268e+34 / All.UnitMass_in_g;
+    All.SN_mass[ 9] = 1.46705e+34 / All.UnitMass_in_g;
+    All.SN_mass[10] = 1.42763e+34 / All.UnitMass_in_g;
+
+
+    All.SN_mass_Z     = (double*) malloc(All.N_SNe * sizeof(double));
+    All.SN_mass_Z[ 0] = 1.31011e+34 / All.UnitMass_in_g;
+    All.SN_mass_Z[ 1] = 2.32765e+34 / All.UnitMass_in_g;
+    All.SN_mass_Z[ 2] = 9.76778e+33 / All.UnitMass_in_g;
+    All.SN_mass_Z[ 3] = 7.73080e+33 / All.UnitMass_in_g;
+    All.SN_mass_Z[ 4] = 6.48351e+33 / All.UnitMass_in_g;
+    All.SN_mass_Z[ 5] = 2.56464e+33 / All.UnitMass_in_g;
+    All.SN_mass_Z[ 6] = 2.39965e+33 / All.UnitMass_in_g;
+    All.SN_mass_Z[ 7] = 1.41690e+33 / All.UnitMass_in_g;
+    All.SN_mass_Z[ 8] = 1.41690e+33 / All.UnitMass_in_g;
+    All.SN_mass_Z[ 9] = 1.41690e+33 / All.UnitMass_in_g;
+    All.SN_mass_Z[10] = 1.41690e+33 / All.UnitMass_in_g;
+
+#ifdef WINDS
+    All.wind_mass     = (double*) malloc(All.N_SNe * sizeof(double));    
+    All.wind_mass[ 0] = 9.89864e+34 / All.UnitMass_in_g;
+    All.wind_mass[ 1] = 5.47184e+34 / All.UnitMass_in_g;
+    All.wind_mass[ 2] = 2.04665e+34 / All.UnitMass_in_g;
+    All.wind_mass[ 3] = 1.41344e+34 / All.UnitMass_in_g;
+    All.wind_mass[ 4] = 9.42052e+33 / All.UnitMass_in_g;
+    All.wind_mass[ 5] = 3.62558e+33 / All.UnitMass_in_g;
+    All.wind_mass[ 6] = 3.50378e+33 / All.UnitMass_in_g;
+    All.wind_mass[ 7] = 0           / All.UnitMass_in_g;
+    All.wind_mass[ 8] = 0           / All.UnitMass_in_g;
+    All.wind_mass[ 9] = 0           / All.UnitMass_in_g;
+    All.wind_mass[10] = 0           / All.UnitMass_in_g;
+#endif
+
+#endif
 }
 
 
@@ -362,6 +449,12 @@ void set_units(void)
   All.MinEgySpec = 1 / meanweight * (1.0 / GAMMA_MINUS1) * (BOLTZMANN / PROTONMASS) * All.MinGasTemp;
   All.MinEgySpec *= All.UnitMass_in_g / All.UnitEnergy_in_cgs;
 
+#if defined(GALSF)
+  /* for historical reasons, we need to convert to "All.MaxSfrTimescale", defined as the SF timescale in code units at the critical physical
+     density given above. use the dimensionless SfEffPerFreeFall (which has been read in) to calculate this. This must be done -BEFORE- calling set_units_sfr) */
+  All.MaxSfrTimescale = (1/All.MaxSfrTimescale) * sqrt(3.*M_PI / (32. * All.G * (All.CritPhysDensity * meanweight * 1.67e-24 / (All.UnitDensity_in_cgs*All.HubbleParam*All.HubbleParam))));
+  set_units_sfr();
+#endif
 
 
 #define cm (All.HubbleParam/All.UnitLength_in_cm)
@@ -374,7 +467,7 @@ void set_units(void)
 #define k_B (BOLTZMANN * erg / deg)
 
 
-#if defined(CONDUCTION_SPITZER) || defined(VISCOSITY_BRAGINSKII)
+#if defined(FLAG_NOT_IN_PUBLIC_CODE_SPITZER) || defined(FLAG_NOT_IN_PUBLIC_CODE_BRAGINSKII)
     /* Note: Because we replace \nabla(T) in the conduction equation with
      * \nable(u), our conduction coefficient is not the usual kappa, but
      * rather kappa*(gamma-1)*mu/kB. We therefore need to multiply with
@@ -389,15 +482,6 @@ void set_units(void)
     coefficient *= (1.84e-5 / coulomb_log * pow(meanweight_ion / k_B * GAMMA_MINUS1, 2.5) * erg / (s * deg * cm));
     coefficient /= All.HubbleParam; // We also need one factor of 'h' to convert between internal units and cgs //
     
-#ifdef CONDUCTION_SPITZER
-    All.ConductionCoeff *= coefficient;
-#endif
-#ifdef VISCOSITY_BRAGINSKII
-    All.ShearViscosityCoeff *= 0.636396 * coefficient * sqrt(ELECTRONMASS / (PROTONMASS * 4.0 / (8 - 5 * (1 - HYDROGEN_MASSFRAC))));
-    // the viscosity coefficient eta is identical in these units up to the order-unity constant, and multiplied by sqrt[m_electron/m_ion] //
-    All.BulkViscosityCoeff = 0;
-    // no bulk viscosity in the Braginskii-Spitzer formulation //
-#endif
     
     /* factor used for determining saturation */
     All.ElectronFreePathFactor = 8 * pow(3.0, 1.5) * pow(GAMMA_MINUS1, 2) / pow(3 + 5 * HYDROGEN_MASSFRAC, 2)
@@ -437,17 +521,48 @@ void open_outputfiles(void)
 
   if(ThisTask != 0)		/* only the root processors writes to the log files */
     return;
+
+
+  /*
+  sprintf(buf, "%s%s", All.OutputDir, All.CpuFile);
+  if(!(FdCPU = fopen(buf, mode)))
+    {
+      printf("error in opening file '%s'\n", buf);
+      endrun(1);
+    }
+
+  sprintf(buf, "%s%s", All.OutputDir, All.InfoFile);
+  if(!(FdInfo = fopen(buf, mode)))
+    {
+      printf("error in opening file '%s'\n", buf);
+      endrun(1);
+    }
+
+  sprintf(buf, "%s%s", All.OutputDir, All.EnergyFile);
+  if(!(FdEnergy = fopen(buf, mode)))
+    {
+      printf("error in opening file '%s'\n", buf);
+      endrun(1);
+    }
+
+  sprintf(buf, "%s%s", All.OutputDir, All.TimingsFile);
+  if(!(FdTimings = fopen(buf, mode)))
+    {
+      printf("error in opening file '%s'\n", buf);
+      endrun(1);
+    }
+
+  sprintf(buf, "%s%s", All.OutputDir, All.TimebinFile);
+  if(!(FdTimebin = fopen(buf, mode)))
+    {
+      printf("error in opening file '%s'\n", buf);
+      endrun(1);
+    }
+  */
+    
     
     sprintf(buf, "%s%s", All.OutputDir, "cpu.txt");
     if(!(FdCPU = fopen(buf, mode)))
-    {
-        printf("error in opening file '%s'\n", buf);
-        endrun(1);
-    }
-    
-#ifndef IO_REDUCED_MODE
-    sprintf(buf, "%s%s", All.OutputDir, "timebin.txt");
-    if(!(FdTimebin = fopen(buf, mode)))
     {
         printf("error in opening file '%s'\n", buf);
         endrun(1);
@@ -466,86 +581,115 @@ void open_outputfiles(void)
         printf("error in opening file '%s'\n", buf);
         endrun(1);
     }
+    
     sprintf(buf, "%s%s", All.OutputDir, "timings.txt");
     if(!(FdTimings = fopen(buf, mode)))
     {
         printf("error in opening file '%s'\n", buf);
         endrun(1);
     }
+    
+    sprintf(buf, "%s%s", All.OutputDir, "timebin.txt");
+    if(!(FdTimebin = fopen(buf, mode)))
+    {
+        printf("error in opening file '%s'\n", buf);
+        endrun(1);
+    }
+    
     sprintf(buf, "%s%s", All.OutputDir, "balance.txt");
     if(!(FdBalance = fopen(buf, mode)))
     {
         printf("error in opening file '%s'\n", buf);
         endrun(1);
     }
-    fprintf(FdBalance, "\n");
-    fprintf(FdBalance, "Treewalk1      = '%c' / '%c'\n", CPU_Symbol[CPU_TREEWALK1],
-            CPU_SymbolImbalance[CPU_TREEWALK1]);
-    fprintf(FdBalance, "Treewalk2      = '%c' / '%c'\n", CPU_Symbol[CPU_TREEWALK2],
-            CPU_SymbolImbalance[CPU_TREEWALK2]);
-    fprintf(FdBalance, "Treewait1      = '%c' / '%c'\n", CPU_Symbol[CPU_TREEWAIT1],
-            CPU_SymbolImbalance[CPU_TREEWAIT1]);
-    fprintf(FdBalance, "Treewait2      = '%c' / '%c'\n", CPU_Symbol[CPU_TREEWAIT2],
-            CPU_SymbolImbalance[CPU_TREEWAIT2]);
-    fprintf(FdBalance, "Treesend       = '%c' / '%c'\n", CPU_Symbol[CPU_TREESEND],
-            CPU_SymbolImbalance[CPU_TREESEND]);
-    fprintf(FdBalance, "Treerecv       = '%c' / '%c'\n", CPU_Symbol[CPU_TREERECV],
-            CPU_SymbolImbalance[CPU_TREERECV]);
-    fprintf(FdBalance, "Treebuild      = '%c' / '%c'\n", CPU_Symbol[CPU_TREEBUILD],
-            CPU_SymbolImbalance[CPU_TREEBUILD]);
-    fprintf(FdBalance, "Treeupdate     = '%c' / '%c'\n", CPU_Symbol[CPU_TREEUPDATE],
-            CPU_SymbolImbalance[CPU_TREEUPDATE]);
-    fprintf(FdBalance, "Treehmaxupdate = '%c' / '%c'\n", CPU_Symbol[CPU_TREEHMAXUPDATE],
-            CPU_SymbolImbalance[CPU_TREEHMAXUPDATE]);
-    fprintf(FdBalance, "Treemisc =       '%c' / '%c'\n", CPU_Symbol[CPU_TREEMISC],
-            CPU_SymbolImbalance[CPU_TREEMISC]);
-    fprintf(FdBalance, "Domain decomp  = '%c' / '%c'\n", CPU_Symbol[CPU_DOMAIN],
-            CPU_SymbolImbalance[CPU_DOMAIN]);
-    fprintf(FdBalance, "Density compute= '%c' / '%c'\n", CPU_Symbol[CPU_DENSCOMPUTE],
-            CPU_SymbolImbalance[CPU_DENSCOMPUTE]);
-    fprintf(FdBalance, "Density imbal  = '%c' / '%c'\n", CPU_Symbol[CPU_DENSWAIT],
-            CPU_SymbolImbalance[CPU_DENSWAIT]);
-    fprintf(FdBalance, "Density commu  = '%c' / '%c'\n", CPU_Symbol[CPU_DENSCOMM],
-            CPU_SymbolImbalance[CPU_DENSCOMM]);
-    fprintf(FdBalance, "Density misc   = '%c' / '%c'\n", CPU_Symbol[CPU_DENSMISC],
-            CPU_SymbolImbalance[CPU_DENSMISC]);
-    fprintf(FdBalance, "Hydro compute  = '%c' / '%c'\n", CPU_Symbol[CPU_HYDCOMPUTE],
-            CPU_SymbolImbalance[CPU_HYDCOMPUTE]);
-    fprintf(FdBalance, "Hydro imbalance= '%c' / '%c'\n", CPU_Symbol[CPU_HYDWAIT],
-            CPU_SymbolImbalance[CPU_HYDWAIT]);
-    fprintf(FdBalance, "Hydro comm     = '%c' / '%c'\n", CPU_Symbol[CPU_HYDCOMM],
-            CPU_SymbolImbalance[CPU_HYDCOMM]);
-    fprintf(FdBalance, "Hydro misc     = '%c' / '%c'\n", CPU_Symbol[CPU_HYDMISC],
-            CPU_SymbolImbalance[CPU_HYDMISC]);
-    fprintf(FdBalance, "Drifts         = '%c' / '%c'\n", CPU_Symbol[CPU_DRIFT], CPU_SymbolImbalance[CPU_DRIFT]);
-    fprintf(FdBalance, "Blackhole      = '%c' / '%c'\n", CPU_Symbol[CPU_BLACKHOLES],
-            CPU_SymbolImbalance[CPU_BLACKHOLES]);
-    fprintf(FdBalance, "Kicks          = '%c' / '%c'\n", CPU_Symbol[CPU_TIMELINE],
-            CPU_SymbolImbalance[CPU_TIMELINE]);
-    fprintf(FdBalance, "Potential      = '%c' / '%c'\n", CPU_Symbol[CPU_POTENTIAL],
-            CPU_SymbolImbalance[CPU_POTENTIAL]);
-    fprintf(FdBalance, "PM             = '%c' / '%c'\n", CPU_Symbol[CPU_MESH], CPU_SymbolImbalance[CPU_MESH]);
-    fprintf(FdBalance, "Peano-Hilbert  = '%c' / '%c'\n", CPU_Symbol[CPU_PEANO], CPU_SymbolImbalance[CPU_PEANO]);
-    fprintf(FdBalance, "Snapshot dump  = '%c' / '%c'\n", CPU_Symbol[CPU_SNAPSHOT],
-            CPU_SymbolImbalance[CPU_SNAPSHOT]);
-#ifdef FOF
-    fprintf(FdBalance, "FoF            = '%c' / '%c'\n", CPU_Symbol[CPU_FOF], CPU_SymbolImbalance[CPU_FOF]);
+
+
+  fprintf(FdBalance, "\n");
+  fprintf(FdBalance, "Treewalk1      = '%c' / '%c'\n", CPU_Symbol[CPU_TREEWALK1],
+	  CPU_SymbolImbalance[CPU_TREEWALK1]);
+  fprintf(FdBalance, "Treewalk2      = '%c' / '%c'\n", CPU_Symbol[CPU_TREEWALK2],
+	  CPU_SymbolImbalance[CPU_TREEWALK2]);
+  fprintf(FdBalance, "Treewait1      = '%c' / '%c'\n", CPU_Symbol[CPU_TREEWAIT1],
+	  CPU_SymbolImbalance[CPU_TREEWAIT1]);
+  fprintf(FdBalance, "Treewait2      = '%c' / '%c'\n", CPU_Symbol[CPU_TREEWAIT2],
+	  CPU_SymbolImbalance[CPU_TREEWAIT2]);
+  fprintf(FdBalance, "Treesend       = '%c' / '%c'\n", CPU_Symbol[CPU_TREESEND],
+	  CPU_SymbolImbalance[CPU_TREESEND]);
+  fprintf(FdBalance, "Treerecv       = '%c' / '%c'\n", CPU_Symbol[CPU_TREERECV],
+	  CPU_SymbolImbalance[CPU_TREERECV]);
+  fprintf(FdBalance, "Treebuild      = '%c' / '%c'\n", CPU_Symbol[CPU_TREEBUILD],
+	  CPU_SymbolImbalance[CPU_TREEBUILD]);
+  fprintf(FdBalance, "Treeupdate     = '%c' / '%c'\n", CPU_Symbol[CPU_TREEUPDATE],
+	  CPU_SymbolImbalance[CPU_TREEUPDATE]);
+  fprintf(FdBalance, "Treehmaxupdate = '%c' / '%c'\n", CPU_Symbol[CPU_TREEHMAXUPDATE],
+	  CPU_SymbolImbalance[CPU_TREEHMAXUPDATE]);
+  fprintf(FdBalance, "Treemisc =       '%c' / '%c'\n", CPU_Symbol[CPU_TREEMISC],
+	  CPU_SymbolImbalance[CPU_TREEMISC]);
+  fprintf(FdBalance, "Domain decomp  = '%c' / '%c'\n", CPU_Symbol[CPU_DOMAIN],
+	  CPU_SymbolImbalance[CPU_DOMAIN]);
+  fprintf(FdBalance, "Density compute= '%c' / '%c'\n", CPU_Symbol[CPU_DENSCOMPUTE],
+	  CPU_SymbolImbalance[CPU_DENSCOMPUTE]);
+  fprintf(FdBalance, "Density imbal  = '%c' / '%c'\n", CPU_Symbol[CPU_DENSWAIT],
+	  CPU_SymbolImbalance[CPU_DENSWAIT]);
+  fprintf(FdBalance, "Density commu  = '%c' / '%c'\n", CPU_Symbol[CPU_DENSCOMM],
+	  CPU_SymbolImbalance[CPU_DENSCOMM]);
+  fprintf(FdBalance, "Density misc   = '%c' / '%c'\n", CPU_Symbol[CPU_DENSMISC],
+	  CPU_SymbolImbalance[CPU_DENSMISC]);
+  fprintf(FdBalance, "Hydro compute  = '%c' / '%c'\n", CPU_Symbol[CPU_HYDCOMPUTE],
+	  CPU_SymbolImbalance[CPU_HYDCOMPUTE]);
+  fprintf(FdBalance, "Hydro imbalance= '%c' / '%c'\n", CPU_Symbol[CPU_HYDWAIT],
+	  CPU_SymbolImbalance[CPU_HYDWAIT]);
+  fprintf(FdBalance, "Hydro comm     = '%c' / '%c'\n", CPU_Symbol[CPU_HYDCOMM],
+	  CPU_SymbolImbalance[CPU_HYDCOMM]);
+  fprintf(FdBalance, "Hydro misc     = '%c' / '%c'\n", CPU_Symbol[CPU_HYDMISC],
+	  CPU_SymbolImbalance[CPU_HYDMISC]);
+  fprintf(FdBalance, "Drifts         = '%c' / '%c'\n", CPU_Symbol[CPU_DRIFT], CPU_SymbolImbalance[CPU_DRIFT]);
+  fprintf(FdBalance, "Blackhole      = '%c' / '%c'\n", CPU_Symbol[CPU_BLACKHOLES],
+	  CPU_SymbolImbalance[CPU_BLACKHOLES]);
+  fprintf(FdBalance, "Kicks          = '%c' / '%c'\n", CPU_Symbol[CPU_TIMELINE],
+	  CPU_SymbolImbalance[CPU_TIMELINE]);
+  fprintf(FdBalance, "Potential      = '%c' / '%c'\n", CPU_Symbol[CPU_POTENTIAL],
+	  CPU_SymbolImbalance[CPU_POTENTIAL]);
+  fprintf(FdBalance, "PM             = '%c' / '%c'\n", CPU_Symbol[CPU_MESH], CPU_SymbolImbalance[CPU_MESH]);
+  fprintf(FdBalance, "Peano-Hilbert  = '%c' / '%c'\n", CPU_Symbol[CPU_PEANO], CPU_SymbolImbalance[CPU_PEANO]);
+#ifdef COOLING
+  fprintf(FdBalance, "Cooling & SFR  = '%c' / '%c'\n", CPU_Symbol[CPU_COOLINGSFR],
+	  CPU_SymbolImbalance[CPU_COOLINGSFR]);
 #endif
-    fprintf(FdBalance, "Miscellaneous  = '%c' / '%c'\n", CPU_Symbol[CPU_MISC], CPU_SymbolImbalance[CPU_MISC]);
-    fprintf(FdBalance, "\n");
+  fprintf(FdBalance, "Snapshot dump  = '%c' / '%c'\n", CPU_Symbol[CPU_SNAPSHOT],
+	  CPU_SymbolImbalance[CPU_SNAPSHOT]);
+  fprintf(FdBalance, "Miscellaneous  = '%c' / '%c'\n", CPU_Symbol[CPU_MISC], CPU_SymbolImbalance[CPU_MISC]);
+  fprintf(FdBalance, "\n");
+
+
+#ifdef GALSF
+  sprintf(buf, "%s%s", All.OutputDir, "sfr.txt");
+  if(!(FdSfr = fopen(buf, mode)))
+    {
+      printf("error in opening file '%s'\n", buf);
+      endrun(1);
+    }
 #endif
 
-
-
-
+    
+#if defined(FLAG_NOT_IN_PUBLIC_CODE) || defined(GALSF_FB_LUPI)
+    sprintf(buf, "%s%s", All.OutputDir, "SNeIIheating.txt");
+    if(!(FdSneIIHeating = fopen(buf, mode)))
+    {
+        printf("error in opening file '%s'\n", buf);
+        endrun(1);
+    }  
+#endif
     
     
-    
 
 
-#if defined(TURB_DRIVING) && !defined(IO_REDUCED_MODE)
-  sprintf(buf, "%s%s", All.OutputDir, "turb.txt");
-  if(!(FdTurb = fopen(buf, mode)))
+
+
+
+#ifdef BH_LUPI
+  sprintf(buf, "%s%s.txt", All.OutputDir, "blackholes.txt");
+  if(!(FdBlackHoles = fopen(buf, mode)))
     {
       printf("error in opening file '%s'\n", buf);
       endrun(1);
@@ -553,9 +697,42 @@ void open_outputfiles(void)
 #endif
 
 
-
 }
 
+
+
+
+/*!  This function closes the global log-files.
+ */
+void close_outputfiles(void)
+{
+
+  if(ThisTask != 0)		/* only the root processors writes to the log files */
+    return;
+
+  fclose(FdCPU);
+  fclose(FdInfo);
+  fclose(FdEnergy);
+  fclose(FdTimings);
+  fclose(FdTimebin);
+  fclose(FdBalance);
+
+
+#ifdef GALSF
+  fclose(FdSfr);
+#endif
+
+#if defined(FLAG_NOT_IN_PUBLIC_CODE) || defined(GALSF_FB_LUPI)
+    fclose(FdSneIIHeating);
+#endif
+    
+
+
+
+#ifdef BH_LUPI
+  fclose(FdBlackHoles);
+#endif
+}
 
 
 
@@ -610,6 +787,22 @@ void read_parameter_file(char *fname)
       endrun(0);
     }
 
+#ifdef GRACKLE_OPTS
+  All.MetalCooling   = 0;
+  All.UVBackgroundOn = 0;
+#endif
+
+#ifdef GALSF_FB_LUPI
+  All.SNeIIFraction  = 0.0;
+  All.SNeIIDelay     = 0;
+  All.SNeIIYield     = 0;
+  All.FeedbackMode   = 0;
+  All.SNeBlastWave   = 0;
+#endif
+
+#ifdef BH_LUPI
+  All.AccretionMode  = 0;
+#endif
 
   if(ThisTask == 0)		/* read parameter file on process 0 */
     {
@@ -743,7 +936,7 @@ void read_parameter_file(char *fname)
         addr[nt] = &All.ArtCondConstant;
         id[nt++] = REAL;
 #endif
-#ifdef SPHAV_CD10_VISCOSITY_SWITCH
+#ifdef SPHAV_CD10_FLAG_NOT_IN_PUBLIC_CODE_SWITCH
         strcpy(tag[nt], "ViscosityAMin");
         addr[nt] = &All.ViscosityAMin;
         id[nt++] = REAL;
@@ -771,19 +964,6 @@ void read_parameter_file(char *fname)
 #endif // closes DEVELOPER_MODE check
         
         
-#ifdef GRAIN_FLUID
-        strcpy(tag[nt],"Grain_Internal_Density");
-        addr[nt] = &All.Grain_Internal_Density;
-        id[nt++] = REAL;
-        
-        strcpy(tag[nt],"Grain_Size_Min");
-        addr[nt] = &All.Grain_Size_Min;
-        id[nt++] = REAL;
-
-        strcpy(tag[nt],"Grain_Size_Max");
-        addr[nt] = &All.Grain_Size_Max;
-        id[nt++] = REAL;
-#endif
         
 #if defined(FLAG_NOT_IN_PUBLIC_CODE) || defined(FLAG_NOT_IN_PUBLIC_CODE)
         strcpy(tag[nt],"GasReturnFraction");
@@ -792,7 +972,7 @@ void read_parameter_file(char *fname)
 #endif
         
         
-#if defined(FLAG_NOT_IN_PUBLIC_CODE) || defined(FLAG_NOT_IN_PUBLIC_CODE) || defined(BH_WIND_SPAWN)
+#if defined(FLAG_NOT_IN_PUBLIC_CODE) || defined(FLAG_NOT_IN_PUBLIC_CODE)
         strcpy(tag[nt],"BAL_f_accretion");
         addr[nt] = &All.BAL_f_accretion;
         id[nt++] = REAL;
@@ -800,28 +980,26 @@ void read_parameter_file(char *fname)
         strcpy(tag[nt],"BAL_v_outflow");
         addr[nt] = &All.BAL_v_outflow;
         id[nt++] = REAL;
-#ifdef BH_WIND_SPAWN
-        strcpy(tag[nt], "SpawnPostReverseShock");
-        addr[nt] = &All.SpawnPostReverseShock;
-        id[nt++] = INT;
-
-        strcpy(tag[nt], "BH_wind_spawn_mass");
-        addr[nt] = &All.BH_wind_spawn_mass;
-        id[nt++] = REAL;
-#endif
 #endif
         
 
-#if defined(FLAG_NOT_IN_PUBLIC_CODE) || defined(FLAG_NOT_IN_PUBLIC_CODE) || defined(FLAG_NOT_IN_PUBLIC_CODE) || defined(FLAG_NOT_IN_PUBLIC_CODE) || defined(FLAG_NOT_IN_PUBLIC_CODE) || defined(FLAG_NOT_IN_PUBLIC_CODE)
+#if defined(FLAG_NOT_IN_PUBLIC_CODE) || defined(FLAG_NOT_IN_PUBLIC_CODE) || defined(FLAG_NOT_IN_PUBLIC_CODE) || defined(FLAG_NOT_IN_PUBLIC_CODE) || defined(FLAG_NOT_IN_PUBLIC_CODE) || defined(GRACKLE_OPTS)
         strcpy(tag[nt],"InitMetallicity");
         addr[nt] = &All.InitMetallicityinSolar;
         id[nt++] = REAL;
+#endif
         
+#if defined(FLAG_NOT_IN_PUBLIC_CODE) || defined(FLAG_NOT_IN_PUBLIC_CODE) || defined(FLAG_NOT_IN_PUBLIC_CODE) || defined(FLAG_NOT_IN_PUBLIC_CODE) || defined(FLAG_NOT_IN_PUBLIC_CODE)
         strcpy(tag[nt],"InitStellarAge");
         addr[nt] = &All.InitStellarAgeinGyr;
         id[nt++] = REAL;
 #endif
         
+#if defined(FLAG_NOT_IN_PUBLIC_CODE) || defined(GALSF_FB_LUPI)
+        strcpy(tag[nt], "SNeIIEnergyFrac");
+        addr[nt] = &All.SNeIIEnergyFrac;
+        id[nt++] = REAL;
+#endif
         
 
         
@@ -884,6 +1062,11 @@ void read_parameter_file(char *fname)
       addr[nt] = &All.ResubmitOn;
       id[nt++] = INT;
 
+#ifdef GRACKLE
+        strcpy(tag[nt], "GrackleDataFile");
+        addr[nt] = All.GrackleDataFile;
+        id[nt++] = STRING;
+#endif
         
       strcpy(tag[nt], "TimeLimitCPU");
       addr[nt] = &All.TimeLimitCPU;
@@ -960,7 +1143,7 @@ void read_parameter_file(char *fname)
 
 
 
-#if defined(FLAG_NOT_IN_PUBLIC_CODE) || defined(FLAG_NOT_IN_PUBLIC_CODE)
+#if defined(FLAG_NOT_IN_PUBLIC_CODE) || defined(MULTI_FLAG_NOT_IN_PUBLIC_CODE)
       strcpy(tag[nt], "BubbleDistance");
       addr[nt] = &All.BubbleDistance;
       id[nt++] = REAL;
@@ -994,6 +1177,23 @@ void read_parameter_file(char *fname)
 #endif
 
 
+#ifdef GALSF
+      strcpy(tag[nt], "CritPhysDensity");
+      addr[nt] = &All.CritPhysDensity;
+      id[nt++] = REAL;
+
+      strcpy(tag[nt], "SfEffPerFreeFall");
+      addr[nt] = &All.MaxSfrTimescale;
+      id[nt++] = REAL;
+      /* for historical reasons, we need to convert to "MaxSfrTimescale", 
+            defined as the SF timescale in code units at the critical physical 
+            density given above. use the dimensionless SfEffPerFreeFall
+            to calculate this */
+        
+        
+        
+
+#endif
 
 
 #ifdef RESCALEVINI
@@ -1010,21 +1210,7 @@ void read_parameter_file(char *fname)
 #endif
 
 
-#if defined(CONDUCTION)
-        strcpy(tag[nt], "ConductionCoeff");
-        addr[nt] = &All.ConductionCoeff;
-        id[nt++] = REAL;
-#endif
 
-#if defined(VISCOSITY)
-        strcpy(tag[nt], "ShearViscosityCoeff");
-        addr[nt] = &All.ShearViscosityCoeff;
-        id[nt++] = REAL;
-
-        strcpy(tag[nt], "BulkViscosityCoeff");
-        addr[nt] = &All.BulkViscosityCoeff;
-        id[nt++] = REAL;
-#endif
 
 
 #ifdef MAGNETIC
@@ -1063,113 +1249,46 @@ void read_parameter_file(char *fname)
 #endif
 #endif
 
-#ifdef TURB_DRIVING
-        
-#if defined(POWERSPEC_GRID)
-        strcpy(tag[nt], "TimeBetTurbSpectrum"); // time (code) between evaluations of turb pwrspec
-        addr[nt] = &All.TimeBetTurbSpectrum;
-        id[nt++] = REAL;
-#endif
-        
-        strcpy(tag[nt], "IsoSoundSpeed");  // initializes gas sound speed in box to this value
-        addr[nt] = &All.IsoSoundSpeed;
-        id[nt++] = REAL;
-        
-        strcpy(tag[nt], "ST_decay"); // decay time for driving-mode phase correlations
-        addr[nt] = &All.StDecay;
-        id[nt++] = REAL;
-        
-        strcpy(tag[nt], "ST_energy"); // energy of driving-scale modes: sets norm of turb (?)
-        addr[nt] = &All.StEnergy;
-        id[nt++] = REAL;
-        
-        strcpy(tag[nt], "ST_DtFreq"); // time interval for driving updates (set by hand)
-        addr[nt] = &All.StDtFreq;
-        id[nt++] = REAL;
-        
-        strcpy(tag[nt], "ST_Kmin"); // minimum driving-k: should be ~2.*M_PI/All.BoxSize
-        addr[nt] = &All.StKmin;
-        id[nt++] = REAL;
-        
-        strcpy(tag[nt], "ST_Kmax"); // maximum driving-k: set to couple times Kmin or more if more cascade desired
-        addr[nt] = &All.StKmax;
-        id[nt++] = REAL;
-        
-        strcpy(tag[nt], "ST_SolWeight"); // fractional wt of solenoidal modes (wt*curl + (1-wt)*div)
-        addr[nt] = &All.StSolWeight;
-        id[nt++] = REAL;
-        
-        strcpy(tag[nt], "ST_AmplFac"); // multiplies turb amplitudes
-        addr[nt] = &All.StAmplFac;
-        id[nt++] = REAL;
-        
-        strcpy(tag[nt], "ST_SpectForm"); // driving pwr-spec: 0=Ek~const; 1=sharp-peak at kc; 2=Ek~k^(-5/3); 3=Ek~k^-2
-        addr[nt] = &All.StSpectForm;
-        id[nt++] = INT;
-        
-        strcpy(tag[nt], "ST_Seed"); // random number seed for modes
-        addr[nt] = &All.StSeed;
-        id[nt++] = REAL;
-        
-        /* Andreas Bauer's paper on turbulence:
-         // sub-sonic (Mach~0.3) test: //
-         ST_decay        1.
-         ST_energy       0.0002 (sigma=0.014)
-         ST_DtFreq       0.005
-         ST_Kmin         6.27
-         ST_Kmax         12.57
-         ST_SolWeight    1.
-         ST_AmplFac      1.
-         ST_Seed         42
-         ST_SpectForm    2
-         
-         // trans-sonic (Mach~1.2/3.5) test: //
-         ST_decay        0.5
-         ST_energy       0.21 (sigma=0.21-3.0)
-         ST_DtFreq       0.005
-         ST_Kmin         6.27
-         ST_Kmax         12.57
-         ST_SolWeight    1.
-         ST_AmplFac      1.
-         ST_Seed         42
-         ST_SpectForm    2
-         
-         // super-sonic (Mach~8.4) test: //
-         ST_decay        0.05
-         ST_energy       25.0 (sigma=12.247)
-         ST_DtFreq       0.005
-         ST_Kmin         6.27
-         ST_Kmax         18.85
-         ST_SolWeight    1.
-         ST_AmplFac      1.
-         ST_Seed         42
-         ST_SpectForm    1
-         */
-#endif
 
-#ifdef ADJ_BOX_POWERSPEC
-      strcpy(tag[nt], "BoxWidth");
-      addr[nt] = &All.BoxWidth;
-      id[nt++] = REAL;
 
-      strcpy(tag[nt], "BoxCenter_x");
-      addr[nt] = &All.BoxCenter_x;
-      id[nt++] = REAL;
 
-      strcpy(tag[nt], "BoxCenter_y");
-      addr[nt] = &All.BoxCenter_y;
-      id[nt++] = REAL;
+#ifdef GRACKLE_OPTS
+      strcpy(tag[nt], "MetalCoolingOn");
+      addr[nt] = &All.MetalCooling;
+      id[nt++] = INT;
 
-      strcpy(tag[nt], "BoxCenter_z");
-      addr[nt] = &All.BoxCenter_z;
-      id[nt++] = REAL;
-
-      strcpy(tag[nt], "TransformSize");
-      addr[nt] = &All.FourierGrid;
+      strcpy(tag[nt], "UVBackgroundOn");
+      addr[nt] = &All.UVBackgroundOn;
       id[nt++] = INT;
 #endif
 
+#ifdef GALSF_FB_LUPI
+      strcpy(tag[nt], "SNeIIFraction");
+      addr[nt] = &All.SNeIIFraction;
+      id[nt++] = REAL;
 
+      strcpy(tag[nt], "SNeIIDelay");
+      addr[nt] = &All.SNeIIDelay;
+      id[nt++] = REAL;
+
+      strcpy(tag[nt], "SNeIIYield");
+      addr[nt] = &All.SNeIIYield;
+      id[nt++] = REAL;
+
+      strcpy(tag[nt], "SNeBlastWave");
+      addr[nt] = &All.SNeBlastWave;
+      id[nt++] = INT;
+
+      strcpy(tag[nt], "FeedbackMode");
+      addr[nt] = &All.FeedbackMode;
+      id[nt++] = INT;
+#endif
+
+#ifdef BH_LUPI
+      strcpy(tag[nt], "AccretionMode");
+      addr[nt] = &All.AccretionMode;
+      id[nt++] = INT;
+#endif
         if((fd = fopen(fname, "r")))
         {
             sprintf(buf, "%s%s", fname, "-usedvalues");
@@ -1335,7 +1454,7 @@ void read_parameter_file(char *fname)
 #ifdef SPHAV_ARTIFICIAL_CONDUCTIVITY
     All.ArtCondConstant = 0.25;
 #endif
-#ifdef SPHAV_CD10_VISCOSITY_SWITCH
+#ifdef SPHAV_CD10_FLAG_NOT_IN_PUBLIC_CODE_SWITCH
     All.ViscosityAMin = 0.05;
     All.ViscosityAMax = 2.00;
 #endif
@@ -1350,24 +1469,33 @@ void read_parameter_file(char *fname)
 
     if(All.ComovingIntegrationOn) {All.ErrTolForceAcc = 0.005; All.ErrTolIntAccuracy = 0.05;}
     All.MaxNumNgbDeviation = All.DesNumNgb / 640.;
+#ifdef GALSF
+    All.MaxNumNgbDeviation = All.DesNumNgb / 64.;
+#endif
     if(All.MaxNumNgbDeviation < 0.05) All.MaxNumNgbDeviation = 0.05;
 #ifdef ADAPTIVE_GRAVSOFT_FORALL
     All.AGS_MaxNumNgbDeviation = All.AGS_DesNumNgb / 64.;
-    if(All.AGS_MaxNumNgbDeviation < 0.05) All.AGS_MaxNumNgbDeviation = 0.05;
+#ifdef GALSF
+    All.AGS_MaxNumNgbDeviation = All.AGS_DesNumNgb / 32.;
 #endif
-#ifdef BH_WIND_SPAWN
-      All.AGNWindID = 1913298393;       // this seems weird, but is the bitshifted version of 1234568912345 for not long IDs.
+    if(All.AGS_MaxNumNgbDeviation < 0.05) All.AGS_MaxNumNgbDeviation = 0.05;
 #endif
 #endif // closes DEVELOPER_MODE check //
     
     
+#ifdef GALSF
+    All.CritOverDensity = 1000.0;
+    /* this just needs to be some number >> 1, or else we get nonsense.
+     In cosmological runs, star formation is not allowed below this overdensity, to prevent spurious
+     star formation at very high redshifts */
+#endif
 
     All.TypeOfOpeningCriterion = 1;
     /*!< determines tree cell-opening criterion: 0 for Barnes-Hut, 1 for relative criterion: this
      should only be changed if you -really- know what you're doing! */    
     
-#if defined(MAGNETIC) || defined(HYDRO_MESHLESS_FINITE_VOLUME) || defined(BH_WIND_SPAWN)
-    if(All.CourantFac > 0.2) {All.CourantFac = 0.2;} //
+#ifdef MAGNETIC
+    All.CourantFac *= 0.5; //
     /* (PFH) safety factor needed for MHD calc, because people keep using the same CFac as hydro! */
 #endif
 
@@ -1417,7 +1545,7 @@ void read_parameter_file(char *fname)
         endrun(1);
     }
 #endif
-#ifdef SPHAV_CD10_VISCOSITY_SWITCH
+#ifdef SPHAV_CD10_FLAG_NOT_IN_PUBLIC_CODE_SWITCH
     if((All.ViscosityAMin<=0.025)||(All.ViscosityAMin>=All.ViscosityAMax)||(All.ViscosityAMin>1.0))
     {
         if(ThisTask==0)
@@ -1486,7 +1614,14 @@ void read_parameter_file(char *fname)
         
     }
 #endif
-
+#ifdef GRACKLE_FULLYIMPLICIT
+    if(All.ComovingIntegrationOn)
+    {
+        printf("An accurate temperature evolution for cosmological runs	is incompatible	with fully implicit cooling \n \
+(because of the minimum	temperature in the table)");
+        endrun(1);
+    }
+#endif
     
     for(pnum = 0; All.NumFilesWrittenInParallel > (1 << pnum); pnum++);
     
@@ -1505,11 +1640,11 @@ void read_parameter_file(char *fname)
     }
     
 #if defined(LONG_X) ||  defined(LONG_Y) || defined(LONG_Z)
-#if !defined(NOGRAVITY) && !defined(GRAVITY_NOT_PERIODIC) && (defined(PERIODIC) || defined(PMGRID))
+#ifndef NOGRAVITY
     if(ThisTask == 0)
     {
-        printf("Code was compiled with LONG_X/Y/Z and either PERIODIC or PMGRID, but not with NOGRAVITY or GRAVITY_NOT_PERIODIC.\n");
-        printf("The gravitational solver does not allow stretched-periodic boxes (cubic-box periodic or non-periodic gravity required).\n");
+        printf("Code was compiled with LONG_X/Y/Z, but not with NOGRAVITY.\n");
+        printf("Stretched periodic boxes are not implemented for gravity yet.\n");
     }
     endrun(0);
 #endif
@@ -1521,10 +1656,10 @@ void read_parameter_file(char *fname)
     
     
     
-#ifdef PTHREADS_NUM_THREADS
+#ifdef OMP_NUM_THREADS
 #ifdef _OPENMP
     if(ThisTask == 0)
-        printf("PTHREADS_NUM_THREADS is incompatible with enabling OpenMP in the compiler options \n");
+        printf("OMP_NUM_THREADS is incompatible with enabling OpenMP in the compiler options \n");
     endrun(0);
 #endif
 #endif
@@ -1631,13 +1766,6 @@ void readjust_timebase(double TimeMax_old, double TimeMax_new)
       ti_end /= 2;
       All.Ti_Current /= 2;
 
-#ifdef PMGRID
-      All.PM_Ti_begstep /= 2;
-      All.PM_Ti_endstep /= 2;
-#endif
-#ifdef TURB_DRIVING
-      StTPrev /= 2;
-#endif
 
       for(i = 0; i < NumPart; i++)
 	{
