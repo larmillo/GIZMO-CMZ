@@ -39,20 +39,21 @@ void compute_potential(void)
   if(All.ComovingIntegrationOn)
     set_softenings();
 
+#ifndef IO_REDUCED_MODE
   if(ThisTask == 0)
     {
       printf("Start computation of potential for all particles...\n");
       fflush(stdout);
     }
-
+#endif
   CPU_Step[CPU_MISC] += measure_time();
 
 
   if(TreeReconstructFlag)
     {
-      if(ThisTask == 0)
-	printf("Tree construction.\n");
-
+#ifndef IO_REDUCED_MODE
+      if(ThisTask == 0) printf("Tree construction.\n");
+#endif
       CPU_Step[CPU_MISC] += measure_time();
 
       rearrange_particle_sequence();
@@ -63,21 +64,19 @@ void compute_potential(void)
 
       TreeReconstructFlag = 0;
 
-      if(ThisTask == 0)
-	printf("Tree construction done.\n");
+#ifndef IO_REDUCED_MODE
+      if(ThisTask == 0) printf("Tree construction done.\n");
+#endif
     }
 
 
   /* allocate buffers to arrange communication */
-  All.BunchSize =
-    (int) ((All.BufferSize * 1024 * 1024) / (sizeof(struct data_index) + sizeof(struct data_nodelist) +
+    size_t MyBufferSize = All.BufferSize;
+    All.BunchSize = (int) ((MyBufferSize * 1024 * 1024) / (sizeof(struct data_index) + sizeof(struct data_nodelist) +
 					     sizeof(struct gravdata_in) + sizeof(struct potdata_out) +
-					     sizemax(sizeof(struct gravdata_in),
-						     sizeof(struct potdata_out))));
-  DataIndexTable =
-    (struct data_index *) mymalloc("DataIndexTable", All.BunchSize * sizeof(struct data_index));
-  DataNodeList =
-    (struct data_nodelist *) mymalloc("DataNodeList", All.BunchSize * sizeof(struct data_nodelist));
+					     sizemax(sizeof(struct gravdata_in),sizeof(struct potdata_out))));
+    DataIndexTable = (struct data_index *) mymalloc("DataIndexTable", All.BunchSize * sizeof(struct data_index));
+    DataNodeList = (struct data_nodelist *) mymalloc("DataNodeList", All.BunchSize * sizeof(struct data_nodelist));
 
   for(i = 0; i < NumPart; i++)
     if(P[i].Ti_current != All.Ti_Current)
@@ -258,6 +257,45 @@ void compute_potential(void)
     P[i].Potential *= All.G;
 
 
+#ifdef PMGRID
+
+#ifdef PERIODIC
+  pmpotential_periodic();
+#ifdef PM_PLACEHIGHRESREGION
+  i = pmpotential_nonperiodic(1);
+  if(i == 1)			/* this is returned if a particle lied outside allowed range */
+    {
+      pm_init_regionsize();
+      pm_setup_nonperiodic_kernel();
+      i = pmpotential_nonperiodic(1);	/* try again */
+    }
+  if(i == 1)
+    endrun(88686);
+#endif
+#else
+  i = pmpotential_nonperiodic(0);
+  if(i == 1)			/* this is returned if a particle lied outside allowed range */
+    {
+      pm_init_regionsize();
+      pm_setup_nonperiodic_kernel();
+      i = pmpotential_nonperiodic(0);	/* try again */
+    }
+  if(i == 1)
+    endrun(88687);
+#ifdef PM_PLACEHIGHRESREGION
+  i = pmpotential_nonperiodic(1);
+  if(i == 1)			/* this is returned if a particle lied outside allowed range */
+    {
+      pm_init_regionsize();
+
+      i = pmpotential_nonperiodic(1);
+    }
+  if(i != 0)
+    endrun(88688);
+#endif
+#endif
+
+#endif
 
 
 
@@ -291,12 +329,13 @@ void compute_potential(void)
     }
 
 
+#ifndef IO_REDUCED_MODE
   if(ThisTask == 0)
     {
       printf("potential done.\n");
       fflush(stdout);
     }
-
+#endif
 
 #else
   for(i = 0; i < NumPart; i++)

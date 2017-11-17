@@ -38,9 +38,18 @@ void compute_grav_accelerations(void)
   if(ThisTask == 0)
     {
       printf("Start gravity force computation...\n");
+#ifndef IO_REDUCED_MODE
       fflush(stdout);
+#endif
     }
 
+#ifdef PMGRID
+  if(All.PM_Ti_endstep == All.Ti_Current)
+    {
+      long_range_force();
+      CPU_Step[CPU_MESH] += measure_time();
+    }
+#endif
 
   gravity_tree();		/* computes gravity accel. */
 
@@ -49,11 +58,13 @@ void compute_grav_accelerations(void)
   if(All.TypeOfOpeningCriterion == 1 && All.Ti_Current == 0)
     gravity_tree();
 
+#ifndef IO_REDUCED_MODE
   if(ThisTask == 0)
     {
       printf("gravity force computation done.\n");
       fflush(stdout);
     }
+#endif
 }
 
 
@@ -64,15 +75,15 @@ void compute_hydro_densities_and_forces(void)
     {
         if(ThisTask == 0)
         {
-            printf("Start density & tree-update computation...\n"); fflush(stdout);
+            printf("Start hydrodynamics computation...\n");
         }
-
-        density();		/* computes density, and pressure */
-
-#ifdef GRACKLE_FIX_TEMPERATURE
-        if(RestartFlag == 0 && All.InitGasTemp > 0 && All.TimeStep == 0) fix_temperature();
+#ifndef IO_REDUCED_MODE
+        if(ThisTask == 0)
+        {
+            printf("Start density & tree-update computation...\n");
+        }
 #endif
-
+        density();		/* computes density, and pressure */
 #ifdef ADAPTIVE_GRAVSOFT_FORALL
         ags_density();
 #endif
@@ -85,33 +96,35 @@ void compute_hydro_densities_and_forces(void)
          *  density().
          */
         
+#ifndef IO_REDUCED_MODE
         if(ThisTask == 0)
         {
-            printf("density & tree-update computation...\n"); fflush(stdout);
+            printf("density & tree-update computation done...\n");
         }
-        if(ThisTask == 0)
-        {
-            printf("Start gradient computation...\n"); fflush(stdout);
-        }
+#endif
         hydro_gradient_calc(); /* calculates the gradients of hydrodynamical quantities  */
-        
+#ifndef IO_REDUCED_MODE
         if(ThisTask == 0)
         {
-            printf("gradient computation done.\n"); fflush(stdout);
+            printf("gradient computation done.\n");
         }
-        
-        if(ThisTask == 0)
-        {
-            printf("Start hydro-force computation...\n"); fflush(stdout);
-        }
-        
+#endif
         hydro_force();		/* adds hydrodynamical accelerations and computes du/dt  */
-        
+#ifndef IO_REDUCED_MODE
         if(ThisTask == 0)
         {
-            printf("hydro force computation done.\n"); fflush(stdout);
+            printf("hydro force computation done.\n");
         }
-
+#endif
+#ifdef GRAIN_FLUID
+        apply_grain_dragforce(); /* if we are solving a coupled set of grains via aerodynamic drag, this is where their acceleration should be calculated */
+#ifndef IO_REDUCED_MODE
+        if(ThisTask == 0)
+        {
+            printf("grain aerodynamic force evaluation done.\n");
+        }
+#endif
+#endif
 
     } else {
 #ifdef ADAPTIVE_GRAVSOFT_FORALL
@@ -122,42 +135,3 @@ void compute_hydro_densities_and_forces(void)
 }
 
 
-#ifdef GALSF
-void compute_stellar_feedback(void)
-{
-    CPU_Step[CPU_MISC] += measure_time();
-
-    /* first, check the mechanical sources of feedback */
-#if defined(FLAG_NOT_IN_PUBLIC_CODE) || defined(FLAG_NOT_IN_PUBLIC_CODE) || defined(FLAG_NOT_IN_PUBLIC_CODE)
-    mechanical_fb_calc(-1); /* compute weights for coupling */
-    CPU_Step[CPU_SNIIHEATING] += measure_time();
-#endif // (defined(FLAG_NOT_IN_PUBLIC_CODE)||defined(FLAG_NOT_IN_PUBLIC_CODE) || defined(FLAG_NOT_IN_PUBLIC_CODE))
-    
-    /* alternatively use the 'turn off cooling' sub-grid feedback model */
-    
-    /* now do the local photo-ionization heating */
-    
-    /* finally (if we're not doing it in the star formation routine), do the local radiation pressure */
-#if defined(GALSF_FB_RPWIND_FROMSTARS) && !defined(FLAG_NOT_IN_PUBLIC_CODE)
-    radiation_pressure_winds_consolidated();
-    CPU_Step[CPU_LOCALWIND] += measure_time();
-#endif
-    
-#ifdef GALSF_FB_LUPI
-    //compute coupling for SNae and mass losses
-    lupi_fb_calc(-1);
-    //compute the actual SNa feedback
-    if(All.FeedbackMode % 4 > 0) lupi_fb_calc(0);
-    //compute IM mass star mass loss
-    if(All.FeedbackMode > 4)     lupi_fb_calc(1);
-#endif
-
-#ifdef GENTRY_FB
-    //compute the actual SNe feedback
-    gentry_fb_calc();
-    //compute IM mass star mass loss
-    // if(All.FeedbackMode > 4)     lupi_fb_calc(1);
-#endif
-    CPU_Step[CPU_MISC] += measure_time();
-}
-#endif // GALSF //

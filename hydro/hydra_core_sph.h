@@ -167,7 +167,7 @@
 #ifdef MAGNETIC
         c_ij = 0.5 * (magneticspeed_i + magneticspeed_j);
 #endif
-#if defined(SPHAV_CD10_FLAG_NOT_IN_PUBLIC_CODE_SWITCH)
+#if defined(SPHAV_CD10_VISCOSITY_SWITCH)
         double BulkVisc_ij = 0.5 * (local.alpha + SphP[j].alpha_limiter * SphP[j].alpha);
         double mu_ij = fac_mu * kernel.vdotr2 / kernel.r;
         double visc = -BulkVisc_ij * mu_ij * (c_ij - mu_ij) * kernel.rho_ij_inv; /* this method should use beta/alpha=1 */
@@ -177,7 +177,7 @@
         double mu_ij = fac_mu * h_ij * kernel.vdotr2 / (r2 + 0.0001 * h_ij * h_ij); /* note: this is negative! */
         double visc = -BulkVisc_ij * mu_ij * (c_ij - 2*mu_ij) * kernel.rho_ij_inv; /* this method should use beta/alpha=2 */
 #endif
-#ifndef NOFLAG_NOT_IN_PUBLIC_CODELIMITER
+#ifndef NOVISCOSITYLIMITER
         double dt = 2 * IMAX(local.Timestep, (P[j].TimeBin ? (1 << P[j].TimeBin) : 0)) * All.Timebase_interval;
         if(dt > 0 && kernel.dwk_ij < 0)
             visc = DMIN(visc, 0.5 * fac_vsic_fix * kernel.vdotr2 / ((local.Mass + P[j].Mass) * kernel.dwk_ij * kernel.r * dt));
@@ -200,7 +200,7 @@
     {
         vsigu *= fabs(local.Pressure - SphP[j].Pressure)/(local.Pressure + SphP[j].Pressure);
         du_ij = kernel.spec_egy_u_i - SphP[j].InternalEnergyPred;
-#if defined(SPHAV_CD10_FLAG_NOT_IN_PUBLIC_CODE_SWITCH)
+#if defined(SPHAV_CD10_VISCOSITY_SWITCH)
         du_ij *= 0.5 * (local.alpha + SphP[j].alpha_limiter * SphP[j].alpha); // in this case, All.ArtCondConstant is just a multiplier -relative- to art. visc.
 #endif
         Fluxes.p += local.Mass * All.ArtCondConstant * P[j].Mass * kernel.rho_ij_inv * vsigu * du_ij * kernel.dwk_ij;

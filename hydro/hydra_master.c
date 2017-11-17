@@ -8,11 +8,11 @@
 #include "../proto.h"
 #include "../kernel.h"
 #define NDEBUG
-#ifdef OMP_NUM_THREADS
+#ifdef PTHREADS_NUM_THREADS
 #include <pthread.h>
 #endif
 
-#ifdef OMP_NUM_THREADS
+#ifdef PTHREADS_NUM_THREADS
 extern pthread_mutex_t mutex_nexport;
 extern pthread_mutex_t mutex_partnodedrift;
 #define LOCK_NEXPORT     pthread_mutex_lock(&mutex_nexport);
@@ -201,6 +201,9 @@ struct hydrodata_in
         MyDouble Phi[3];
 #endif
 #endif
+#ifdef TURB_DIFF_METALS
+        MyDouble Metallicity[NUM_METAL_SPECIES][3];
+#endif
 #ifdef DOGRAD_INTERNAL_ENERGY
         MyDouble InternalEnergy[3];
 #endif
@@ -214,7 +217,7 @@ struct hydrodata_in
     MyFloat EgyWtRho;
 #endif
 
-#if defined(FLAG_NOT_IN_PUBLIC_CODE) || (defined(FLAG_NOT_IN_PUBLIC_CODE) && defined(HYDRO_MESHLESS_FINITE_VOLUME))
+#if defined(TURB_DIFF_METALS) || (defined(FLAG_NOT_IN_PUBLIC_CODE) && defined(HYDRO_MESHLESS_FINITE_VOLUME))
     MyFloat Metallicity[NUM_METAL_SPECIES];
 #endif
     
@@ -223,6 +226,9 @@ struct hydrodata_in
     MyFloat TD_DiffCoeff;
 #endif
     
+#ifdef CONDUCTION
+    MyFloat Kappa_Conduction;
+#endif
 
 #ifdef MHD_NON_IDEAL
     MyFloat Eta_MHD_OhmicResistivity_Coeff;
@@ -230,6 +236,10 @@ struct hydrodata_in
     MyFloat Eta_MHD_AmbiPolarDiffusion_Coeff;
 #endif
     
+#ifdef VISCOSITY
+    MyFloat Eta_ShearViscosity;
+    MyFloat Zeta_BulkViscosity;
+#endif
     
 #ifdef MAGNETIC
     MyFloat BPred[3];
@@ -269,15 +279,12 @@ struct hydrodata_out
     MyLongDouble GravWorkTerm[3];
 #endif
     
-#if defined(FLAG_NOT_IN_PUBLIC_CODE) || (defined(FLAG_NOT_IN_PUBLIC_CODE) && defined(HYDRO_MESHLESS_FINITE_VOLUME))
+#if defined(TURB_DIFF_METALS) || (defined(FLAG_NOT_IN_PUBLIC_CODE) && defined(HYDRO_MESHLESS_FINITE_VOLUME))
     MyFloat Dyield[NUM_METAL_SPECIES];
 #endif
     
 #if defined(RT_EVOLVE_NGAMMA_IN_HYDRO)
     MyFloat Dt_E_gamma[N_RT_FREQ_BINS];
-#if defined(RT_INFRARED)
-    MyFloat Dt_E_gamma_T_weighted_IR;
-#endif
 #endif
 #if defined(RT_EVOLVE_FLUX)
     MyFloat Dt_Flux[N_RT_FREQ_BINS][3];
@@ -328,10 +335,14 @@ static inline void particle2in_hydra(struct hydrodata_in *in, int i)
         to conveniently indicate the status of the parent particle flag, for the constrained gradients */
     if(SphP[i].FlagForConstrainedGradients == 0) {in->ConditionNumber *= -1;}
 #endif
+#ifdef BH_WIND_SPAWN
+    /* as above, use sign of condition number as a bitflag to indicate if this is, or is not, a wind particle */
+    if(P[i].ID == All.AGNWindID) {in->ConditionNumber *= -1;}
+#endif
     in->DhsmlNgbFactor = PPP[i].DhsmlNgbFactor;
 #ifdef HYDRO_SPH
     in->DhsmlHydroSumFactor = SphP[i].DhsmlHydroSumFactor;
-#if defined(SPHAV_CD10_FLAG_NOT_IN_PUBLIC_CODE_SWITCH)
+#if defined(SPHAV_CD10_VISCOSITY_SWITCH)
     in->alpha = SphP[i].alpha_limiter * SphP[i].alpha;
 #else
     in->alpha = SphP[i].alpha_limiter;
@@ -359,6 +370,9 @@ static inline void particle2in_hydra(struct hydrodata_in *in, int i)
         in->Gradients.Phi[k] = SphP[i].Gradients.Phi[k];
 #endif
 #endif
+#ifdef TURB_DIFF_METALS
+        for(j=0;j<NUM_METAL_SPECIES;j++) {in->Gradients.Metallicity[j][k] = SphP[i].Gradients.Metallicity[j][k];}
+#endif
 #ifdef DOGRAD_INTERNAL_ENERGY
         in->Gradients.InternalEnergy[k] = SphP[i].Gradients.InternalEnergy[k];
 #endif
@@ -368,7 +382,7 @@ static inline void particle2in_hydra(struct hydrodata_in *in, int i)
     }
 
 
-#if defined(FLAG_NOT_IN_PUBLIC_CODE) || (defined(FLAG_NOT_IN_PUBLIC_CODE) && defined(HYDRO_MESHLESS_FINITE_VOLUME))
+#if defined(TURB_DIFF_METALS) || (defined(FLAG_NOT_IN_PUBLIC_CODE) && defined(HYDRO_MESHLESS_FINITE_VOLUME))
     for(k=0;k<NUM_METAL_SPECIES;k++) {in->Metallicity[k] = P[i].Metallicity[k];}
 #endif
     
@@ -376,6 +390,9 @@ static inline void particle2in_hydra(struct hydrodata_in *in, int i)
     in->TD_DiffCoeff = SphP[i].TD_DiffCoeff;
 #endif
     
+#ifdef CONDUCTION
+    in->Kappa_Conduction = SphP[i].Kappa_Conduction;
+#endif
     
 #ifdef MHD_NON_IDEAL
     in->Eta_MHD_OhmicResistivity_Coeff = SphP[i].Eta_MHD_OhmicResistivity_Coeff;
@@ -384,6 +401,10 @@ static inline void particle2in_hydra(struct hydrodata_in *in, int i)
 #endif
     
 
+#ifdef VISCOSITY
+    in->Eta_ShearViscosity = SphP[i].Eta_ShearViscosity;
+    in->Zeta_BulkViscosity = SphP[i].Zeta_BulkViscosity;
+#endif
     
 #ifdef MAGNETIC
     for(k = 0; k < 3; k++) {in->BPred[k] = Get_Particle_BField(i,k);}
@@ -425,7 +446,7 @@ static inline void out2particle_hydra(struct hydrodata_out *out, int i, int mode
     if(SphP[i].MaxKineticEnergyNgb < out->MaxKineticEnergyNgb)
         SphP[i].MaxKineticEnergyNgb = out->MaxKineticEnergyNgb;
 #endif
-#if defined(FLAG_NOT_IN_PUBLIC_CODE) || (defined(FLAG_NOT_IN_PUBLIC_CODE) && defined(HYDRO_MESHLESS_FINITE_VOLUME))
+#if defined(TURB_DIFF_METALS) || (defined(FLAG_NOT_IN_PUBLIC_CODE) && defined(HYDRO_MESHLESS_FINITE_VOLUME))
     for(k=0;k<NUM_METAL_SPECIES;k++)
     {
         double z_tmp = P[i].Metallicity[k] + out->Dyield[k] / P[i].Mass;
@@ -436,9 +457,6 @@ static inline void out2particle_hydra(struct hydrodata_out *out, int i, int mode
     
 #if defined(RT_EVOLVE_NGAMMA_IN_HYDRO)
     for(k=0;k<N_RT_FREQ_BINS;k++) {SphP[i].Dt_E_gamma[k] += out->Dt_E_gamma[k];}
-#if defined(RT_INFRARED)
-    SphP[i].Dt_E_gamma_T_weighted_IR += out->Dt_E_gamma_T_weighted_IR;
-#endif
 #endif
 #if defined(RT_EVOLVE_FLUX)
     for(k=0;k<N_RT_FREQ_BINS;k++) {int k_dir; for(k_dir=0;k_dir<3;k_dir++) {SphP[i].Dt_Flux[k][k_dir] += out->Dt_Flux[k][k_dir];}}
@@ -505,6 +523,10 @@ void hydro_final_operations_and_cleanup(void)
             double tolerance_for_correction,db_vsig_h_norm;
             tolerance_for_correction = 10.0;
             db_vsig_h_norm = 0.1; // can be as low as 0.03 //
+#ifdef PM_HIRES_REGION_CLIPPING
+            tolerance_for_correction = 0.5; // could be as high as 0.75 //
+            //db_vsig_h_norm = 0.03;
+#endif
 
             double DtB_PhiCorr=0,DtB_UnCorr=0,db_vsig_h=0,PhiCorr_Norm=1.0;
             for(k=0; k<3; k++)
@@ -565,6 +587,7 @@ void hydro_final_operations_and_cleanup(void)
             }
             
             
+            
 #ifdef HYDRO_MESHLESS_FINITE_VOLUME
             SphP[i].DtInternalEnergy -= SphP[i].InternalEnergyPred * SphP[i].DtMass;
 #endif
@@ -592,18 +615,29 @@ void hydro_final_operations_and_cleanup(void)
             /* calculate the radiation pressure force */
             double radacc[3]; radacc[0]=radacc[1]=radacc[2]=0; int k2;
             // a = kappa*F/c = Gradients.E_gamma_ET[gradient of photon energy density] / rho[gas_density] //
-            for(k=0;k<3;k++)
-                for(k2=0;k2<N_RT_FREQ_BINS;k2++)
+            double L_particle = Get_Particle_Size(i)*All.cf_atime; // particle effective size/slab thickness
+            double Sigma_particle = P[i].Mass / (M_PI*L_particle*L_particle); // effective surface density through particle
+            double abs_per_kappa_dt = RT_SPEEDOFLIGHT_REDUCTION * (C/All.UnitVelocity_in_cm_per_s) * (SphP[i].Density*All.cf_a3inv) * dt; // fractional absorption over timestep
+            for(k2=0;k2<N_RT_FREQ_BINS;k2++)
+            {
+                // want to average over volume (through-slab) and over time (over absorption): both give one 'slab_fac' below //
+                double slabfac = slab_averaging_function(SphP[i].Kappa_RT[k2]*Sigma_particle) * slab_averaging_function(SphP[i].Kappa_RT[k2]*abs_per_kappa_dt);
+                for(k=0;k<3;k++)
                 {
 #if defined(RT_EVOLVE_FLUX)
-                    radacc[k] += SphP[i].Kappa_RT[k2] * SphP[i].Flux_Pred[k2][k] / (C / All.UnitVelocity_in_cm_per_s); // no speed of light reduction multiplier here //
+                    radacc[k] += slabfac * SphP[i].Kappa_RT[k2] * SphP[i].Flux_Pred[k2][k] / (C / All.UnitVelocity_in_cm_per_s); // no speed of light reduction multiplier here //
 #elif defined(RT_EVOLVE_EDDINGTON_TENSOR)
-                    radacc[k] += -SphP[i].Lambda_FluxLim[k2] * SphP[i].Gradients.E_gamma_ET[k2][k] / SphP[i].Density;
+                    radacc[k] += -slabfac * SphP[i].Lambda_FluxLim[k2] * SphP[i].Gradients.E_gamma_ET[k2][k] / SphP[i].Density;
 #endif
                 }
+            }
             for(k=0;k<3;k++)
             {
+#ifdef RT_RAD_PRESSURE_OUTPUT
+                SphP[i].RadAccel[k] = radacc[k];
+#else
                 SphP[i].HydroAccel[k] += radacc[k];
+#endif
             } 
 #endif
 
@@ -681,9 +715,6 @@ void hydro_force(void)
 #endif
 #if defined(RT_EVOLVE_NGAMMA_IN_HYDRO)
             for(k=0;k<N_RT_FREQ_BINS;k++) {SphP[i].Dt_E_gamma[k] = 0;}
-#if defined(RT_INFRARED)
-            SphP[i].Dt_E_gamma_T_weighted_IR = 0;
-#endif
 #endif
 #if defined(RT_EVOLVE_FLUX)
             for(k=0;k<N_RT_FREQ_BINS;k++) {int k_dir; for(k_dir=0;k_dir<3;k_dir++) {SphP[i].Dt_Flux[k][k_dir] = 0;}}
@@ -704,7 +735,7 @@ void hydro_force(void)
 #endif // magnetic //
 
 #ifdef WAKEUP
-            SphP[i].wakeup = 0;
+            PPPZ[i].wakeup = 0;
 #endif
         }
     
@@ -725,11 +756,11 @@ void hydro_force(void)
     long long NTaskTimesNumPart;
     NTaskTimesNumPart = maxThreads * NumPart;
     Ngblist = (int *) mymalloc("Ngblist", NTaskTimesNumPart * sizeof(int));
-    All.BunchSize = (int) ((All.BufferSize * 1024 * 1024) / (sizeof(struct data_index) + sizeof(struct data_nodelist) +
+    size_t MyBufferSize = All.BufferSize;
+    All.BunchSize = (int) ((MyBufferSize * 1024 * 1024) / (sizeof(struct data_index) + sizeof(struct data_nodelist) +
                                                              sizeof(struct hydrodata_in) +
                                                              sizeof(struct hydrodata_out) +
-                                                             sizemax(sizeof(struct hydrodata_in),
-                                                                     sizeof(struct hydrodata_out))));
+                                                             sizemax(sizeof(struct hydrodata_in),sizeof(struct hydrodata_out))));
     DataIndexTable = (struct data_index *) mymalloc("DataIndexTable", All.BunchSize * sizeof(struct data_index));
     DataNodeList = (struct data_nodelist *) mymalloc("DataNodeList", All.BunchSize * sizeof(struct data_nodelist));
     CPU_Step[CPU_HYDMISC] += measure_time();
@@ -749,16 +780,16 @@ void hydro_force(void)
         /* do local particles and prepare export list */
         tstart = my_second();
         
-#ifdef OMP_NUM_THREADS
-        pthread_t mythreads[OMP_NUM_THREADS - 1];
-        int threadid[OMP_NUM_THREADS - 1];
+#ifdef PTHREADS_NUM_THREADS
+        pthread_t mythreads[PTHREADS_NUM_THREADS - 1];
+        int threadid[PTHREADS_NUM_THREADS - 1];
         pthread_attr_t attr;
         pthread_attr_init(&attr);
         pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE);
         pthread_mutex_init(&mutex_nexport, NULL);
         pthread_mutex_init(&mutex_partnodedrift, NULL);
         TimerFlag = 0;
-        for(j = 0; j < OMP_NUM_THREADS - 1; j++)
+        for(j = 0; j < PTHREADS_NUM_THREADS - 1; j++)
         {
             threadid[j] = j + 1;
             pthread_create(&mythreads[j], &attr, hydro_evaluate_primary, &threadid[j]);
@@ -776,8 +807,8 @@ void hydro_force(void)
             hydro_evaluate_primary(&mainthreadid);	/* do local particles and prepare export list */
         }
         
-#ifdef OMP_NUM_THREADS
-        for(j = 0; j < OMP_NUM_THREADS - 1; j++)
+#ifdef PTHREADS_NUM_THREADS
+        for(j = 0; j < PTHREADS_NUM_THREADS - 1; j++)
             pthread_join(mythreads[j], NULL);
 #endif
         tend = my_second();
@@ -901,8 +932,8 @@ void hydro_force(void)
         /* now do the particles that were sent to us */
         tstart = my_second();
         NextJ = 0;
-#ifdef OMP_NUM_THREADS
-        for(j = 0; j < OMP_NUM_THREADS - 1; j++)
+#ifdef PTHREADS_NUM_THREADS
+        for(j = 0; j < PTHREADS_NUM_THREADS - 1; j++)
             pthread_create(&mythreads[j], &attr, hydro_evaluate_secondary, &threadid[j]);
 #endif
 #ifdef _OPENMP
@@ -917,8 +948,8 @@ void hydro_force(void)
             hydro_evaluate_secondary(&mainthreadid);
         }
         
-#ifdef OMP_NUM_THREADS
-        for(j = 0; j < OMP_NUM_THREADS - 1; j++)
+#ifdef PTHREADS_NUM_THREADS
+        for(j = 0; j < PTHREADS_NUM_THREADS - 1; j++)
             pthread_join(mythreads[j], NULL);
         
         pthread_mutex_destroy(&mutex_partnodedrift);
@@ -1009,82 +1040,16 @@ void hydro_force(void)
 /* --------------------------------------------------------------------------------- */
 void *hydro_evaluate_primary(void *p)
 {
-    int thread_id = *(int *) p;
-    int i, j;
-    int *exportflag, *exportnodecount, *exportindex, *ngblist;
-    
-    ngblist = Ngblist + thread_id * NumPart;
-    exportflag = Exportflag + thread_id * NTask;
-    exportnodecount = Exportnodecount + thread_id * NTask;
-    exportindex = Exportindex + thread_id * NTask;
-    /* Note: exportflag is local to each thread */
-    for(j = 0; j < NTask; j++)
-        exportflag[j] = -1;
-    
-    while(1)
-    {
-        int exitFlag = 0;
-        LOCK_NEXPORT;
-#ifdef _OPENMP
-#pragma omp critical(_nexport_)
-#endif
-        {
-            if(BufferFullFlag != 0 || NextParticle < 0)
-            {
-                exitFlag = 1;
-            }
-            else
-            {
-                i = NextParticle;
-                ProcessedFlag[i] = 0;
-                NextParticle = NextActiveParticle[NextParticle];
-            }
-        }
-        UNLOCK_NEXPORT;
-        if(exitFlag)
-            break;
-        
-        if(P[i].Type == 0 && P[i].Mass > 0)
-        {
-            if(SphP[i].Density > 0)
-            {
-                if(hydro_evaluate(i, 0, exportflag, exportnodecount, exportindex, ngblist) < 0)
-                    break;		/* export buffer has filled up */
-            }
-        }
-        ProcessedFlag[i] = 1;	/* particle successfully finished */
-    }
-    return NULL;
+#define CONDITION_FOR_EVALUATION if((P[i].Type==0)&&(P[i].Mass>0))
+#define EVALUATION_CALL hydro_evaluate(i, 0, exportflag, exportnodecount, exportindex, ngblist)
+#include "../system/code_block_primary_loop_evaluation.h"
+#undef CONDITION_FOR_EVALUATION
+#undef EVALUATION_CALL
 }
-
-
-
-/* --------------------------------------------------------------------------------- */
-/* one of the core sub-routines used to do the MPI version of the hydro evaluation
- (don't put actual operations here!!!) */
-/* --------------------------------------------------------------------------------- */
 void *hydro_evaluate_secondary(void *p)
 {
-    int thread_id = *(int *) p;
-    int j, dummy, *ngblist;
-    ngblist = Ngblist + thread_id * NumPart;
-    while(1)
-    {
-        LOCK_NEXPORT;
-#ifdef _OPENMP
-#pragma omp critical(_nexport_)
-#endif
-        {
-            j = NextJ;
-            NextJ++;
-        }
-        UNLOCK_NEXPORT;
-        
-        if(j >= Nimport)
-            break;
-        
-        hydro_evaluate(j, 1, &dummy, &dummy, &dummy, ngblist);
-    }
-    return NULL;
+#define EVALUATION_CALL hydro_evaluate(j, 1, &dummy, &dummy, &dummy, ngblist);
+#include "../system/code_block_secondary_loop_evaluation.h"
+#undef EVALUATION_CALL
 }
 

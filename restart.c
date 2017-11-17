@@ -139,8 +139,10 @@ void restart(int modus)
 		  All.PartAllocFactor = save_PartAllocFactor;
 		  All.MaxPart = (int) (All.PartAllocFactor * (All.TotNumPart / NTask));
 		  All.MaxPartSph = (int) (All.PartAllocFactor * (All.TotN_gas / NTask));
-          // All.MaxPartSph = All.MaxPart; // PFH: increasing All.MaxPartSph according to this line can allow better load-balancing in some cases. however it leads to more memory problems
-		  new_MaxPart = All.MaxPart;
+#ifdef ALLOW_IMBALANCED_GASPARTICLELOAD
+          All.MaxPartSph = All.MaxPart; // PFH: increasing All.MaxPartSph according to this line can allow better load-balancing in some cases. however it leads to more memory problems
+#endif
+          new_MaxPart = All.MaxPart;
 
 
 		  save_PartAllocFactor = -1;
@@ -195,15 +197,32 @@ void restart(int modus)
 	  byten(gsl_rng_state(random_generator), gsl_rng_size(random_generator), modus);
 	  byten(&SelRnd, sizeof(SelRnd), modus);
 
+#ifdef TURB_DRIVING
+      byten(gsl_rng_state(StRng), gsl_rng_size(StRng), modus);
+ 
+	  byten(&StNModes, sizeof(StNModes), modus);
+
+	  byten(&StOUVar, sizeof(StOUVar),modus);
+	  byten(StOUPhases, StNModes*6*sizeof(double),modus);
+
+	  byten(StAmpl, StNModes*3*sizeof(double),modus);
+	  byten(StAka, StNModes*3*sizeof(double),modus);
+	  byten(StAkb, StNModes*3*sizeof(double),modus);
+	  byten(StMode, StNModes*3*sizeof(double),modus);
+
+	  byten(&StTPrev, sizeof(StTPrev),modus);
+	  byten(&StSolWeightNorm, sizeof(StSolWeightNorm),modus);
+
+          /*byten(&StEnergyAcc, sizeof(double),modus);
+          byten(&StEnergyDeacc, sizeof(double),modus);
+          byten(&StLastStatTime, sizeof(double),modus);*/
+#endif
 
 	  /* write flags for active timebins */
 	  byten(TimeBinActive, TIMEBINS * sizeof(int), modus);
 
 	  /* now store relevant data for tree */
         in(&Gas_split, modus);
-#ifdef GALSF
-        in(&Stars_converted, modus);
-#endif
 
 
 	  /* now store relevant data for tree */

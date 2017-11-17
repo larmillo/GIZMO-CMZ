@@ -99,10 +99,10 @@ int *PrevInTimeBin;
 size_t HighMark_run, HighMark_domain, HighMark_gravtree,
   HighMark_pmperiodic, HighMark_pmnonperiodic, HighMark_sphdensity, HighMark_sphhydro, HighMark_GasGrad;
 
-
-#ifdef GALSF
-double TimeBinSfr[TIMEBINS];
+#ifdef TURB_DRIVING
+size_t HighMark_turbpower;
 #endif
+
 
 
 
@@ -146,9 +146,6 @@ int NtypeLocal[6];		/*!< local number of particles of each type */
 gsl_rng *random_generator;	/*!< the random number generator used */
 
 int Gas_split;           /*!< current number of newly-spawned gas particles outside block */
-#ifdef GALSF
-int Stars_converted;		/*!< current number of star particles in gas particle block */
-#endif
 
 double TimeOfLastTreeConstruction;	/*!< holds what it says */
 
@@ -185,29 +182,25 @@ double RndTable[RNDTABLE];
 
 char ParameterFile[100];	/*!< file name of parameterfile used for starting the simulation */
 
-FILE *FdInfo,			/*!< file handle for info.txt log-file. */
- *FdEnergy,			/*!< file handle for energy.txt log-file. */
- *FdTimings,			/*!< file handle for timings.txt log-file. */
- *FdBalance,			/*!< file handle for balance.txt log-file. */
- *FdCPU,			/*!< file handle for cpu.txt log-file. */
- *FdTimebin;
-
-
-#ifdef GALSF
-FILE *FdSfr;			/*!< file handle for sfr.txt log-file. */
+FILE
+#ifndef IO_REDUCED_MODE
+*FdTimebin,     /*!< file handle for timebin.txt log-file. */
+*FdInfo,        /*!< file handle for info.txt log-file. */
+*FdEnergy,      /*!< file handle for energy.txt log-file. */
+*FdTimings,     /*!< file handle for timings.txt log-file. */
+*FdBalance,     /*!< file handle for balance.txt log-file. */
+#ifdef TURB_DRIVING
+*FdTurb,        /*!< file handle for turb.txt log-file */
 #endif
-#if defined(FLAG_NOT_IN_PUBLIC_CODE) || defined(GALSF_FB_LUPI)
-FILE *FdSneIIHeating;	/*!< file handle for SNIIheating.txt log-file */
 #endif
+*FdCPU;         /*!< file handle for cpu.txt log-file. */
 
 
 
 
 
 
-#ifdef BH_LUPI
-FILE *FdBlackHoles;
-#endif
+
 
 
 
@@ -314,8 +307,8 @@ int *Nextnode;			/*!< gives next node in tree walk  (nodes array) */
 int *Father;			/*!< gives parent node in tree (Prenodes array) */
 
 
-#if defined(OMP_NUM_THREADS)
-int maxThreads = OMP_NUM_THREADS;
+#if defined(PTHREADS_NUM_THREADS)
+int maxThreads = PTHREADS_NUM_THREADS;
 #else
 int maxThreads = 1;
 #endif

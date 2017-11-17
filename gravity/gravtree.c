@@ -13,7 +13,7 @@
 
 #include "./analytic_gravity.h"
 
-#ifdef OMP_NUM_THREADS
+#ifdef PTHREADS_NUM_THREADS
 #include <pthread.h>
 #endif
 
@@ -35,21 +35,14 @@
  */
 
 
-#ifdef OMP_NUM_THREADS
+#ifdef PTHREADS_NUM_THREADS
 pthread_mutex_t mutex_nexport;
-pthread_mutex_t mutex_workcount;
 pthread_mutex_t mutex_partnodedrift;
-
 #define LOCK_NEXPORT     pthread_mutex_lock(&mutex_nexport);
 #define UNLOCK_NEXPORT   pthread_mutex_unlock(&mutex_nexport);
-#define LOCK_WORKCOUNT   pthread_mutex_lock(&mutex_workcount);
-#define UNLOCK_WORKCOUNT pthread_mutex_unlock(&mutex_workcount);
-
 #else
 #define LOCK_NEXPORT
 #define UNLOCK_NEXPORT
-#define LOCK_WORKCOUNT
-#define UNLOCK_WORKCOUNT
 #endif
 
 
@@ -74,7 +67,7 @@ void sum_top_level_node_costfactors(void);
 void gravity_tree(void)
 {
     long long n_exported = 0;
-    int i, j, maxnumnodes, iter = 0;
+    int i, j, maxnumnodes, iter;
     double t0, t1;
     double timeall = 0, timetree1 = 0, timetree2 = 0;
     double timetree, timewait, timecomm;
@@ -82,6 +75,7 @@ void gravity_tree(void)
     double sum_costtotal, ewaldtot;
     double maxt, sumt, maxt1, sumt1, maxt2, sumt2, sumcommall, sumwaitall;
     double plb, plb_max;
+    iter = 0;
     
 #ifdef FIXEDTIMEINFIRSTPHASE
     int counter;
@@ -108,9 +102,9 @@ void gravity_tree(void)
     /* construct tree if needed */
     if(TreeReconstructFlag)
     {
-        if(ThisTask == 0)
-            printf("Tree construction.  (presently allocated=%g MB)\n", AllocatedBytes / (1024.0 * 1024.0));
-        
+#ifndef IO_REDUCED_MODE
+        if(ThisTask == 0) printf("Tree construction.  (presently allocated=%g MB)\n", AllocatedBytes / (1024.0 * 1024.0));
+#endif
         CPU_Step[CPU_MISC] += measure_time();
         
         force_treebuild(NumPart, NULL);
@@ -119,28 +113,30 @@ void gravity_tree(void)
         
         TreeReconstructFlag = 0;
         
-        if(ThisTask == 0)
-            printf("Tree construction done.\n");
+#ifndef IO_REDUCED_MODE
+        if(ThisTask == 0) printf("Tree construction done.\n");
+#endif
     }
     
 #ifndef NOGRAVITY
     
     /* allocate buffers to arrange communication */
-    if(ThisTask == 0)
-        printf("Begin tree force.  (presently allocated=%g MB)\n", AllocatedBytes / (1024.0 * 1024.0));
+#ifdef IO_REDUCED_MODE
+    if(All.HighestActiveTimeBin == All.HighestOccupiedTimeBin)
+#endif
+    if(ThisTask == 0) printf("Begin tree force.  (presently allocated=%g MB)\n", AllocatedBytes / (1024.0 * 1024.0));
     
-    All.BunchSize =
-    (int) ((All.BufferSize * 1024 * 1024) / (sizeof(struct data_index) + sizeof(struct data_nodelist) +
+    size_t MyBufferSize = All.BufferSize;
+    All.BunchSize = (int) ((MyBufferSize * 1024 * 1024) / (sizeof(struct data_index) + sizeof(struct data_nodelist) +
                                              sizeof(struct gravdata_in) + sizeof(struct gravdata_out) +
-                                             sizemax(sizeof(struct gravdata_in),
-                                                     sizeof(struct gravdata_out))));
-    DataIndexTable =
-    (struct data_index *) mymalloc("DataIndexTable", All.BunchSize * sizeof(struct data_index));
-    DataNodeList =
-    (struct data_nodelist *) mymalloc("DataNodeList", All.BunchSize * sizeof(struct data_nodelist));
+                                             sizemax(sizeof(struct gravdata_in),sizeof(struct gravdata_out))));
+    DataIndexTable = (struct data_index *) mymalloc("DataIndexTable", All.BunchSize * sizeof(struct data_index));
+    DataNodeList = (struct data_nodelist *) mymalloc("DataNodeList", All.BunchSize * sizeof(struct data_nodelist));
     
-    if(ThisTask == 0)
-        printf("All.BunchSize=%d\n", All.BunchSize);
+#ifdef IO_REDUCED_MODE
+    if(All.HighestActiveTimeBin == All.HighestOccupiedTimeBin)
+#endif
+    if(ThisTask == 0) printf("All.BunchSize=%d\n", All.BunchSize);
     
     Ewaldcount = 0;
     Costtotal = 0;
@@ -150,7 +146,7 @@ void gravity_tree(void)
     CPU_Step[CPU_TREEMISC] += measure_time();
     t0 = my_second();
     
-#if defined(PERIODIC) && !defined(FLAG_NOT_IN_PUBLIC_CODE) && !defined(GRAVITY_NOT_PERIODIC)
+#if defined(PERIODIC) && !defined(PMGRID) && !defined(GRAVITY_NOT_PERIODIC)
     ewald_max = 1;
 #else
     ewald_max = 0;
@@ -222,7 +218,7 @@ void gravity_tree(void)
         for(Ewald_iter = 0; Ewald_iter <= ewald_max; Ewald_iter++)
         {
             
-            NextParticle = FirstActiveParticle;	/* beginn with this index */
+            NextParticle = FirstActiveParticle;	/* begin with this index */
             
             do
             {
@@ -233,20 +229,19 @@ void gravity_tree(void)
                 
                 tstart = my_second();
                 
-#ifdef OMP_NUM_THREADS
-                pthread_t mythreads[OMP_NUM_THREADS - 1];
-                int threadid[OMP_NUM_THREADS - 1];
+#ifdef PTHREADS_NUM_THREADS
+                pthread_t mythreads[PTHREADS_NUM_THREADS - 1];
+                int threadid[PTHREADS_NUM_THREADS - 1];
                 pthread_attr_t attr;
                 
                 pthread_attr_init(&attr);
                 pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE);
-                pthread_mutex_init(&mutex_workcount, NULL);
                 pthread_mutex_init(&mutex_nexport, NULL);
                 pthread_mutex_init(&mutex_partnodedrift, NULL);
                 
                 TimerFlag = 0;
                 
-                for(j = 0; j < OMP_NUM_THREADS - 1; j++)
+                for(j = 0; j < PTHREADS_NUM_THREADS - 1; j++)
                 {
                     threadid[j] = j + 1;
                     pthread_create(&mythreads[j], &attr, gravity_primary_loop, &threadid[j]);
@@ -264,8 +259,8 @@ void gravity_tree(void)
                     gravity_primary_loop(&mainthreadid);	/* do local particles and prepare export list */
                 }
                 
-#ifdef OMP_NUM_THREADS
-                for(j = 0; j < OMP_NUM_THREADS - 1; j++)
+#ifdef PTHREADS_NUM_THREADS
+                for(j = 0; j < PTHREADS_NUM_THREADS - 1; j++)
                     pthread_join(mythreads[j], NULL);
 #endif
                 
@@ -441,8 +436,8 @@ void gravity_tree(void)
                 
                 NextJ = 0;
                 
-#ifdef OMP_NUM_THREADS
-                for(j = 0; j < OMP_NUM_THREADS - 1; j++)
+#ifdef PTHREADS_NUM_THREADS
+                for(j = 0; j < PTHREADS_NUM_THREADS - 1; j++)
                     pthread_create(&mythreads[j], &attr, gravity_secondary_loop, &threadid[j]);
 #endif
 #ifdef _OPENMP
@@ -457,13 +452,12 @@ void gravity_tree(void)
                     gravity_secondary_loop(&mainthreadid);
                 }
                 
-#ifdef OMP_NUM_THREADS
-                for(j = 0; j < OMP_NUM_THREADS - 1; j++)
+#ifdef PTHREADS_NUM_THREADS
+                for(j = 0; j < PTHREADS_NUM_THREADS - 1; j++)
                     pthread_join(mythreads[j], NULL);
                 
                 pthread_mutex_destroy(&mutex_partnodedrift);
                 pthread_mutex_destroy(&mutex_nexport);
-                pthread_mutex_destroy(&mutex_workcount);
                 pthread_attr_destroy(&attr);
 #endif
                 
@@ -566,6 +560,7 @@ void gravity_tree(void)
     /* now add things for comoving integration */
     
 #ifndef PERIODIC
+#ifndef PMGRID
     if(All.ComovingIntegrationOn)
     {
         double fac = 0.5 * All.Hubble_H0_CodeUnits * All.Hubble_H0_CodeUnits * All.Omega0 / All.G;
@@ -577,12 +572,19 @@ void gravity_tree(void)
         }
     }
 #endif
+#endif
     
     for(i = FirstActiveParticle; i >= 0; i = NextActiveParticle[i])
     {
+#ifdef PMGRID
+        ax = P[i].GravAccel[0] + P[i].GravPM[0] / All.G;
+        ay = P[i].GravAccel[1] + P[i].GravPM[1] / All.G;
+        az = P[i].GravAccel[2] + P[i].GravPM[2] / All.G;
+#else
         ax = P[i].GravAccel[0];
         ay = P[i].GravAccel[1];
         az = P[i].GravAccel[2];
+#endif
         
         if(header.flag_ic_info == FLAG_SECOND_ORDER_ICS && All.Ti_Current == 0 && RestartFlag == 0)
             continue;		/* to prevent that we overwrite OldAcc in the first evaluation for 2lpt ICs */
@@ -621,6 +623,9 @@ void gravity_tree(void)
         
         P[i].Potential *= All.G;
         
+#ifdef PMGRID
+        P[i].Potential += P[i].PM_Potential;	/* add in long-range potential */
+#endif
         
         if(All.ComovingIntegrationOn)
         {
@@ -657,6 +662,7 @@ void gravity_tree(void)
     /* Finally, the following factor allows a computation of a cosmological simulation
      with vacuum energy in physical coordinates */
 #ifndef PERIODIC
+#ifndef PMGRID
     if(All.ComovingIntegrationOn == 0)
     {
         double fac = All.OmegaLambda * All.Hubble_H0_CodeUnits * All.Hubble_H0_CodeUnits;
@@ -666,11 +672,9 @@ void gravity_tree(void)
                 P[i].GravAccel[j] += fac * P[i].Pos[j];
     }
 #endif
+#endif
     
-    
-    if(ThisTask == 0)
-        printf("tree is done.\n");
-    
+        
 #else /* gravity is switched off */
     t0 = my_second();
     
@@ -739,6 +743,7 @@ void gravity_tree(void)
     }
 #endif
     
+#ifndef IO_REDUCED_MODE
     if(ThisTask == 0)
     {
         fprintf(FdTimings, "Step= %d  t= %g  dt= %g \n", All.NumCurrentTiStep, All.Time, All.TimeStep);
@@ -763,9 +768,11 @@ void gravity_tree(void)
         
         fflush(FdTimings);
     }
+#endif
     
     CPU_Step[CPU_TREEMISC] += measure_time();
     
+#ifndef IO_REDUCED_MODE
     double costtotal_new = 0, sum_costtotal_new;
     if(TakeLevel >= 0)
     {
@@ -777,6 +784,7 @@ void gravity_tree(void)
                    (sum_costtotal - sum_costtotal_new) / sum_costtotal);
         /* can be non-zero if THREAD_SAFE_COSTS is not used (and due to round-off errors). */
     }
+#endif
 }
 
 
@@ -828,36 +836,32 @@ void *gravity_primary_loop(void *p)
         if(exitFlag)
             break;
         
+#if !defined(PMGRID)
 #if defined(PERIODIC) && !defined(GRAVITY_NOT_PERIODIC)
         if(Ewald_iter)
         {
             ret = force_treeevaluate_ewald_correction(i, 0, exportflag, exportnodecount, exportindex);
-            if(ret >= 0)
-            {
-                LOCK_WORKCOUNT;
-#ifdef _OPENMP
-#pragma omp critical(_workcount_)
-#endif
-                Ewaldcount += ret;	/* note: ewaldcount may be slightly incorrect for multiple threads if buffer gets filled up */
-                UNLOCK_WORKCOUNT;
-            }
-            else
-                break;		/* export buffer has filled up */
+            if(ret >= 0) {Ewaldcount += ret; /* note: ewaldcount may be slightly incorrect for multiple threads if buffer gets filled up */} else {break; /* export buffer has filled up */}
         }
         else
 #endif
         {
             ret = force_treeevaluate(i, 0, exportflag, exportnodecount, exportindex);
-            if(ret < 0)
-                break;		/* export buffer has filled up */
-            
-            LOCK_WORKCOUNT;
-#ifdef _OPENMP
-#pragma omp critical(_workcount_)
-#endif
+            if(ret < 0) {break;} /* export buffer has filled up */
             Costtotal += ret;
-            UNLOCK_WORKCOUNT;
         }
+#else
+        
+#ifdef NEUTRINOS
+        if(P[i].Type != 2)
+#endif
+        {
+            ret = force_treeevaluate(i, 0, exportflag, exportnodecount, exportindex);
+            if(ret < 0) {break;} /* export buffer has filled up */
+            Costtotal += ret;
+        }
+        
+#endif
         
         ProcessedFlag[i] = 1;	/* particle successfully finished */
         
@@ -905,32 +909,23 @@ void *gravity_secondary_loop(void *p)
         if(j >= Nimport)
             break;
         
+#if !defined(PMGRID)
 #if defined(PERIODIC) && !defined(GRAVITY_NOT_PERIODIC)
         if(Ewald_iter)
         {
             int cost = force_treeevaluate_ewald_correction(j, 1, &dummy, &dummy, &dummy);
-            
-            LOCK_WORKCOUNT;
-#ifdef _OPENMP
-#pragma omp critical(_workcount_)
-#endif
             Ewaldcount += cost;
-            UNLOCK_WORKCOUNT;
         }
         else
 #endif
         {
             ret = force_treeevaluate(j, 1, &nodesinlist, &dummy, &dummy);
-            LOCK_WORKCOUNT;
-#ifdef _OPENMP
-#pragma omp critical(_workcount_)
-#endif
-            {
-                N_nodesinlist += nodesinlist;
-                Costtotal += ret;
-            }
-            UNLOCK_WORKCOUNT;
+            N_nodesinlist += nodesinlist; Costtotal += ret;
         }
+#else
+        ret = force_treeevaluate(j, 1, &nodesinlist, &dummy, &dummy);
+        N_nodesinlist += nodesinlist; Costtotal += ret;
+#endif
     }
     
     return NULL;

@@ -21,7 +21,19 @@ void do_first_halfstep_kick(void)
     int i;
     integertime ti_step, tstart=0, tend=0;
     
+#ifdef TURB_DRIVING
+    do_turb_driving_step_first_half();
+#endif
     
+#ifdef PMGRID
+    if(All.PM_Ti_begstep == All.Ti_Current)	/* need to do long-range kick */
+    {
+        ti_step = All.PM_Ti_endstep - All.PM_Ti_begstep;
+        tstart = All.PM_Ti_begstep;
+        tend = tstart + ti_step / 2;
+        apply_long_range_kick(tstart, tend);
+    }
+#endif
     
     /* collisionless particles only need an update if they are active; however, to 
         maintain manifest conservation in the hydro, need to check -ALL- sph particles every timestep */
@@ -47,6 +59,15 @@ void do_second_halfstep_kick(void)
     int i;
     integertime ti_step, tstart=0, tend=0;
     
+#ifdef PMGRID
+    if(All.PM_Ti_endstep == All.Ti_Current)	/* need to do long-range kick */
+    {
+        ti_step = All.PM_Ti_endstep - All.PM_Ti_begstep;
+        tstart = All.PM_Ti_begstep + ti_step / 2;
+        tend = tstart + ti_step / 2;
+        apply_long_range_kick(tstart, tend);
+    }
+#endif
 
     for(i = 0; i < NumPart; i++)
     {
@@ -65,9 +86,35 @@ void do_second_halfstep_kick(void)
         }
     } // for(i = 0; i < NumPart; i++) //
     
+#ifdef TURB_DRIVING
+    do_turb_driving_step_second_half();
+#endif
 }
 
 
+#ifdef PMGRID
+void apply_long_range_kick(integertime tstart, integertime tend)
+{
+    int i, j;
+    double dt_gravkick, dvel[3];
+    
+    if(All.ComovingIntegrationOn)
+        dt_gravkick = get_gravkick_factor(tstart, tend);
+    else
+        dt_gravkick = (tend - tstart) * All.Timebase_interval;
+    
+    for(i = 0; i < NumPart; i++)
+    {
+        if(P[i].Mass > 0)
+            for(j = 0; j < 3; j++)	/* do the kick, only collisionless particles */
+            {
+                dvel[j] = P[i].GravPM[j] * dt_gravkick;
+                P[i].Vel[j] += dvel[j];
+                P[i].dp[j] += P[i].Mass * dvel[j];
+            }
+    }
+}
+#endif
 
 
 void do_the_kick(int i, integertime tstart, integertime tend, integertime tcurrent, int mode)
@@ -160,6 +207,9 @@ void do_the_kick(int i, integertime tstart, integertime tend, integertime tcurre
             for(j = 0; j < 3; j++)
             {
                 grav_acc[j] = All.cf_a2inv * P[i].GravAccel[j];
+#ifdef PMGRID
+                grav_acc[j] += All.cf_a2inv * P[i].GravPM[j];
+#endif
             }
             
 #ifdef HYDRO_MESHLESS_FINITE_VOLUME
@@ -167,9 +217,6 @@ void do_the_kick(int i, integertime tstart, integertime tend, integertime tcurre
             for(j=0;j<3;j++) {dEnt_Gravity += -(SphP[i].GravWorkTerm[j] * All.cf_atime * dt_hydrokick) * grav_acc[j];}
 #endif
             double du_tot = SphP[i].DtInternalEnergy * dt_hydrokick + dEnt_Gravity;
-#if defined(COOLING) && !defined(FLAG_NOT_IN_PUBLIC_CODE)
-            if(mode == 1) {du_tot = 0;}
-#endif
             double dEnt = SphP[i].InternalEnergy + du_tot;
             
 #ifdef ENERGY_ENTROPY_SWITCH_IS_ACTIVE
@@ -234,6 +281,12 @@ void do_the_kick(int i, integertime tstart, integertime tend, integertime tcurre
             if(P[i].Type==0)
             {
                 dp[j] += mass_pred * SphP[i].HydroAccel[j] * All.cf_atime * dt_hydrokick; // convert to code units
+#ifdef TURB_DRIVING
+                dp[j] += mass_pred * SphP[i].TurbAccel[j] * dt_gravkick;
+#endif
+#ifdef RT_RAD_PRESSURE_OUTPUT
+                dp[j] += mass_pred * SphP[i].RadAccel[j] * All.cf_atime * dt_hydrokick;
+#endif
             }
             dp[j] += mass_pred * P[i].GravAccel[j] * dt_gravkick;
             P[i].Vel[j] += dp[j] / mass_new; /* correctly accounts for mass change if its allowed */
@@ -358,6 +411,7 @@ void do_sph_kick_for_extra_physics(int i, integertime tstart, integertime tend, 
             if(phi_phys_abs > 1000. * phi_max_tolerance * vb_phy_abs)
             {
                 /* this indicates a serious problem! issue a warning and zero phi */
+#ifndef IO_REDUCED_MODE
                 printf("WARNING: MAJOR GROWTH IN PHI-FIELD: phi_phys_abs=%g vb_phy_abs=%g vsig_max=%g b_phys=%g particle_id_i=%d dtphi_code=%g Pressure=%g rho=%g x/y/z=%g/%g/%g vx/vy/vz=%g/%g/%g Bx/By/Bz=%g/%g/%g h=%g u=%g m=%g phi=%g bin=%d SigVel=%g a=%g \n",
                        phi_phys_abs,vb_phy_abs,vsig_max,b_phys,i,SphP[i].DtPhi,
                        SphP[i].Pressure,SphP[i].Density,P[i].Pos[0],P[i].Pos[1],P[i].Pos[2],
@@ -365,6 +419,7 @@ void do_sph_kick_for_extra_physics(int i, integertime tstart, integertime tend, 
                        PPP[i].Hsml,SphP[i].InternalEnergy,P[i].Mass,SphP[i].Phi,P[i].TimeBin,
                        SphP[i].MaxSignalVel,All.cf_atime);
                 fflush(stdout);
+#endif
                 SphP[i].PhiPred = SphP[i].Phi = SphP[i].DtPhi = 0;
             } else {
                 if(phi_phys_abs > phi_max_tolerance * vb_phy_abs)

@@ -13,13 +13,14 @@
 /* --------------------------------------------------------------------------------- */
 int hydro_evaluate(int target, int mode, int *exportflag, int *exportnodecount, int *exportindex, int *ngblist)
 {
-    int j, k, n, startnode, numngb, kernel_mode, listindex = 0;
-    double hinv_i,hinv3_i,hinv4_i,hinv_j,hinv3_j,hinv4_j,V_i,V_j,dt_hydrostep,r2,rinv,rinv_soft,u;
+    int j, k, n, startnode, numngb, kernel_mode, listindex;
+    double hinv_i,hinv3_i,hinv4_i,hinv_j,hinv3_j,hinv4_j,V_i,V_j,dt_hydrostep,r2,rinv,rinv_soft,u,Particle_Size_i;
     double v_hll,k_hll,b_hll; v_hll=k_hll=0,b_hll=1;
     struct kernel_hydra kernel;
     struct hydrodata_in local;
     struct hydrodata_out out;
     struct Conserved_var_Riemann Fluxes;
+    listindex = 0;
     memset(&out, 0, sizeof(struct hydrodata_out));
     memset(&kernel, 0, sizeof(struct kernel_hydra));
     memset(&Fluxes, 0, sizeof(struct Conserved_var_Riemann));
@@ -34,18 +35,13 @@ int hydro_evaluate(int target, int mode, int *exportflag, int *exportnodecount, 
 #ifdef HYDRO_MESHLESS_FINITE_MASS
     double epsilon_entropic_eos_big = 0.5; // can be anything from (small number=more diffusive, less accurate entropy conservation) to ~1.1-1.3 (least diffusive, most noisy)
     double epsilon_entropic_eos_small = 1.e-3; // should be << epsilon_entropic_eos_big
-    if(All.ComovingIntegrationOn) {epsilon_entropic_eos_big = 0.6; epsilon_entropic_eos_small=1.e-2;}
-#endif
-#if defined(RT_EVOLVE_NGAMMA_IN_HYDRO)
-    double Fluxes_E_gamma[N_RT_FREQ_BINS];
-    double tau_c_i[N_RT_FREQ_BINS];
-    double Particle_Size_i = pow(local.Mass/local.Density,1./NUMDIMS) * All.cf_atime; // in physical, used below in some routines //
-    for(k=0;k<N_RT_FREQ_BINS;k++) {tau_c_i[k] = Particle_Size_i * local.Kappa_RT[k]*local.Density*All.cf_a3inv;}
-#ifdef RT_EVOLVE_FLUX
-    double Fluxes_Flux[N_RT_FREQ_BINS][3];
+#if defined(FORCE_ENTROPIC_EOS_BELOW)
+    epsilon_entropic_eos_small = FORCE_ENTROPIC_EOS_BELOW; // if set manually
+#elif !defined(NOGRAVITY)
+    epsilon_entropic_eos_small = 1.e-2; epsilon_entropic_eos_big = 0.6; // with gravity larger tolerance behaves better on hydrostatic equilibrium problems //
 #endif
 #endif
-    
+
     if(mode == 0)
     {
         particle2in_hydra(&local, target); // this setup allows for all the fields we need to define (don't hard-code here)
@@ -64,6 +60,14 @@ int hydro_evaluate(int target, int mode, int *exportflag, int *exportnodecount, 
     kernel_hinv(kernel.h_i, &hinv_i, &hinv3_i, &hinv4_i);
     hinv_j=hinv3_j=hinv4_j=0;
     V_i = local.Mass / local.Density;
+    Particle_Size_i = pow(V_i,1./NUMDIMS) * All.cf_atime; // in physical, used below in some routines //
+    double Amax_i = MAX_REAL_NUMBER;
+#if (NUMDIMS==2)
+    Amax_i = 2. * sqrt(V_i/M_PI);
+#endif
+#if (NUMDIMS==3)
+    Amax_i = M_PI * pow((3.*V_i)/(4.*M_PI), 2./3.);
+#endif    
     dt_hydrostep = local.Timestep * All.Timebase_interval / All.cf_hubble_a; /* (physical) timestep */
     out.MaxSignalVel = kernel.sound_i;
     kernel_mode = 0; /* need dwk and wk */
@@ -100,7 +104,16 @@ int hydro_evaluate(int target, int mode, int *exportflag, int *exportnodecount, 
     kernel.alfven2_i = DMIN(kernel.alfven2_i, 1000. * kernel.sound_i*kernel.sound_i);
     double vcsa2_i = kernel.sound_i*kernel.sound_i + kernel.alfven2_i;
 #endif // MAGNETIC //
-    
+
+#if defined(RT_EVOLVE_NGAMMA_IN_HYDRO)
+    double Fluxes_E_gamma[N_RT_FREQ_BINS];
+    double tau_c_i[N_RT_FREQ_BINS];
+    for(k=0;k<N_RT_FREQ_BINS;k++) {tau_c_i[k] = Particle_Size_i * local.Kappa_RT[k]*local.Density*All.cf_a3inv;}
+#ifdef RT_EVOLVE_FLUX
+    double Fluxes_Flux[N_RT_FREQ_BINS][3];
+#endif
+#endif
+
     
     /* --------------------------------------------------------------------------------- */
     /* Now start the actual SPH computation for this particle */
@@ -230,8 +243,8 @@ int hydro_evaluate(int target, int mode, int *exportflag, int *exportnodecount, 
                     if(KE > SphP[j].MaxKineticEnergyNgb) SphP[j].MaxKineticEnergyNgb = KE;
                 }
 #endif
-#if defined(RT_INFRARED)
-                double Fluxes_E_gamma_T_weighted_IR = 0;
+#ifdef TURB_DIFF_METALS
+                double mdot_estimated = 0;
 #endif
                 
                 /* --------------------------------------------------------------------------------- */
@@ -310,7 +323,7 @@ int hydro_evaluate(int target, int mode, int *exportflag, int *exportnodecount, 
 #define HLL_correction(ui,uj,wt,kappa) (k_hll = v_hll * (wt) * kernel.r * All.cf_atime / fabs(kappa),\
                                         k_hll = (0.2 + k_hll) / (0.2 + k_hll + k_hll*k_hll),\
                                         -1.0*k_hll*Face_Area_Norm*v_hll*((ui)-(uj)))
-#if !defined(MAGNETIC) || defined(GALSF) || defined(COOLING) || defined(BLACKHOLES)
+#if !defined(MAGNETIC) || defined(FLAG_NOT_IN_PUBLIC_CODE) || defined(FLAG_NOT_IN_PUBLIC_CODE) || defined(BLACKHOLES)
 #define HLL_DIFFUSION_OVERSHOOT_FACTOR  0.005
 #else
 #define HLL_DIFFUSION_OVERSHOOT_FACTOR  1.0
@@ -321,7 +334,13 @@ int hydro_evaluate(int target, int mode, int *exportflag, int *exportnodecount, 
 #include "nonideal_mhd.h"
 #endif
                 
+#ifdef CONDUCTION
+#include "conduction.h"
+#endif
 
+#ifdef VISCOSITY
+#include "viscosity.h"
+#endif
                 
 #ifdef TURB_DIFFUSION
 #include "turbulent_diffusion.h"
@@ -339,7 +358,9 @@ int hydro_evaluate(int target, int mode, int *exportflag, int *exportnodecount, 
                 if(fabs(dmass_holder) > dmass_limiter) {dmass_holder *= dmass_limiter / fabs(dmass_holder);}
                 out.dMass += dmass_holder;
                 out.DtMass += Fluxes.rho;
-                SphP[j].dMass -= dmass_holder; 
+#ifndef SHEARING_BOX
+                SphP[j].dMass -= dmass_holder;
+#endif
                 double gravwork[3]; gravwork[0]=Fluxes.rho*kernel.dp[0]; gravwork[1]=Fluxes.rho*kernel.dp[1]; gravwork[2]=Fluxes.rho*kernel.dp[2];
                 for(k=0;k<3;k++) {out.GravWorkTerm[k] += gravwork[k];}
 #endif
@@ -352,9 +373,6 @@ int hydro_evaluate(int target, int mode, int *exportflag, int *exportnodecount, 
                 out.DtInternalEnergy += Fluxes.p;
 #if defined(RT_EVOLVE_NGAMMA_IN_HYDRO)
                 for(k=0;k<N_RT_FREQ_BINS;k++) {out.Dt_E_gamma[k] += Fluxes_E_gamma[k];}
-#if defined(RT_INFRARED)
-                out.Dt_E_gamma_T_weighted_IR += Fluxes_E_gamma_T_weighted_IR;
-#endif
 #endif
 #ifdef RT_EVOLVE_FLUX
                 for(k=0;k<N_RT_FREQ_BINS;k++) {int k_dir; for(k_dir=0;k_dir<3;k_dir++) {out.Dt_Flux[k][k_dir] += Fluxes_Flux[k][k_dir];}}
@@ -412,9 +430,6 @@ int hydro_evaluate(int target, int mode, int *exportflag, int *exportnodecount, 
                     SphP[j].DtInternalEnergy -= Fluxes.p;
 #if defined(RT_EVOLVE_NGAMMA_IN_HYDRO)
                     for(k=0;k<N_RT_FREQ_BINS;k++) {SphP[j].Dt_E_gamma[k] -= Fluxes_E_gamma[k];}
-#if defined(RT_INFRARED)
-                    SphP[j].Dt_E_gamma_T_weighted_IR -= Fluxes_E_gamma_T_weighted_IR;
-#endif
 #endif
 #ifdef RT_EVOLVE_FLUX
                     for(k=0;k<N_RT_FREQ_BINS;k++) {int k_dir; for(k_dir=0;k_dir<3;k_dir++) {SphP[j].Dt_Flux[k][k_dir] -= Fluxes_Flux[k][k_dir];}}
@@ -471,7 +486,10 @@ int hydro_evaluate(int target, int mode, int *exportflag, int *exportnodecount, 
                 if(TimeBinActive[P[j].TimeBin])
                     if(kernel.vsig > SphP[j].MaxSignalVel) SphP[j].MaxSignalVel = kernel.vsig;
 #ifdef WAKEUP
-                if(kernel.vsig > WAKEUP*SphP[j].MaxSignalVel) SphP[j].wakeup = 1;
+                if(kernel.vsig > WAKEUP*SphP[j].MaxSignalVel) PPPZ[j].wakeup = 1;
+#if (SLOPE_LIMITER_TOLERANCE <= 0)
+                if(local.Timestep*WAKEUP < TimeStep_J) PPPZ[j].wakeup = 1;
+#endif
 #endif
                 
                 

@@ -28,9 +28,6 @@ void reconstruct_timebins(void)
         TimeBinCountSph[bin] = 0;
         FirstInTimeBin[bin] = -1;
         LastInTimeBin[bin] = -1;
-#ifdef GALSF
-        TimeBinSfr[bin] = 0;
-#endif
     }
     
     for(i = 0; i < NumPart; i++)
@@ -53,14 +50,10 @@ void reconstruct_timebins(void)
         if(P[i].Type == 0)
             TimeBinCountSph[bin]++;
         
-#ifdef GALSF
-        if(P[i].Type == 0)
-            TimeBinSfr[bin] += SphP[i].Sfr;
-#endif
     }
     
     make_list_of_active_particles();
-
+    
     for(i = FirstActiveParticle, NumForceUpdate = 0; i >= 0; i = NextActiveParticle[i])
     {
         NumForceUpdate++;
@@ -119,6 +112,14 @@ void drift_particle(int i, integertime time1)
     if(divv_fac > +divv_fac_max) divv_fac = +divv_fac_max;
     if(divv_fac < -divv_fac_max) divv_fac = -divv_fac_max;
     
+#ifdef GRAIN_FLUID
+    if(P[i].Type > 0)
+    {
+        PPP[i].Hsml *= exp((double)divv_fac / ((double)NUMDIMS));
+        if(PPP[i].Hsml < All.MinHsml) {PPP[i].Hsml = All.MinHsml;}
+        if(PPP[i].Hsml > All.MaxHsml) {PPP[i].Hsml = All.MaxHsml;}
+    }
+#endif
 
 #ifdef ADAPTIVE_GRAVSOFT_FORALL
     if(P[i].Type>0)
@@ -149,10 +150,24 @@ void drift_particle(int i, integertime time1)
                 dt_entr = dt_gravkick = dt_hydrokick = (time1 - time0) * All.Timebase_interval;
             }
             
+#ifdef PMGRID
+            for(j = 0; j < 3; j++)
+                SphP[i].VelPred[j] += (P[i].GravAccel[j] + P[i].GravPM[j]) * dt_gravkick +
+                    SphP[i].HydroAccel[j]*All.cf_atime * dt_hydrokick; /* make sure v is in code units */
+#else
             for(j = 0; j < 3; j++)
                 SphP[i].VelPred[j] += P[i].GravAccel[j] * dt_gravkick +
                     SphP[i].HydroAccel[j]*All.cf_atime * dt_hydrokick; /* make sure v is in code units */
+#endif
             
+#if defined(TURB_DRIVING)
+            for(j = 0; j < 3; j++)
+                SphP[i].VelPred[j] += SphP[i].TurbAccel[j] * dt_gravkick;
+#endif
+#ifdef RT_RAD_PRESSURE_OUTPUT
+            for(j = 0; j < 3; j++)
+                SphP[i].VelPred[j] += SphP[i].RadAccel[j] * All.cf_atime * dt_hydrokick;
+#endif
             
 #ifdef HYDRO_MESHLESS_FINITE_VOLUME
             P[i].Mass = DMAX(P[i].Mass + SphP[i].DtMass * dt_entr, 0.5 * SphP[i].MassTrue);
@@ -236,9 +251,9 @@ void move_particles(integertime time1)
 void drift_sph_extra_physics(int i, integertime tstart, integertime tend, double dt_entr)
 {
 #ifdef MAGNETIC
-    int k;
+    int kB;
     double BphysVolphys_to_BcodeVolCode = 1 / All.cf_atime;
-    for(k=0;k<3;k++) {SphP[i].BPred[k] += SphP[i].DtB[k] * dt_entr * BphysVolphys_to_BcodeVolCode;} // fluxes are always physical, convert to code units //
+    for(kB=0;kB<3;kB++) {SphP[i].BPred[kB] += SphP[i].DtB[kB] * dt_entr * BphysVolphys_to_BcodeVolCode;} // fluxes are always physical, convert to code units //
 #ifdef DIVBCLEANING_DEDNER
     double PhiphysVolphys_to_PhicodeVolCode = 1 / All.cf_a3inv; // for mass-based phi fluxes (otherwise coefficient is 1)
     double dtphi_code = (PhiphysVolphys_to_PhicodeVolCode) * SphP[i].DtPhi;
@@ -420,6 +435,10 @@ double Get_DtB_FaceArea_Limiter(int i)
     {
         double area_norm_min_threshold = 0.001;
         double area_norm_weight = 200.0;
+#ifdef PM_HIRES_REGION_CLIPPING
+        area_norm_min_threshold *= 0.01;
+        area_norm_weight *= 2.5; // can be as low as 1.0 (PFH) //
+#endif
         if(area_sum/area_norm > area_norm_min_threshold)
         {
             double tol = (All.CourantFac/0.2) * DMAX( 0.01, area_norm/(area_norm_weight * area_sum) );

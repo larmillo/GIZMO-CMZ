@@ -30,7 +30,7 @@
  * by Phil Hopkins (phopkins@caltech.edu) for GIZMO.
  */
 
-#if defined(FLAG_NOT_IN_PUBLIC_CODE) || defined(FLAG_NOT_IN_PUBLIC_CODE_RESHUFFLE_CATALOGUE)
+#if defined(FLAG_NOT_IN_PUBLIC_CODE) || defined(FLAG_NOT_IN_PUBLIC_CODE)
 static unsigned long FileNr;
 static long long *NumPartPerFile;
 #endif
@@ -38,7 +38,8 @@ static long long *NumPartPerFile;
 
 void read_ic(char *fname)
 {
-    int i, num_files, rest_files, ngroups, gr, filenr, masterTask, lastTask, groupMaster;
+    long i;
+    int num_files, rest_files, ngroups, gr, filenr, masterTask, lastTask, groupMaster;
     double u_init, molecular_weight;
     char buf[500];
     
@@ -58,7 +59,7 @@ void read_ic(char *fname)
     
     num_files = find_files(fname);
     
-#if defined(FLAG_NOT_IN_PUBLIC_CODE) || defined(FLAG_NOT_IN_PUBLIC_CODE_RESHUFFLE_CATALOGUE)
+#if defined(FLAG_NOT_IN_PUBLIC_CODE) || defined(FLAG_NOT_IN_PUBLIC_CODE)
     NumPartPerFile = (long long *) mymalloc("NumPartPerFile", num_files * sizeof(long long));
     
     if(ThisTask == 0)
@@ -72,9 +73,8 @@ void read_ic(char *fname)
     while(rest_files > NTask)
     {
         sprintf(buf, "%s.%d", fname, ThisTask + (rest_files - NTask));
-        if(All.ICFormat == 3)
-            sprintf(buf, "%s.%d.hdf5", fname, ThisTask + (rest_files - NTask));
-#if defined(FLAG_NOT_IN_PUBLIC_CODE) || defined(FLAG_NOT_IN_PUBLIC_CODE_RESHUFFLE_CATALOGUE)
+        if(All.ICFormat == 3) {sprintf(buf, "%s.%d.hdf5", fname, ThisTask + (rest_files - NTask));}
+#if defined(FLAG_NOT_IN_PUBLIC_CODE) || defined(FLAG_NOT_IN_PUBLIC_CODE)
         FileNr = ThisTask + (rest_files - NTask);
 #endif
         
@@ -103,7 +103,7 @@ void read_ic(char *fname)
             sprintf(buf, "%s.%d", fname, filenr);
             if(All.ICFormat == 3)
                 sprintf(buf, "%s.%d.hdf5", fname, filenr);
-#if defined(FLAG_NOT_IN_PUBLIC_CODE) || defined(FLAG_NOT_IN_PUBLIC_CODE_RESHUFFLE_CATALOGUE)
+#if defined(FLAG_NOT_IN_PUBLIC_CODE) || defined(FLAG_NOT_IN_PUBLIC_CODE)
             FileNr = filenr;
 #endif
         }
@@ -112,7 +112,7 @@ void read_ic(char *fname)
             sprintf(buf, "%s", fname);
             if(All.ICFormat == 3)
                 sprintf(buf, "%s.hdf5", fname);
-#if defined(FLAG_NOT_IN_PUBLIC_CODE) || defined(FLAG_NOT_IN_PUBLIC_CODE_RESHUFFLE_CATALOGUE)
+#if defined(FLAG_NOT_IN_PUBLIC_CODE) || defined(FLAG_NOT_IN_PUBLIC_CODE)
             FileNr = 0;
 #endif
         }
@@ -151,16 +151,6 @@ void read_ic(char *fname)
     
     
     
-#ifdef GALSF
-    if(RestartFlag == 0)
-    {
-        if(All.MassTable[4] == 0 && All.MassTable[0] > 0)
-        {
-            All.MassTable[0] = 0;
-            All.MassTable[4] = 0;
-        }
-    }
-#endif
     
 #if defined(FLAG_NOT_IN_PUBLIC_CODE) || defined(FLAG_NOT_IN_PUBLIC_CODE)
     if(RestartFlag == 0)
@@ -207,13 +197,7 @@ void read_ic(char *fname)
     
     if(ThisTask == 0)
     {
-        printf("reading done.\n");
-        fflush(stdout);
-    }
-    
-    if(ThisTask == 0)
-    {
-        printf("Total number of particles :  %d%09d\n\n",
+        printf("Reading done. Total number of particles :  %d%09d\n\n",
                (int) (All.TotNumPart / 1000000000), (int) (All.TotNumPart % 1000000000));
         fflush(stdout);
     }
@@ -226,7 +210,7 @@ void read_ic(char *fname)
  */
 void empty_read_buffer(enum iofields blocknr, int offset, int pc, int type)
 {
-    int n, k;
+    long n, k;
     MyInputFloat *fp;
     MyInputPosFloat *fp_pos;
     MyIDType *ip;
@@ -319,7 +303,7 @@ void empty_read_buffer(enum iofields blocknr, int offset, int pc, int type)
             break;
             
         case IO_NE:		/* electron abundance */
-#if defined(COOLING) || defined(FLAG_NOT_IN_PUBLIC_CODE)
+#if defined(FLAG_NOT_IN_PUBLIC_CODE) || defined(FLAG_NOT_IN_PUBLIC_CODE)
             for(n = 0; n < pc; n++)
                 SphP[offset + n].Ne = *fp++;
 #endif
@@ -332,38 +316,19 @@ void empty_read_buffer(enum iofields blocknr, int offset, int pc, int type)
             break;
             
         case IO_DELAYTIME:
-#ifdef GALSF_FB_LUPI
-	    for(n = 0; n < pc; n++)
-		SphP[offset + n].DelayTimeCoolingSNe = *fp++;
-#endif
             break;
             
-	case IO_STELLARINITMASS:
-#ifdef GALSF_FB_LUPI
-            for(n = 0; n < pc; n++)
-		P[offset + n].StellarInitMass = *fp++;
-#endif
-	    break;
-	    
         case IO_AGE:		/* Age of stars */
-#ifdef GALSF
-            for(n = 0; n < pc; n++)
-                P[offset + n].StellarAge = *fp++;
-#endif
             break;
             
         case IO_GRAINSIZE:
+#ifdef GRAIN_FLUID
+            for(n = 0; n < pc; n++)
+                P[offset + n].Grain_Size = *fp++;
+#endif
             break;
             
         case IO_Z:			/* Gas and star metallicity */
-#if defined(FLAG_NOT_IN_PUBLIC_CODE) || defined(GRACKLE_OPTS)
-            for(n = 0; n < pc; n++)
-            {
-                for(k = 0; k < NUM_METAL_SPECIES; k++)
-                    P[offset + n].Metallicity[k] = *fp++;
-            }
-
-#endif
             break;
             
         case IO_VRMS:		/* Turbulence on kernel scale */
@@ -379,6 +344,14 @@ void empty_read_buffer(enum iofields blocknr, int offset, int pc, int type)
         case IO_VROT:
             break;
         case IO_VORT:
+#ifdef ADJ_BOX_POWERSPEC
+            if(RestartFlag == 6)
+            {
+                for(n = 0; n < pc; n++)
+                    for(k = 0; k < 3; k++)
+                        SphP[offset + n].Vorticity[k] = *fp++;
+            }
+#endif
             break;
         case IO_TRUENGB:
             break;
@@ -395,12 +368,6 @@ void empty_read_buffer(enum iofields blocknr, int offset, int pc, int type)
 #endif
             break;
             
-	case IO_BHSTOREDENERGY:
-#ifdef BH_LUPI
-	    for(n = 0; n < pc; n++)
-		P[offset + n].BH_StoredEnergy = *fp++;
-#endif
-	    break;
             
         case IO_BHMASS:
             break;
@@ -488,6 +455,18 @@ void empty_read_buffer(enum iofields blocknr, int offset, int pc, int type)
 #endif
             break;
 
+        case IO_COSMICRAY_ENERGY:
+            break;
+
+        case IO_OSTAR:
+#ifdef GALSF_SFR_IMF_SAMPLING           
+             for(n = 0; n < pc; n++)
+                P[offset + n].IMF_NumMassiveStars = *fp++;
+#endif
+            break;
+
+
+
         case IO_AGS_OMEGA:
         case IO_AGS_CORR:
         case IO_AGS_NGBS:
@@ -498,25 +477,13 @@ void empty_read_buffer(enum iofields blocknr, int offset, int pc, int type)
              initial conditions of the code */
             
         case IO_SFR:
-#ifdef GALSF
-            for(n = 0; n < pc; n++)
-             	PPPZ[offset + n].Sfr = *fp++;
-	    break;
-#endif
-
-        case IO_HSMS:
-#ifdef GALSF_FB_LUPI
-            for(n = 0; n < pc; n++)
-                PPP[offset + n].Hsml = *fp++;
-	    break;
-#endif
         case IO_POT:
         case IO_ACCEL:
         case IO_DTENTR:
         case IO_STRESSDIAG:
         case IO_STRESSOFFDIAG:
         case IO_RAD_ACCEL:
-        case IO_DISTORSIONTENSORPS:
+        case IO_DISTORTIONTENSORPS:
         case IO_HeHII:
         case IO_DI:
         case IO_DII:
@@ -534,7 +501,6 @@ void empty_read_buffer(enum iofields blocknr, int offset, int pc, int type)
         case IO_TSTP:
         case IO_DBDT:
         case IO_IMF:
-        case IO_COSMICRAY_ENERGY:
         case IO_DIVB:
         case IO_ABVC:
         case IO_COOLRATE:
@@ -552,79 +518,26 @@ void empty_read_buffer(enum iofields blocknr, int offset, int pc, int type)
         case IO_PRESSURE:
         case IO_EDDINGTON_TENSOR:
         case IO_LAST_CAUSTIC:
+        case IO_HSMS:
         case IO_ACRB:
         case IO_VSTURB_DISS:
         case IO_VSTURB_DRIVE:
         case IO_MG_PHI:
         case IO_MG_ACCEL:
-	    break;
         case IO_grHI:
-#if GRACKLE_CHEMISTRY>0
-            for(n = 0; n < pc; n++)
-                PPPZ[offset + n].grHI = *fp++;
-	    break;
-#endif
         case IO_grHII:
-#if GRACKLE_CHEMISTRY>0
-            for(n = 0; n < pc; n++)
-                PPPZ[offset + n].grHII = *fp++;
-	    break;
-#endif
         case IO_grHM:
-#if GRACKLE_CHEMISTRY>0
-            for(n = 0; n < pc; n++)
-                PPPZ[offset + n].grHM = *fp++;
-	    break;
-#endif
         case IO_grHeI:
-#if GRACKLE_CHEMISTRY>0
-            for(n = 0; n < pc; n++)
-                PPPZ[offset + n].grHeI = *fp++;
-	    break;
-#endif
         case IO_grHeII:
-#if GRACKLE_CHEMISTRY>0
-            for(n = 0; n < pc; n++)
-                PPPZ[offset + n].grHeII = *fp++;
-	    break;
-#endif
         case IO_grHeIII:
-#if GRACKLE_CHEMISTRY>0
-            for(n = 0; n < pc; n++)
-                PPPZ[offset + n].grHeIII = *fp++;
-	    break;
-#endif
         case IO_grH2I:
-#if GRACKLE_CHEMISTRY>1
-            for(n = 0; n < pc; n++)
-                PPPZ[offset + n].grH2I = *fp++;
-	    break;
-#endif
         case IO_grH2II:
-#if GRACKLE_CHEMISTRY>1
-            for(n = 0; n < pc; n++)
-                PPPZ[offset + n].grH2II = *fp++;
-	    break;
-#endif
         case IO_grDI:
-#if GRACKLE_CHEMISTRY>2
-            for(n = 0; n < pc; n++)
-                PPPZ[offset + n].grDI = *fp++;
-	    break;
-#endif
         case IO_grDII:
-#if GRACKLE_CHEMISTRY>2
-            for(n = 0; n < pc; n++)
-                PPPZ[offset + n].grDII = *fp++;
-	    break;
-#endif
         case IO_grHDI:
-#if GRACKLE_CHEMISTRY>2
-            for(n = 0; n < pc; n++)
-                PPPZ[offset + n].grHDI = *fp++;
-	    break;
-#endif
-	    break;
+            
+            //ptorrey
+            break;
             
         case IO_LASTENTRY:
             endrun(220);
@@ -762,14 +675,17 @@ void read_file(char *fname, int readTask, int lastTask)
         
         All.MaxPart = (int) (All.PartAllocFactor * (All.TotNumPart / NTask));
         All.MaxPartSph = (int) (All.PartAllocFactor * (All.TotN_gas / NTask));	/* sets the maximum number of particles that may reside on a processor */
+#ifdef ALLOW_IMBALANCED_GASPARTICLELOAD
         All.MaxPartSph = All.MaxPart; // PFH: increasing All.MaxPartSph according to this line can allow better load-balancing in some cases. however it leads to more memory problems
         // (PFH: needed to revert the change -- i.e. INCLUDE the line above: commenting it out, while it improved memory useage, causes some instability in the domain decomposition for
         //   sufficiently irregular trees. overall more stable behavior with the 'buffer', albeit at the expense of memory )
+#endif
         
         
         allocate_memory();
         
-        if(!(CommBuffer = mymalloc("CommBuffer", bytes = All.BufferSize * 1024 * 1024)))
+        size_t MyBufferSize = All.BufferSize;
+        if(!(CommBuffer = mymalloc("CommBuffer", bytes = MyBufferSize * 1024 * 1024)))
         {
             printf("failed to allocate memory for `CommBuffer' (%g MB).\n", bytes / (1024.0 * 1024.0));
             endrun(2);
@@ -887,6 +803,7 @@ void read_file(char *fname, int readTask, int lastTask)
 #if defined(NO_CHILD_IDS_IN_ICS) || defined(ASSIGN_NEW_IDS)
             if(blocknr == IO_GENERATION_ID || blocknr == IO_CHILD_ID) continue;
 #endif
+            if((RestartFlag == 0) && (All.InitGasTemp > 0) && (blocknr == IO_U)) continue;
             
             
             
@@ -914,21 +831,22 @@ void read_file(char *fname, int readTask, int lastTask)
 #endif
             
             
-#ifndef GALSF //ALupi
             if(blocknr == IO_HSMS)
                 continue;
-#endif
             
             if(ThisTask == readTask)
             {
                 get_dataset_name(blocknr, buf);
                 printf("reading block %d (%s)...\n", bnr, buf);
+#ifndef IO_REDUCED_MODE
                 fflush(stdout);
+#endif
             }
             
             bytes_per_blockelement = get_bytes_per_blockelement(blocknr, 1);
             
-            blockmaxlen = (size_t) ((All.BufferSize * 1024 * 1024) / bytes_per_blockelement);
+            size_t MyBufferSize = All.BufferSize;
+            blockmaxlen = (size_t) ((MyBufferSize * 1024 * 1024) / bytes_per_blockelement);
             
             npart = get_particles_in_block(blocknr, &typelist[0]);
             
@@ -1098,9 +1016,6 @@ void read_file(char *fname, int readTask, int lastTask)
                             
                             if(blksize1 != blksize2)
                             {
-			    printf("eccomi %d\n",blocknr);
-	    			fflush(stdout);
-
                                 printf("incorrect block-sizes detected!\n");
                                 printf("Task=%d   blocknr=%d  blksize1=%d  blksize2=%d\n", ThisTask, bnr,
                                        blksize1, blksize2);
@@ -1259,14 +1174,14 @@ int find_files(char *fname)
     return 0;
 }
 
-#if defined(FLAG_NOT_IN_PUBLIC_CODE) || defined(FLAG_NOT_IN_PUBLIC_CODE_RESHUFFLE_CATALOGUE)
+#if defined(FLAG_NOT_IN_PUBLIC_CODE) || defined(FLAG_NOT_IN_PUBLIC_CODE)
 void get_particle_numbers(char *fname, int num_files)
 {
     char buf[1000];
-    int blksize1, blksize2;
+    long blksize1, blksize2;
     char label[4];
-    int nextblock;
-    int i, j;
+    long nextblock;
+    long i, j;
     
     printf("num_files=%d\n", num_files);
     

@@ -83,6 +83,16 @@ void compute_global_quantities_of_system(void)
         entr = DMAX(0.5*SphP[i].InternalEnergy, SphP[i].InternalEnergy + SphP[i].DtInternalEnergy * dt_entr);
 	}
 
+#ifdef PMGRID
+      if(All.ComovingIntegrationOn)
+	dt_gravkick = get_gravkick_factor(All.PM_Ti_begstep, All.Ti_Current) -
+	  get_gravkick_factor(All.PM_Ti_begstep, (All.PM_Ti_begstep + All.PM_Ti_endstep) / 2);
+      else
+	dt_gravkick = (All.Ti_Current - (All.PM_Ti_begstep + All.PM_Ti_endstep) / 2) * All.Timebase_interval;
+
+      for(j = 0; j < 3; j++)
+	vel[j] += P[i].GravPM[j] * dt_gravkick;
+#endif
 
       sys.EnergyKinComp[P[i].Type] +=
 	0.5 * P[i].Mass * (vel[0] * vel[0] + vel[1] * vel[1] + vel[2] * vel[2]) / a2;

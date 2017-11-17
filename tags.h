@@ -47,16 +47,16 @@
 #define TAG_BH_H          45
 #define TAG_BH_I          46
 
-#define TAG_FLAG_NOT_IN_PUBLIC_CODE_A         47
-#define TAG_FLAG_NOT_IN_PUBLIC_CODE_B         48
-#define TAG_FLAG_NOT_IN_PUBLIC_CODE_C         49
-#define TAG_FLAG_NOT_IN_PUBLIC_CODE_D         50
-#define TAG_FLAG_NOT_IN_PUBLIC_CODE_E         51
-#define TAG_FLAG_NOT_IN_PUBLIC_CODE_F         52
-#define TAG_FLAG_NOT_IN_PUBLIC_CODE_G         53
-#define TAG_FLAG_NOT_IN_PUBLIC_CODE_H         54
-#define TAG_FLAG_NOT_IN_PUBLIC_CODE_I         55
-#define TAG_FLAG_NOT_IN_PUBLIC_CODE_J         56
+#define TAG_FOF_A         47
+#define TAG_FOF_B         48
+#define TAG_FOF_C         49
+#define TAG_FOF_D         50
+#define TAG_FOF_E         51
+#define TAG_FOF_F         52
+#define TAG_FOF_G         53
+#define TAG_FOF_H         54
+#define TAG_FOF_I         55
+#define TAG_FOF_J         56
 
 #define TAG_SWAP          57
 #define TAG_PM_FOLD       58

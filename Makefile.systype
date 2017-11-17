@@ -11,17 +11,21 @@
 #
 #############
 
-
-#SYSTYPE="Curie"
 #SYSTYPE="Stampede"
-#SYSTYPE="Horizon"
 #SYSTYPE="Zwicky"
-#SYSTYPE="MacBookPro"
+#SYSTYPE="Wheeler"
+SYSTYPE="MacBookPro"
 #SYSTYPE="Quest"
+#SYSTYPE="Darter"
+#SYSTYPE="Comet"
 #SYSTYPE="odyssey"
-#SYSTYPE="SciNet"
+#SYSTYPE="antares"
 #SYSTYPE="Pleiades-Haswell"
 #SYSTYPE="Pleiades-SIBridge"
+#SYSTYPE="Mira"
+#SYSTYPE="Titan"
+#SYSTYPE="Edison"
+#SYSTYPE="SciNet"
 #SYSTYPE="Ranger_intel"
 #SYSTYPE="Ranger_pgi"
 #SYSTYPE="Darwin"
@@ -40,5 +44,3 @@
 #SYSTYPE="Kolob"
 #SYSTYPE="Centos5-Gnu"
 #SYSTYPE="OPA-Cluster64-Intel"
-#SYSTYPE="denali"
-#SYSTYPE="hyades"

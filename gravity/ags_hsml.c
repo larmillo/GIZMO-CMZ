@@ -7,10 +7,10 @@
 #include "../allvars.h"
 #include "../proto.h"
 #include "../kernel.h"
-#ifdef OMP_NUM_THREADS
+#ifdef PTHREADS_NUM_THREADS
 #include <pthread.h>
 #endif
-#ifdef OMP_NUM_THREADS
+#ifdef PTHREADS_NUM_THREADS
 extern pthread_mutex_t mutex_nexport;
 extern pthread_mutex_t mutex_partnodedrift;
 #define LOCK_NEXPORT     pthread_mutex_lock(&mutex_nexport);
@@ -32,32 +32,25 @@ extern pthread_mutex_t mutex_partnodedrift;
  */
 
 
+#define AGS_DSOFT_TOL (0.75)    // amount by which softening lengths are allowed to vary in single timesteps //
+
 /*! this routine is called by the adaptive gravitational softening neighbor search and forcetree (for application 
     of the appropriate correction terms), to determine which particle types "talk to" which other particle types 
     (i.e. which particle types you search for to determine the softening radii for gravity). For effectively volume-filling
     fluids like gas or dark matter, it makes sense for this to be 'matched' to particles of the same type. For other 
-    particle types like stars or black holes, it's more ambiguous, and requires some judgement on the part of the user. */
-int ags_gravity_kernel_shared_check(short int particle_type_primary, short int particle_type_secondary)
+    particle types like stars or black holes, it's more ambiguous, and requires some judgement on the part of the user. 
+    The routine specifically returns a bitflag which defines all valid particles to which a particle of type 'primary' 
+    can 'see': i.e. SUM(2^n), where n are all the particle types desired for neighbor finding,
+    so e.g. if you want particle types 0 and 4, set the bitmask = 17 = 1 + 16 = 2^0 + 2^4
+ */
+int ags_gravity_kernel_shared_BITFLAG(short int particle_type_primary)
 {
     /* gas particles see gas particles */
-    if(particle_type_primary == 0)
-        return (particle_type_secondary==particle_type_primary);
+    if(particle_type_primary == 0) {return 1;}
 
 #ifdef ADAPTIVE_GRAVSOFT_FORALL
-#ifdef GALSF
-    /* stars see baryons (any type) */
-    if(All.ComovingIntegrationOn)
-    {
-        if(particle_type_primary == 4)
-            return ((particle_type_secondary==0)||(particle_type_secondary==4));
-    } else {
-        if((particle_type_primary == 4)||(particle_type_primary == 2)||(particle_type_primary == 3))
-            return ((particle_type_secondary==0)||(particle_type_secondary==4)||(particle_type_secondary == 2)||(particle_type_secondary == 3));
-    }
-#endif
-    
     /* if we haven't been caught by one of the above checks, we simply return whether or not we see 'ourselves' */
-    return (particle_type_primary == particle_type_secondary);
+    return (1 << particle_type_primary);
 #endif
     
     return 0;
@@ -84,6 +77,7 @@ static struct ags_densdata_out
     MyLongDouble Ngb;
     MyLongDouble DhsmlNgb;
     MyLongDouble AGS_zeta;
+    MyLongDouble AGS_vsig;
     MyLongDouble Particle_DivVel;
 }
  *AGS_DensDataResult, *AGS_DensDataOut;
@@ -107,6 +101,7 @@ void ags_out2particle_density(struct ags_densdata_out *out, int i, int mode)
 {
     ASSIGN_ADD(PPP[i].NumNgb, out->Ngb, mode);
     ASSIGN_ADD(PPPZ[i].AGS_zeta, out->AGS_zeta,   mode);
+    if(out->AGS_vsig > PPP[i].AGS_vsig) {PPP[i].AGS_vsig = out->AGS_vsig;}
     ASSIGN_ADD(P[i].Particle_DivVel, out->Particle_DivVel,   mode);
     ASSIGN_ADD(PPP[i].DhsmlNgbFactor, out->DhsmlNgb, mode);
 }
@@ -152,6 +147,10 @@ void ags_density(void)
       {
           Left[i] = Right[i] = 0;
           AGS_Prev[i] = PPP[i].AGS_Hsml;
+          P[i].AGS_vsig = 0;
+#ifdef WAKEUP
+          P[i].wakeup = 0;
+#endif
       }
     }
 
@@ -159,8 +158,7 @@ void ags_density(void)
   size_t MyBufferSize = All.BufferSize;
   All.BunchSize = (int) ((MyBufferSize * 1024 * 1024) / (sizeof(struct data_index) + sizeof(struct data_nodelist) +
 					     sizeof(struct ags_densdata_in) + sizeof(struct ags_densdata_out) +
-					     sizemax(sizeof(struct ags_densdata_in),
-						     sizeof(struct ags_densdata_out))));
+					     sizemax(sizeof(struct ags_densdata_in),sizeof(struct ags_densdata_out))));
   DataIndexTable = (struct data_index *) mymalloc("DataIndexTable", All.BunchSize * sizeof(struct data_index));
   DataNodeList = (struct data_nodelist *) mymalloc("DataNodeList", All.BunchSize * sizeof(struct data_nodelist));
 
@@ -180,10 +178,10 @@ void ags_density(void)
 
 	  tstart = my_second();
 
-#ifdef OMP_NUM_THREADS
-	  pthread_t mythreads[OMP_NUM_THREADS - 1];
+#ifdef PTHREADS_NUM_THREADS
+	  pthread_t mythreads[PTHREADS_NUM_THREADS - 1];
 
-	  int threadid[OMP_NUM_THREADS - 1];
+	  int threadid[PTHREADS_NUM_THREADS - 1];
 
 	  pthread_attr_t attr;
 
@@ -194,7 +192,7 @@ void ags_density(void)
 
 	  TimerFlag = 0;
 
-	  for(j = 0; j < OMP_NUM_THREADS - 1; j++)
+	  for(j = 0; j < PTHREADS_NUM_THREADS - 1; j++)
 	    {
 	      threadid[j] = j + 1;
 	      pthread_create(&mythreads[j], &attr, ags_density_evaluate_primary, &threadid[j]);
@@ -212,8 +210,8 @@ void ags_density(void)
 	    ags_density_evaluate_primary(&mainthreadid);	/* do local particles and prepare export list */
 	  }
 
-#ifdef OMP_NUM_THREADS
-	  for(j = 0; j < OMP_NUM_THREADS - 1; j++)
+#ifdef PTHREADS_NUM_THREADS
+	  for(j = 0; j < PTHREADS_NUM_THREADS - 1; j++)
 	    pthread_join(mythreads[j], NULL);
 #endif
 
@@ -353,8 +351,8 @@ void ags_density(void)
 
 	  NextJ = 0;
 
-#ifdef OMP_NUM_THREADS
-	  for(j = 0; j < OMP_NUM_THREADS - 1; j++)
+#ifdef PTHREADS_NUM_THREADS
+	  for(j = 0; j < PTHREADS_NUM_THREADS - 1; j++)
 	    pthread_create(&mythreads[j], &attr, ags_density_evaluate_secondary, &threadid[j]);
 #endif
 #ifdef _OPENMP
@@ -369,8 +367,8 @@ void ags_density(void)
 	    ags_density_evaluate_secondary(&mainthreadid);
 	  }
 
-#ifdef OMP_NUM_THREADS
-	  for(j = 0; j < OMP_NUM_THREADS - 1; j++)
+#ifdef PTHREADS_NUM_THREADS
+	  for(j = 0; j < PTHREADS_NUM_THREADS - 1; j++)
 	    pthread_join(mythreads[j], NULL);
 
 	  pthread_mutex_destroy(&mutex_partnodedrift);
@@ -451,7 +449,7 @@ void ags_density(void)
                 }
                 
                 // inverse of SPH volume element (to satisfy constraint implicit in Lagrange multipliers)
-                if(PPP[i].DhsmlNgbFactor > -0.9)	/* note: this would be -1 if only a single particle at zero lag is found */
+                if(PPP[i].DhsmlNgbFactor > -0.5)	/* note: this would be -1 if only a single particle at zero lag is found */
                     PPP[i].DhsmlNgbFactor = 1 / (1 + PPP[i].DhsmlNgbFactor);
                 else
                     PPP[i].DhsmlNgbFactor = 1;
@@ -460,9 +458,10 @@ void ags_density(void)
                 /* now check whether we have enough neighbours */
                 redo_particle = 0;
                 
-                double min_tmp = ags_return_minsoft(i);
-                double minsoft = DMAX(All.ForceSoftening[P[i].Type] , DMIN(min_tmp, AGS_Prev[i])); // this ensures softening doesnt shrink when self-accel is too large already
+                double minsoft = ags_return_minsoft(i);
                 double maxsoft = ags_return_maxsoft(i);
+                minsoft = DMAX(minsoft , AGS_Prev[i]*AGS_DSOFT_TOL);
+                maxsoft = DMIN(maxsoft , AGS_Prev[i]/AGS_DSOFT_TOL);
                 desnumngb = All.AGS_DesNumNgb;
                 desnumngbdev = All.AGS_MaxNumNgbDeviation;
                 if(All.Time==All.TimeBegin) {if(All.AGS_MaxNumNgbDeviation > 0.05) desnumngbdev=0.05;}
@@ -513,11 +512,13 @@ void ags_density(void)
                 {
                     if(iter >= MAXITER - 10)
                     {
+#ifndef IO_REDUCED_MODE
                         printf("AGS: i=%d task=%d ID=%llu Type=%d Hsml=%g dhsml=%g Left=%g Right=%g Ngbs=%g Right-Left=%g maxh_flag=%d minh_flag=%d  minsoft=%g maxsoft=%g desnum=%g desnumtol=%g redo=%d pos=(%g|%g|%g)\n",
                                i, ThisTask, (unsigned long long) P[i].ID, P[i].Type, PPP[i].AGS_Hsml, PPP[i].DhsmlNgbFactor, Left[i], Right[i],
                                (float) PPP[i].NumNgb, Right[i] - Left[i], particle_set_to_maxhsml_flag, particle_set_to_minhsml_flag, minsoft,
                                maxsoft, desnumngb, desnumngbdev, redo_particle, P[i].Pos[0], P[i].Pos[1], P[i].Pos[2]);
                         fflush(stdout);
+#endif
                     }
                     
                     /* need to redo this particle */
@@ -664,7 +665,6 @@ void ags_density(void)
             {
                 printf("ags-ngb iteration %d: need to repeat for %d%09d particles.\n", iter,
                        (int) (ntot / 1000000000), (int) (ntot % 1000000000));
-                fflush(stdout);
             }
             if(iter > MAXITER)
             {
@@ -696,9 +696,10 @@ void ags_density(void)
         {
             if((P[i].Mass>0)&&(PPP[i].AGS_Hsml>0)&&(PPP[i].NumNgb>0))
             {
-                double min_tmp = ags_return_minsoft(i);
-                double minsoft = DMAX(All.ForceSoftening[P[i].Type] , DMIN(min_tmp, AGS_Prev[i])); // this ensures softening doesnt shrink when self-accel is too large already
+                double minsoft = ags_return_minsoft(i);
                 double maxsoft = ags_return_maxsoft(i);
+                minsoft = DMAX(minsoft , AGS_Prev[i]*AGS_DSOFT_TOL);
+                maxsoft = DMIN(maxsoft , AGS_Prev[i]/AGS_DSOFT_TOL);
                 /* check that we're within the 'valid' range for adaptive softening terms, otherwise zeta=0 */
                 if((fabs(PPP[i].NumNgb-All.AGS_DesNumNgb)/All.AGS_DesNumNgb < 0.05)
                    &&(PPP[i].AGS_Hsml <= 0.99*maxsoft)&&(PPP[i].AGS_Hsml >= 1.01*minsoft)
@@ -761,6 +762,7 @@ int ags_density_evaluate(int target, int mode, int *exportflag, int *exportnodec
     
     h2 = local.AGS_Hsml * local.AGS_Hsml;
     kernel_hinv(local.AGS_Hsml, &kernel.hinv, &kernel.hinv3, &kernel.hinv4);
+    int AGS_kernel_shared_BITFLAG = ags_gravity_kernel_shared_BITFLAG(local.Type); // determine allowed particle types for search for adaptive gravitational softening terms
     
     if(mode == 0)
     {
@@ -772,12 +774,15 @@ int ags_density_evaluate(int target, int mode, int *exportflag, int *exportnodec
         startnode = Nodes[startnode].u.d.nextnode;	/* open it */
     }
     
+    
+    
+    double fac_mu = -3 / (All.cf_afac3 * All.cf_atime);
     while(startnode >= 0)
     {
         while(startnode >= 0)
         {
-            numngb_inbox = ags_ngb_treefind_variable_threads(local.Pos, local.AGS_Hsml, target, &startnode, mode, exportflag,
-                                          exportnodecount, exportindex, ngblist, local.Type);
+            numngb_inbox = ngb_treefind_variable_threads_targeted(local.Pos, local.AGS_Hsml, target, &startnode, mode, exportflag,
+                                          exportnodecount, exportindex, ngblist, AGS_kernel_shared_BITFLAG);
             
             if(numngb_inbox < 0)
                 return -1;
@@ -802,10 +807,10 @@ int ags_density_evaluate(int target, int mode, int *exportflag, int *exportnodec
 
                     out.Ngb += kernel.wk;
                     out.DhsmlNgb += -(NUMDIMS * kernel.hinv * kernel.wk + u * kernel.dwk);
-                    out.AGS_zeta += P[j].Mass * kernel_gravity(u, kernel.hinv, kernel.hinv3, 0);
 
                     if(kernel.r > 0)
                     {
+                        out.AGS_zeta += P[j].Mass * kernel_gravity(u, kernel.hinv, kernel.hinv3, 0);
                         if(P[j].Type==0)
                         {
                             kernel.dv[0] = local.Vel[0] - SphP[j].VelPred[0];
@@ -819,6 +824,13 @@ int ags_density_evaluate(int target, int mode, int *exportflag, int *exportnodec
 #ifdef SHEARING_BOX
                         if(local.Pos[0] - P[j].Pos[0] > +boxHalf_X) {kernel.dv[SHEARING_BOX_PHI_COORDINATE] += Shearing_Box_Vel_Offset;}
                         if(local.Pos[0] - P[j].Pos[0] < -boxHalf_X) {kernel.dv[SHEARING_BOX_PHI_COORDINATE] -= Shearing_Box_Vel_Offset;}
+#endif
+                        double v_dot_r = kernel.dp[0] * kernel.dv[0] + kernel.dp[1] * kernel.dv[1] + kernel.dp[2] * kernel.dv[2];
+                        double vsig = 0.5 * fabs( fac_mu * v_dot_r / kernel.r );
+                        if(TimeBinActive[P[j].TimeBin]) {if(vsig > P[j].AGS_vsig) P[j].AGS_vsig = vsig;}
+                        if(vsig > out.AGS_vsig) {out.AGS_vsig = vsig;}
+#ifdef WAKEUP
+                        if(vsig > WAKEUP*P[j].AGS_vsig) {P[j].wakeup = 1;}
 #endif
                         out.Particle_DivVel -= kernel.dwk * (kernel.dp[0] * kernel.dv[0] + kernel.dp[1] * kernel.dv[1] + kernel.dp[2] * kernel.dv[2]) / kernel.r;
                         /* this is the -particle- divv estimator, which determines how Hsml will evolve */
@@ -851,76 +863,17 @@ int ags_density_evaluate(int target, int mode, int *exportflag, int *exportnodec
 
 void *ags_density_evaluate_primary(void *p)
 {
-    int thread_id = *(int *) p;
-    int i, j;
-    int *exportflag, *exportnodecount, *exportindex, *ngblist;
-    ngblist = Ngblist + thread_id * NumPart;
-    exportflag = Exportflag + thread_id * NTask;
-    exportnodecount = Exportnodecount + thread_id * NTask;
-    exportindex = Exportindex + thread_id * NTask;
-    /* Note: exportflag is local to each thread */
-    for(j = 0; j < NTask; j++)
-        exportflag[j] = -1;
-    
-    while(1)
-    {
-        int exitFlag = 0;
-        LOCK_NEXPORT;
-#ifdef _OPENMP
-#pragma omp critical(_nexport_)
-#endif
-        {
-            if(BufferFullFlag != 0 || NextParticle < 0)
-            {
-                exitFlag = 1;
-            }
-            else
-            {
-                i = NextParticle;
-                ProcessedFlag[i] = 0;
-                NextParticle = NextActiveParticle[NextParticle];
-            }
-        }
-        UNLOCK_NEXPORT;
-        if(exitFlag)
-            break;
-        
-        if(ags_density_isactive(i))
-        {
-            if(ags_density_evaluate(i, 0, exportflag, exportnodecount, exportindex, ngblist) < 0)
-                break;		/* export buffer has filled up */
-        }
-        ProcessedFlag[i] = 1;	/* particle successfully finished */
-    }
-    return NULL;
+#define CONDITION_FOR_EVALUATION if(ags_density_isactive(i))
+#define EVALUATION_CALL ags_density_evaluate(i, 0, exportflag, exportnodecount, exportindex, ngblist)
+#include "../system/code_block_primary_loop_evaluation.h"
+#undef CONDITION_FOR_EVALUATION
+#undef EVALUATION_CALL
 }
-
-
-
 void *ags_density_evaluate_secondary(void *p)
 {
-    int thread_id = *(int *) p;
-    int j, dummy, *ngblist;
-    ngblist = Ngblist + thread_id * NumPart;
-    
-    while(1)
-    {
-        LOCK_NEXPORT;
-#ifdef _OPENMP
-#pragma omp critical(_nexport_)
-#endif
-        {
-            j = NextJ;
-            NextJ++;
-        }
-        UNLOCK_NEXPORT;
-        
-        if(j >= Nimport)
-            break;
-        
-        ags_density_evaluate(j, 1, &dummy, &dummy, &dummy, ngblist);
-    }
-    return NULL;
+#define EVALUATION_CALL ags_density_evaluate(j, 1, &dummy, &dummy, &dummy, ngblist);
+#include "../system/code_block_secondary_loop_evaluation.h"
+#undef EVALUATION_CALL
 }
 
 
@@ -943,8 +896,16 @@ double ags_return_maxsoft(int i)
     double maxsoft = All.MaxHsml; // overall maximum - nothing is allowed to exceed this
 #if !(EXPAND_PREPROCESSOR_(ADAPTIVE_GRAVSOFT_FORALL) == 1)
     maxsoft = DMIN(maxsoft, ADAPTIVE_GRAVSOFT_FORALL * All.ForceSoftening[P[i].Type]); // user-specified maximum
+#ifdef PMGRID
+    /*!< this gives the maximum allowed gravitational softening when using the TreePM method.
+     *  The quantity is given in units of the scale used for the force split (ASMTH) */
+    maxsoft = DMIN(maxsoft, ADAPTIVE_GRAVSOFT_FORALL * 0.5 * All.Asmth[0]); /* no more than 1/2 the size of the largest PM cell */
+#endif
 #else
     maxsoft = DMIN(maxsoft, 50.0 * All.ForceSoftening[P[i].Type]);
+#ifdef PMGRID
+    maxsoft = DMIN(maxsoft, 0.5 * All.Asmth[0]); /* no more than 1/2 the size of the largest PM cell */
+#endif
 #endif
     return maxsoft;
 }
@@ -952,13 +913,7 @@ double ags_return_maxsoft(int i)
 /* routine to return the minimum allowed softening */
 double ags_return_minsoft(int i)
 {
-    double minsoft = All.ForceSoftening[P[i].Type]; // this is the user-specified minimum
-    /* now need to restrict: dont allow 'self-acceleration' to be larger than actual gravitational accelerations! */
-    double acc_mag = P[i].GravAccel[0]*P[i].GravAccel[0] + P[i].GravAccel[1]*P[i].GravAccel[1] + P[i].GravAccel[2]*P[i].GravAccel[2];
-    acc_mag = All.cf_a2inv * sqrt(acc_mag);
-    double h_lim_acc = 16.0 * sqrt(All.G * P[i].Mass / acc_mag) / All.cf_atime;
-    h_lim_acc *= All.AGS_DesNumNgb / 32.;
-    return DMAX(h_lim_acc, minsoft);
+    return All.ForceSoftening[P[i].Type]; // this is the user-specified minimum
 }
 
 
