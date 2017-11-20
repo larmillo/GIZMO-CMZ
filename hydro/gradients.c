@@ -1129,7 +1129,14 @@ void hydro_gradient_calc(void)
 #endif
 #endif
             
-            
+#if defined(FLAG_NOT_IN_PUBLIC_CODE_SPITZER) || defined(FLAG_NOT_IN_PUBLIC_CODE_BRAGINSKII) || (defined(MHD_NON_IDEAL) && defined(COOLING))
+            /* get the neutral fraction */
+            double ion_frac, nHeII, temperature, u, ne, nh0 = 0, mu_meanwt=1;
+            ne = SphP[i].Ne;
+            u = DMAX(All.MinEgySpec, SphP[i].InternalEnergy); // needs to be in code units
+	        temperature = ThermalProperties(u, SphP[i].Density*All.cf_a3inv, &ne, &nh0, &nHeII, &mu_meanwt, i);
+	        ion_frac = DMIN(DMAX(0,1.-nh0),1);
+#endif            
 
 #if defined(CONDUCTION_SPITZER) || defined(VISCOSITY_BRAGINSKII) || (defined(MHD_NON_IDEAL) && defined(FLAG_NOT_IN_PUBLIC_CODE))
             /* get the neutral fraction */
@@ -1214,8 +1221,12 @@ void hydro_gradient_calc(void)
 #ifdef MHD_NON_IDEAL
             {
                 /* calculations below follow Wurster,Price,+Bate 2016, who themselves follow Wardle 2007 and Keith & Wardle 2014, for the equation sets */
+#ifdef COOLING 
+		        double mean_molecular_weight = mu_meanwt;
+#else
 		        double mean_molecular_weight = 2.38; // molecular H2, +He with solar mass fractions and metals
 		        double temperature = GAMMA_MINUS1 / BOLTZMANN * (SphP[i].InternalEnergy*All.UnitPressure_in_cgs/All.UnitDensity_in_cgs) * (mean_molecular_weight*PROTONMASS);
+#endif
 		        // define some variables we need below //
 		        double zeta_cr = 1.0e-17; // cosmic ray ionization rate (fixed as constant for non-CR runs)
                 double a_grain_micron = 0.1; // effective size of grains that matter at these densities
@@ -1251,6 +1262,18 @@ void hydro_gradient_calc(void)
                 double n_elec = zeta_cr / (ngr_ngas * k_e); // electron number density
                 double n_ion = zeta_cr / (ngr_ngas * k_i); // ion number density
                 double Z_grain = psi / psi_prefac; // mean grain charge
+#ifdef COOLING  
+                /* at high temperatures, the calculation above breaks down and we should use the fractions from the cooling routines. however this is usually the limit
+                    where non-ideal effects are irrelevant */
+                double ne_cool = ne * 0.76 * n_eff; // 0.76 from assumed H fraction in code, ne is free electrons per H //
+                if((temperature > 8000.)||(ne_cool > n_elec))
+                {
+                    n_elec = ne_cool; 
+                    n_ion = n_elec;
+                    Z_grain = 0.0; // we can basically neglect the grain charge in this limit //
+                }
+#endif
+
                 // now define more variables we will need below //
                 double gizmo2gauss = sqrt(4.*M_PI*All.UnitPressure_in_cgs*All.HubbleParam*All.HubbleParam); // convert to B-field to gauss (units)
                 double B_Gauss = 0; for(k=0;k<3;k++) {B_Gauss += Get_Particle_BField(i,k)*Get_Particle_BField(i,k);} // get magnitude of B //
@@ -1575,9 +1598,13 @@ int GasGrad_evaluate(int target, int mode, int *exportflag, int *exportnodecount
                 double V_j = P[j].Mass / SphP[j].Density;
                 double Face_Area_Vec[3];
                 double wt_i,wt_j;
-                //wt_i=wt_j = (V_i*PPP[j].Hsml + V_j*local.Hsml) / (local.Hsml+PPP[j].Hsml); // should these be H, or be -effective sizes- //
+#ifdef COOLING
+                //wt_i=wt_j = 2.*V_i*V_j / (V_i + V_j); // more conservatively, could use DMIN(V_i,V_j), but that is less accurate
+                if((fabs(V_i-V_j)/DMIN(V_i,V_j))/NUMDIMS > 1.25) {wt_i=wt_j=2.*V_i*V_j/(V_i+V_j);} else {wt_i=V_i; wt_j=V_j;}
+#else
                 if((fabs(V_i-V_j)/DMIN(V_i,V_j))/NUMDIMS > 1.50) {wt_i=wt_j=(V_i*PPP[j].Hsml+V_j*local.Hsml)/(local.Hsml+PPP[j].Hsml);} else {wt_i=V_i; wt_j=V_j;}
-                for(k=0;k<3;k++)
+#endif                
+				for(k=0;k<3;k++)
                 {
                     /* calculate the face area between the particles (must match what is done in the actual hydro routine! */
                     Face_Area_Vec[k] = kernel.wk_i * wt_i * (local.NV_T[k][0]*kernel.dp[0] + local.NV_T[k][1]*kernel.dp[1] + local.NV_T[k][2]*kernel.dp[2])

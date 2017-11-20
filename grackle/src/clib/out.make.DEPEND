@@ -1,0 +1,130 @@
+makedepend: warning:  cannot open "*.C"
+makedepend: warning:  initialize_UVbackground_data.c (reading /usr/local/include/H5public.h, line 145): cannot find include file "stdbool.h"
+	not in /usr/local/include/stdbool.h
+	not in ./stdbool.h
+	not in /usr/include/stdbool.h
+makedepend: warning:  calc_tdust_1d_g.F includes grackle_fortran_types.def more than once!
+Already have
+	fortran.def
+	phys_const.def
+	grackle_fortran_types.def
+makedepend: warning:  calc_temp_cloudy_g.F includes grackle_fortran_types.def more than once!
+Already have
+	fortran.def
+	phys_const.def
+	grackle_fortran_types.def
+makedepend: warning:  cool1d_cloudy_g.F includes grackle_fortran_types.def more than once!
+Already have
+	fortran.def
+	grackle_fortran_types.def
+makedepend: warning:  cool1d_cloudy_g.F includes grackle_fortran_types.def more than once!
+Already have
+	fortran.def
+	grackle_fortran_types.def
+makedepend: warning:  cool1d_cloudy_g.F includes grackle_fortran_types.def more than once!
+Already have
+	fortran.def
+	grackle_fortran_types.def
+makedepend: warning:  cool1d_cloudy_g.F includes grackle_fortran_types.def more than once!
+Already have
+	fortran.def
+	grackle_fortran_types.def
+makedepend: warning:  cool1d_cloudy_g.F includes grackle_fortran_types.def more than once!
+Already have
+	fortran.def
+	grackle_fortran_types.def
+makedepend: warning:  solve_rate_cool_g.F includes grackle_fortran_types.def more than once!
+Already have
+	fortran.def
+	phys_const.def
+	grackle_fortran_types.def
+makedepend: warning:  solve_rate_cool_g.F includes grackle_fortran_types.def more than once!
+Already have
+	fortran.def
+	phys_const.def
+	grackle_fortran_types.def
+makedepend: warning:  solve_rate_cool_g.F includes grackle_fortran_types.def more than once!
+Already have
+	fortran.def
+	phys_const.def
+	grackle_fortran_types.def
+makedepend: warning:  solve_rate_cool_g.F includes grackle_fortran_types.def more than once!
+Already have
+	fortran.def
+	phys_const.def
+	grackle_fortran_types.def
+makedepend: warning:  solve_rate_cool_g.F includes grackle_fortran_types.def more than once!
+Already have
+	fortran.def
+	phys_const.def
+	grackle_fortran_types.def
+makedepend: warning:  solve_rate_cool_g.F includes grackle_fortran_types.def more than once!
+Already have
+	fortran.def
+	phys_const.def
+	grackle_fortran_types.def
+makedepend: warning:  cannot open "*.C"
+makedepend: warning:  initialize_UVbackground_data.c (reading /usr/local/include/H5public.h, line 145): cannot find include file "stdbool.h"
+	not in /usr/local/include/stdbool.h
+	not in ./stdbool.h
+	not in /usr/include/stdbool.h
+makedepend: warning:  calc_tdust_1d_g.F includes grackle_fortran_types.def more than once!
+Already have
+	fortran.def
+	phys_const.def
+	grackle_fortran_types.def
+makedepend: warning:  calc_temp_cloudy_g.F includes grackle_fortran_types.def more than once!
+Already have
+	fortran.def
+	phys_const.def
+	grackle_fortran_types.def
+makedepend: warning:  cool1d_cloudy_g.F includes grackle_fortran_types.def more than once!
+Already have
+	fortran.def
+	grackle_fortran_types.def
+makedepend: warning:  cool1d_cloudy_g.F includes grackle_fortran_types.def more than once!
+Already have
+	fortran.def
+	grackle_fortran_types.def
+makedepend: warning:  cool1d_cloudy_g.F includes grackle_fortran_types.def more than once!
+Already have
+	fortran.def
+	grackle_fortran_types.def
+makedepend: warning:  cool1d_cloudy_g.F includes grackle_fortran_types.def more than once!
+Already have
+	fortran.def
+	grackle_fortran_types.def
+makedepend: warning:  cool1d_cloudy_g.F includes grackle_fortran_types.def more than once!
+Already have
+	fortran.def
+	grackle_fortran_types.def
+makedepend: warning:  solve_rate_cool_g.F includes grackle_fortran_types.def more than once!
+Already have
+	fortran.def
+	phys_const.def
+	grackle_fortran_types.def
+makedepend: warning:  solve_rate_cool_g.F includes grackle_fortran_types.def more than once!
+Already have
+	fortran.def
+	phys_const.def
+	grackle_fortran_types.def
+makedepend: warning:  solve_rate_cool_g.F includes grackle_fortran_types.def more than once!
+Already have
+	fortran.def
+	phys_const.def
+	grackle_fortran_types.def
+makedepend: warning:  solve_rate_cool_g.F includes grackle_fortran_types.def more than once!
+Already have
+	fortran.def
+	phys_const.def
+	grackle_fortran_types.def
+makedepend: warning:  solve_rate_cool_g.F includes grackle_fortran_types.def more than once!
+Already have
+	fortran.def
+	phys_const.def
+	grackle_fortran_types.def
+makedepend: warning:  solve_rate_cool_g.F includes grackle_fortran_types.def more than once!
+Already have
+	fortran.def
+	phys_const.def
+	grackle_fortran_types.def

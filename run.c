@@ -193,8 +193,10 @@ void run(void)
 
 void set_non_standard_physics_for_current_time(void)
 {
-    
-    
+#if defined(COOLING)
+    /* set UV background for the current time */
+    IonizeParams();
+#endif     
 }
 
 
@@ -247,7 +249,14 @@ void calculate_non_standard_physics(void)
 #endif // ifdef BLACK_HOLES or GALSF_SUBGRID_VARIABLEVELOCITY
     
     
-    
+#ifdef COOLING	/**** radiative cooling and star formation *****/
+#ifdef GALSF
+    cooling_and_starformation(); // standard cooling+star formation routine //
+#else // ifdef GALSF else
+    cooling_only();
+#endif // closes if GALSF
+    CPU_Step[CPU_COOLINGSFR] += measure_time(); // finish time calc for SFR+cooling
+#endif /*ends COOLING */    
     
     
     
@@ -896,6 +905,11 @@ void write_cpu_log(void)
     All.CPU_Sum[CPU_TIMELINE], (All.CPU_Sum[CPU_TIMELINE]) / All.CPU_Sum[CPU_ALL] * 100,
     All.CPU_Sum[CPU_SNAPSHOT], (All.CPU_Sum[CPU_SNAPSHOT]) / All.CPU_Sum[CPU_ALL] * 100,
     All.CPU_Sum[CPU_PEANO], (All.CPU_Sum[CPU_PEANO]) / All.CPU_Sum[CPU_ALL] * 100,
+#ifdef COOLING
+    All.CPU_Sum[CPU_COOLINGSFR], (All.CPU_Sum[CPU_COOLINGSFR]) / All.CPU_Sum[CPU_ALL] * 100,
+#else
+    0.,0.,
+#endif	
     0.,0.,
     0.,0.,
 #ifdef FOF

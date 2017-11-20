@@ -333,7 +333,7 @@ void Riemann_solver(struct Input_vec_Riemann Riemann_vec, struct Riemann_outputs
     if((Riemann_out->P_M<=0)||(isnan(Riemann_out->P_M)))
         Riemann_solver_Rusanov(Riemann_vec, Riemann_out, n_unit, v_line_L, v_line_R, cs_L, cs_R, h_L, h_R);
 #else
-#if !defined(FLAG_NOT_IN_PUBLIC_CODE) && !defined(FLAG_NOT_IN_PUBLIC_CODE)
+#if !defined(COOLING) && !defined(GALSF)
     /* go straight to the expensive but exact solver (only for hydro with polytropic eos!) */
     if((Riemann_out->P_M<=0)||(isnan(Riemann_out->P_M))||(Riemann_out->P_M>press_tot_limiter))
     {
@@ -1130,7 +1130,7 @@ void HLLD_Riemann_solver(struct Input_vec_Riemann Riemann_vec, struct Riemann_ou
 #ifdef DIVBCLEANING_DEDNER
     /* use the solution for the modified Bx, given the action of the phi-field; 
         however this must be slope-limited to ensure the 'corrected' Bx remains stable */
-#if !defined(CONSTRAINED_GRADIENT_MHD) || defined(FLAG_NOT_IN_PUBLIC_CODE) || defined(FLAG_NOT_IN_PUBLIC_CODE)
+#if !defined(CONSTRAINED_GRADIENT_MHD) || defined(COOLING) || defined(GALSF)
     /* this is the formulation from E. Gaburov assuming -two- wavespeeds (cL and cR); this down-weights the correction term
      under some circumstances, which appears to increase stability */
     double cL = Riemann_out->cfast_L; // may want to try with correction for approach speed; this helps to stabilize things in the cL=cR case

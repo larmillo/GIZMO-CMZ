@@ -332,7 +332,14 @@ void fill_write_buffer(enum iofields blocknr, int *startindex, int pc, int type)
             for(n = 0; n < pc; pindex++)
                 if(P[pindex].Type == type)
                 {
+#ifdef GRACKLE_FIX_TEMPERATURE
+		  if(RestartFlag == 7)
+                    *fp++ = SphP[pindex].InternalEnergyPred;
+		  else
                     *fp++ = DMAX(All.MinEgySpec, SphP[pindex].InternalEnergyPred);
+#else
+                    *fp++ = DMAX(All.MinEgySpec, SphP[pindex].InternalEnergyPred);
+#endif
                     n++;
                 }
             break;
@@ -347,7 +354,7 @@ void fill_write_buffer(enum iofields blocknr, int *startindex, int pc, int type)
             break;
             
         case IO_NE:		/* electron abundance */
-#if defined(FLAG_NOT_IN_PUBLIC_CODE) || defined(FLAG_NOT_IN_PUBLIC_CODE)
+#if defined(COOLING) || defined(FLAG_NOT_IN_PUBLIC_CODE)
             for(n = 0; n < pc; pindex++)
                 if(P[pindex].Type == type)
                 {
@@ -358,7 +365,7 @@ void fill_write_buffer(enum iofields blocknr, int *startindex, int pc, int type)
             break;
             
         case IO_NH:		/* neutral hydrogen fraction */
-#if defined(FLAG_NOT_IN_PUBLIC_CODE) || defined(FLAG_NOT_IN_PUBLIC_CODE)
+		/*#if defined(FLAG_NOT_IN_PUBLIC_CODE) || defined(FLAG_NOT_IN_PUBLIC_CODE)
             for(n = 0; n < pc; pindex++)
                 if(P[pindex].Type == type)
                 {
@@ -369,7 +376,23 @@ void fill_write_buffer(enum iofields blocknr, int *startindex, int pc, int type)
                     *fp++ = (MyOutputFloat) nh0;
                     n++;
                 }
-#endif // #if defined(FLAG_NOT_IN_PUBLIC_CODE) || defined(FLAG_NOT_IN_PUBLIC_CODE)
+#endif */// #if defined(FLAG_NOT_IN_PUBLIC_CODE) || defined(FLAG_NOT_IN_PUBLIC_CODE)
+#if defined(COOLING) || defined(FLAG_NOT_IN_PUBLIC_CODE)
+            for(n = 0; n < pc; pindex++)
+                if(P[pindex].Type == type)
+                {
+#if   (GRACKLE_CHEMISTRY > 0)
+                    *fp++ = SphP[pindex].grHI;
+#else
+                    double u, ne, nh0 = 0, mu = 1, temp, nHeII;
+                    ne = SphP[pindex].Ne;
+                    u = DMAX(All.MinEgySpec, SphP[pindex].InternalEnergy); // needs to be in code units
+		            temp  = ThermalProperties(u, SphP[pindex].Density * All.cf_a3inv, &ne, &nh0, &nHeII, &mu, pindex);
+                    *fp++ = (MyOutputFloat) nh0;
+#endif
+                    n++;
+                }
+#endif // #if defined(COOLING) || defined(FLAG_NOT_IN_PUBLIC_CODE)
             break;
             
         case IO_HII:		/* ionized hydrogen abundance */
@@ -425,10 +448,29 @@ void fill_write_buffer(enum iofields blocknr, int *startindex, int pc, int type)
                 }
             break;
             
-        case IO_SFR:		/* star formation rate */
+        case IO_SFR:
+#ifdef GALSF
+            for(n = 0; n < pc; pindex++)
+                if(P[pindex].Type == type)
+                {
+                    /* units convert to solar masses per yr */
+                    *fp++ = get_starformation_rate(pindex) * ((All.UnitMass_in_g / SOLAR_MASS) / (All.UnitTime_in_s / SEC_PER_YEAR));
+                    n++;
+                }
+#endif
+				/* star formation rate */
             break;
             
-        case IO_AGE:		/* stellar formation time */
+        case IO_AGE:
+#ifdef GALSF
+            for(n = 0; n < pc; pindex++)
+                if(P[pindex].Type == type)
+                {
+                    *fp++ = P[pindex].StellarAge;
+                    n++;
+                }
+#endif
+				/* stellar formation time */
             break;
             
         case IO_OSTAR:
@@ -479,7 +521,18 @@ void fill_write_buffer(enum iofields blocknr, int *startindex, int pc, int type)
         case IO_HSMS:		/* kernel length for star particles */
             break;
             
-        case IO_Z:			/* gas and star metallicity */
+        case IO_Z:
+#if defined(FLAG_NOT_IN_PUBLIC_CODE) || defined(GRACKLE_OPTS)
+            for(n = 0; n < pc; pindex++)
+                if(P[pindex].Type == type)
+                {
+                    for(k = 0; k < NUM_METAL_SPECIES; k++)
+                        fp[k] = P[pindex].Metallicity[k];
+                    fp += NUM_METAL_SPECIES;
+                    n++;
+                }
+#endif
+					/* gas and star metallicity */
             break;
             
         case IO_POT:		/* gravitational potential */
@@ -901,45 +954,133 @@ void fill_write_buffer(enum iofields blocknr, int *startindex, int pc, int type)
             
             
         case IO_grHI:
+#if (GRACKLE_CHEMISTRY >= 1)
+            for(n = 0; n < pc; pindex++){
+                if(P[pindex].Type == type){
+                    *fp++ = SphP[pindex].grHI;
+                    n++;
+                }
+            }
+#endif
             break;
             
-        case IO_grHII:
-            break;
+	        case IO_grHII:
+	#if (GRACKLE_CHEMISTRY >= 1)
+	            for(n = 0; n < pc; pindex++){
+	                if(P[pindex].Type == type){
+	                    *fp++ = SphP[pindex].grHII;
+	                    n++;
+	                }
+	            }
+	#endif
+	            break;
             
-        case IO_grHM:
-            break;
+	        case IO_grHM:
+	#if (GRACKLE_CHEMISTRY >= 1)
+	            for(n = 0; n < pc; pindex++){
+	                if(P[pindex].Type == type){
+	                    *fp++ = SphP[pindex].grHM;
+	                    n++;
+	                }
+	            }
+	#endif
+	            break;
             
-        case IO_grHeI:
-            break;
+	        case IO_grHeI:
+	#if (GRACKLE_CHEMISTRY >= 1)
+	            for(n = 0; n < pc; pindex++){
+	                if(P[pindex].Type == type){
+	                    *fp++ = SphP[pindex].grHeI;
+	                    n++;
+	                }
+	            }
+	#endif
+	            break;
             
-        case IO_grHeII:
-            break;
+	        case IO_grHeII:
+	#if (GRACKLE_CHEMISTRY >= 1)
+	            for(n = 0; n < pc; pindex++){
+	                if(P[pindex].Type == type){
+	                    *fp++ = SphP[pindex].grHeII;
+	                    n++;
+	                }
+	            }
+	#endif
+	            break;
             
-        case IO_grHeIII:
-            break;
+	        case IO_grHeIII:
+	#if (GRACKLE_CHEMISTRY >= 1)
+	            for(n = 0; n < pc; pindex++){
+	                if(P[pindex].Type == type){
+	                    *fp++ = SphP[pindex].grHeIII;
+	                    n++;
+	                }
+	            }
+	#endif
+	            break;
             
-        case IO_grH2I:
-            break;
+	        case IO_grH2I:
+	#if (GRACKLE_CHEMISTRY >= 2)
+	            for(n = 0; n < pc; pindex++){
+	                if(P[pindex].Type == type){
+	                    *fp++ = SphP[pindex].grH2I;
+	                    n++;
+	                }
+	            }
+	#endif
+	            break;
             
-        case IO_grH2II:
-            break;
+	        case IO_grH2II:
+	#if (GRACKLE_CHEMISTRY >= 2)
+	            for(n = 0; n < pc; pindex++){
+	                if(P[pindex].Type == type){
+	                    *fp++ = SphP[pindex].grH2II;
+	                    n++;
+	                }
+	            }
+	#endif
+	            break;
             
-        case IO_grDI:
-            break;
+	        case IO_grDI:
+	#if (GRACKLE_CHEMISTRY >= 3)
+	            for(n = 0; n < pc; pindex++){
+	                if(P[pindex].Type == type){
+	                    *fp++ = SphP[pindex].grDI;
+	                    n++;
+	                }
+	            }
+	#endif
+	            break;
             
-        case IO_grDII:
-            break;
+	        case IO_grDII:
+	#if (GRACKLE_CHEMISTRY >= 3)
+	            for(n = 0; n < pc; pindex++){
+	                if(P[pindex].Type == type){
+	                    *fp++ = SphP[pindex].grDII;
+	                    n++;
+	                }
+	            }
+	#endif
+	            break;
             
-        case IO_grHDI:
-            break;
+	        case IO_grHDI:
+	#if (GRACKLE_CHEMISTRY >= 3)
+	            for(n = 0; n < pc; pindex++){
+	                if(P[pindex].Type == type){
+	                    *fp++ = SphP[pindex].grHDI;
+	                    n++;
+	                }
+	            }
+	#endif
+	            break;
             
             
-        case IO_LASTENTRY:
-            endrun(213);
-            break;
-    }
+	        case IO_LASTENTRY:
+	            endrun(213);
+	            break;
+	    }
     
-    *startindex = pindex;
+	    *startindex = pindex;
 }
 
 
@@ -1104,6 +1245,12 @@ int get_bytes_per_blockelement(enum iofields blocknr, int mode)
 
             
         case IO_Z:
+#if defined(FLAG_NOT_IN_PUBLIC_CODE) || defined(GRACKLE_OPTS)
+            if(mode)
+                bytes_per_blockelement = (NUM_METAL_SPECIES) * sizeof(MyInputFloat);
+            else
+                bytes_per_blockelement = (NUM_METAL_SPECIES) * sizeof(MyOutputFloat);
+#endif
             break;
             
         case IO_TIDALTENSORPS:
@@ -1320,7 +1467,11 @@ int get_values_per_blockelement(enum iofields blocknr)
             break;
             
         case IO_Z:
+#if defined(FLAG_NOT_IN_PUBLIC_CODE) || defined(GRACKLE_OPTS)
+            values = NUM_METAL_SPECIES;
+#else
             values = 0;
+#endif
             break;
             
             
@@ -1631,7 +1782,7 @@ int blockpresent(enum iofields blocknr)
             
         case IO_NE:
         case IO_NH:
-#if defined(FLAG_NOT_IN_PUBLIC_CODE) || defined(FLAG_NOT_IN_PUBLIC_CODE)
+#if defined(COOLING) || defined(FLAG_NOT_IN_PUBLIC_CODE)
             return 1;
 #endif
             return 0;
@@ -1654,6 +1805,12 @@ int blockpresent(enum iofields blocknr)
             
         case IO_SFR:
         case IO_AGE:
+#ifdef GALSF
+            if(blocknr == IO_SFR)
+                return 1;
+            if(blocknr == IO_AGE)
+                return 1;
+#endif
             return 0;
             break;
             
@@ -1666,6 +1823,10 @@ int blockpresent(enum iofields blocknr)
             break;
             
         case IO_Z:
+#if defined(FLAG_NOT_IN_PUBLIC_CODE) || defined(GRACKLE_OPTS)
+            if(blocknr == IO_Z)
+                return 1;
+#endif
             return 0;
             break;
             
@@ -2041,18 +2202,30 @@ int blockpresent(enum iofields blocknr)
         case IO_grHeI:
         case IO_grHeII:
         case IO_grHeIII:
+#if (GRACKLE_CHEMISTRY >= 1)
+            return 1;
+#else
             return 0;
+#endif
             break;
             
         case IO_grH2I:
         case IO_grH2II:
+#if (GRACKLE_CHEMISTRY >= 2)
+            return 1;
+#else
             return 0;
+#endif
             break;
             
         case IO_grDI:
         case IO_grDII:
         case IO_grHDI:
+#if (GRACKLE_CHEMISTRY >= 3)
+            return 1;
+#else
             return 0;
+#endif
             break;
             
             
@@ -2861,7 +3034,19 @@ void write_file(char *fname, int writeTask, int lastTask)
     header.flag_stellarage = 0;
     header.flag_metals = 0;
     
+#ifdef COOLING
+    header.flag_cooling = 1;
+#endif
     
+#ifdef GALSF
+    header.flag_sfr = 1;
+    header.flag_feedback = 1;
+    header.flag_stellarage = 1;
+#endif
+    
+#if defined(FLAG_NOT_IN_PUBLIC_CODE) || defined(GRACKLE_OPTS)
+    header.flag_metals = NUM_METAL_SPECIES;
+#endif    
     
     
     header.num_files = All.NumFilesPerSnapshot;

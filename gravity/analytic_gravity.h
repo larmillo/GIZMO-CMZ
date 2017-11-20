@@ -254,7 +254,7 @@ void GravAccel_KeplerianTestProblem()
 }
 
 
-void GravAccel_CMZ()
+/*void GravAccel_CMZ()
 {
 	double dp[3], R, Rnew, interp1_x, interp2_x, interp1_y, interp2_y, interp1_z, interp2_z;
 	int x,y,z;
@@ -310,7 +310,7 @@ void GravAccel_CMZ()
 		P[i].GravAccel[2] = interp1_z + (interp2_z - interp1_z)/deltaz * (dp[2] - zz0 - z * deltaz);
 	}
 	
-}	
+}*/	
 
 
 /* static NFW potential */

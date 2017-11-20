@@ -1,0 +1,8 @@
+#define HYDRO_MESHLESS_FINITE_MASS 
+#define EOS_GAMMA (5.0/3.0)
+#define COOLING 
+#define GRACKLE 
+#define GRACKLE_CHEMISTRY 0
+#define GRACKLE_OPTS 
+#define NOGRAVITY 
+#define HAVE_HDF5 

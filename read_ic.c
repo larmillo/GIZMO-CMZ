@@ -303,7 +303,7 @@ void empty_read_buffer(enum iofields blocknr, int offset, int pc, int type)
             break;
             
         case IO_NE:		/* electron abundance */
-#if defined(FLAG_NOT_IN_PUBLIC_CODE) || defined(FLAG_NOT_IN_PUBLIC_CODE)
+#if defined(COOLING) || defined(FLAG_NOT_IN_PUBLIC_CODE)
             for(n = 0; n < pc; n++)
                 SphP[offset + n].Ne = *fp++;
 #endif
@@ -329,6 +329,14 @@ void empty_read_buffer(enum iofields blocknr, int offset, int pc, int type)
             break;
             
         case IO_Z:			/* Gas and star metallicity */
+#if defined(FLAG_NOT_IN_PUBLIC_CODE) || defined(GRACKLE_OPTS)
+            for(n = 0; n < pc; n++)
+            {
+                for(k = 0; k < NUM_METAL_SPECIES; k++)
+                    P[offset + n].Metallicity[k] = *fp++;
+            }
+
+#endif		
             break;
             
         case IO_VRMS:		/* Turbulence on kernel scale */
@@ -524,20 +532,74 @@ void empty_read_buffer(enum iofields blocknr, int offset, int pc, int type)
         case IO_VSTURB_DRIVE:
         case IO_MG_PHI:
         case IO_MG_ACCEL:
+	    break;
         case IO_grHI:
+#if GRACKLE_CHEMISTRY>0
+            for(n = 0; n < pc; n++)
+                PPPZ[offset + n].grHI = *fp++;
+	    break;
+#endif
         case IO_grHII:
+#if GRACKLE_CHEMISTRY>0
+            for(n = 0; n < pc; n++)
+                PPPZ[offset + n].grHII = *fp++;
+	    break;
+#endif
         case IO_grHM:
+#if GRACKLE_CHEMISTRY>0
+            for(n = 0; n < pc; n++)
+                PPPZ[offset + n].grHM = *fp++;
+	    break;
+#endif
         case IO_grHeI:
+#if GRACKLE_CHEMISTRY>0
+            for(n = 0; n < pc; n++)
+                PPPZ[offset + n].grHeI = *fp++;
+	    break;
+#endif
         case IO_grHeII:
+#if GRACKLE_CHEMISTRY>0
+            for(n = 0; n < pc; n++)
+                PPPZ[offset + n].grHeII = *fp++;
+	    break;
+#endif
         case IO_grHeIII:
+#if GRACKLE_CHEMISTRY>0
+            for(n = 0; n < pc; n++)
+                PPPZ[offset + n].grHeIII = *fp++;
+	    break;
+#endif
         case IO_grH2I:
+#if GRACKLE_CHEMISTRY>1
+            for(n = 0; n < pc; n++)
+                PPPZ[offset + n].grH2I = *fp++;
+	    break;
+#endif
         case IO_grH2II:
+#if GRACKLE_CHEMISTRY>1
+            for(n = 0; n < pc; n++)
+                PPPZ[offset + n].grH2II = *fp++;
+	    break;
+#endif
         case IO_grDI:
+#if GRACKLE_CHEMISTRY>2
+            for(n = 0; n < pc; n++)
+                PPPZ[offset + n].grDI = *fp++;
+	    break;
+#endif
         case IO_grDII:
+#if GRACKLE_CHEMISTRY>2
+            for(n = 0; n < pc; n++)
+                PPPZ[offset + n].grDII = *fp++;
+	    break;
+#endif
         case IO_grHDI:
-            
-            //ptorrey
-            break;
+#if GRACKLE_CHEMISTRY>2
+            for(n = 0; n < pc; n++)
+                PPPZ[offset + n].grHDI = *fp++;
+	    break;
+#endif
+	    break;
             
         case IO_LASTENTRY:
             endrun(220);

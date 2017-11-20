@@ -217,6 +217,9 @@ void do_the_kick(int i, integertime tstart, integertime tend, integertime tcurre
             for(j=0;j<3;j++) {dEnt_Gravity += -(SphP[i].GravWorkTerm[j] * All.cf_atime * dt_hydrokick) * grav_acc[j];}
 #endif
             double du_tot = SphP[i].DtInternalEnergy * dt_hydrokick + dEnt_Gravity;
+#if defined(COOLING) && !defined(FLAG_NOT_IN_PUBLIC_CODE)
+            if(mode == 1) {du_tot = 0;}
+#endif			
             double dEnt = SphP[i].InternalEnergy + du_tot;
             
 #ifdef ENERGY_ENTROPY_SWITCH_IS_ACTIVE

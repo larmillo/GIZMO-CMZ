@@ -1,0 +1,7 @@
+
+   MACHINE: Darwin (OSX) 
+   MACHINE-NAME: darwin
+
+   CONFIG_PRECISION  [precision-{32,64}]                     : 64
+   CONFIG_OPT  [opt-{warn,debug,high,aggressive}]            : high
+

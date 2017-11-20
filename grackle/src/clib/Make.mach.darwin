@@ -37,8 +37,8 @@ MACH_FILE  = Make.mach.darwin
 
 LOCAL_PACKAGES       = /usr/local
 
-LOCAL_FC_INSTALL     = /usr/local
-LOCAL_HDF5_INSTALL   = /usr/local/hdf5
+LOCAL_FC_INSTALL     = /usr/local/lib/gcc/6
+LOCAL_HDF5_INSTALL   = /usr/local
 LOCAL_SZIP_INSTALL   = $(LOCAL_PACKAGES)
 
 #-----------------------------------------------------------------------
@@ -97,7 +97,7 @@ MACH_INCLUDES         = $(LOCAL_INCLUDES_HDF5)
 # Libraries
 #-----------------------------------------------------------------------
 
-LOCAL_LIBS_MACH   = -L$(LOCAL_FC_INSTALL)/lib -lgfortran 
+LOCAL_LIBS_MACH   = -L$(LOCAL_FC_INSTALL) -lgfortran 
 LOCAL_LIBS_HDF5   = -L$(LOCAL_HDF5_INSTALL)/lib -lhdf5
 
 MACH_LIBS        = $(LOCAL_LIBS_HDF5) $(LOCAL_LIBS_MACH) 
@@ -106,6 +106,6 @@ MACH_LIBS        = $(LOCAL_LIBS_HDF5) $(LOCAL_LIBS_MACH)
 # Installation
 #-----------------------------------------------------------------------
 
-MACH_INSTALL_PREFIX = $(HOME)/local
+MACH_INSTALL_PREFIX = /Users/larmillo/Github/GIZMO-CMZ/grackle/local
 MACH_INSTALL_LIB_DIR =
 MACH_INSTALL_INCLUDE_DIR =

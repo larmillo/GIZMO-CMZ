@@ -403,6 +403,9 @@ integertime get_timestep(int p,		/*!< particle index */
             if(dt_divv < dt) {dt = dt_divv;}
             double dt_cour = All.CourantFac * (KERNEL_CORE_SIZE*PPP[p].AGS_Hsml*All.cf_atime) / (MIN_REAL_NUMBER + 0.5*P[p].AGS_vsig*All.cf_afac3);
             if(dt_cour < dt) {dt = dt_cour;}
+#ifdef GALSF
+            if(((P[p].Type == 4)||((All.ComovingIntegrationOn==0)&&((P[p].Type == 2)||(P[p].Type==3))))&&(P[p].Mass>0)) {tmp_ags_h = DMAX(tmp_ags_h , PPP[p].Hsml);}
+#endif	
         }
     }
 #endif
@@ -646,7 +649,16 @@ integertime get_timestep(int p,		/*!< particle index */
 #endif
     
     
-    
+#if defined(GRACKLE_CHEMISTRY) && (GRACKLE_CHEMISTRY>0)
+    if(P[p].Type==0)
+      {
+	double dt_cool = CallGrackle(SphP[p].InternalEnergyPred, SphP[p].Density, 0, &(SphP[p].Ne), p, 1);
+       	dt_cool *= All.HubbleParam;
+        if(dt_cool>0)
+            if(dt_cool<0.1*dt)
+                dt=dt_cool;
+      }
+#endif    
 
     
     /* convert the physical timestep to dloga if needed. Note: If comoving integration has not been selected, All.cf_hubble_a=1. */
@@ -777,12 +789,23 @@ void find_dt_displacement_constraint(double hfac /*!<  should be  a^2*H(a)  */ )
         MPI_Allreduce(mnm, mean_mass, 6, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
         sumup_large_ints(6, count, count_sum);
         
-        
+#ifdef SFR
+        /* add star and gas particles together to treat them on equal footing, using the original gas particle spacing. */
+        v_sum[0] += v_sum[4];
+        count_sum[0] += count_sum[4];
+        v_sum[4] = v_sum[0];
+        count_sum[4] = count_sum[0];
+#endif
+		        
         for(type = 0; type < 6; type++)
         {
             if(count_sum[type] > 0)
             {
+#ifdef GALSF
+                if(type == 0 || type == 4)
+#else
                 if(type == 0)
+#endif
                     dmean = pow(min_mass[type] / (All.OmegaBaryon * 3 * All.Hubble_H0_CodeUnits * All.Hubble_H0_CodeUnits / (8 * M_PI * All.G)), 1.0 / 3);
                 else
                     dmean = pow(min_mass[type] / ((All.Omega0 - All.OmegaBaryon) * 3 * All.Hubble_H0_CodeUnits * All.Hubble_H0_CodeUnits / (8 * M_PI * All.G)), 1.0 / 3);

@@ -70,7 +70,16 @@ void init(void)
         endrun(0);
     }
     
-    
+#ifdef GRACKLE_FIX_TEMPERATURE
+    if(RestartFlag == 7 && RestartSnapNum < 0)
+    {
+        if(ThisTask == 0)
+            printf
+            ("Need to give the snapshot number if temperature for gas should be calculated\n");
+        endrun(0);
+    }
+#endif
+	    
     switch (All.ICFormat)
     {
         case 1:
@@ -105,7 +114,9 @@ void init(void)
     All.Time = All.TimeBegin;
     set_cosmo_factors_for_current_time();
     
-    
+#if defined(COOLING)
+    IonizeParams();
+#endif    
     
     
     if(All.ComovingIntegrationOn)
@@ -167,7 +178,16 @@ void init(void)
      number, the total amount of memory requested for the BH tree on a single processor scales proportional 
      to PartAllocFactor*TreeAllocFactor. */
     
-    
+#ifdef GRACKLE_FIX_TEMPERATURE
+    if(RestartFlag == 7)
+    {
+        compute_temperature();
+        sprintf(All.SnapshotFileBase, "%s_temp", All.SnapshotFileBase);
+        printf("RestartSnapNum %d\n", RestartSnapNum);
+        savepositions(RestartSnapNum);
+        endrun(0);
+    }
+#endif    
     
 #ifdef PERIODIC
     if(All.ComovingIntegrationOn) check_omega();
@@ -223,7 +243,12 @@ void init(void)
 #if defined(EVALPOTENTIAL) || defined(COMPUTE_POTENTIAL_ENERGY)    
         P[i].Potential = 0;
 #endif
-        
+#ifdef GALSF
+        if(RestartFlag == 0)
+        {
+            P[i].StellarAge = 0;
+        }
+#endif
         if(RestartFlag != 1)
         {
 #if defined(DO_DENSITY_AROUND_STAR_PARTICLES)
@@ -255,7 +280,10 @@ void init(void)
 #endif
         
         
-        
+#ifdef GRACKLE_OPTS
+            if(RestartFlag == 0 && P[i].Type!=1 && P[i].Type!=5)
+		P[i].Metallicity[0]=All.InitMetallicityinSolar*GENTRY_SOLAR_MET;
+#endif        
         
         
         
@@ -328,7 +356,14 @@ void init(void)
             PPP[i].Hsml = 0;
 #endif
             SphP[i].Density = -1;
+#ifdef COOLING
+            SphP[i].Ne = 1.0;
+#endif			
         }
+#ifdef GALSF
+        SphP[i].Sfr = 0;
+#endif
+				
 #ifdef MAGNETIC
 #if defined B_SET_IN_PARAMS
         if(RestartFlag == 0)
@@ -422,6 +457,9 @@ void init(void)
     
     
     Gas_split = 0;
+#ifdef GALSF
+    Stars_converted = 0;
+#endif	
     domain_Decomposition(0, 0, 0);	/* do initial domain decomposition (gives equal numbers of particles) */
     
     set_softenings();
@@ -472,6 +510,10 @@ void init(void)
     
     
     density();
+#if (GRACKLE_CHEMISTRY>=1) || defined(KROME)
+    if(RestartFlag == 0) init_species();
+#endif	
+	
     for(i = 0; i < N_gas; i++)	/* initialize sph_properties */
     {
         SphP[i].InternalEnergyPred = SphP[i].InternalEnergy;
@@ -505,7 +547,28 @@ void init(void)
         SphP[i].Super_Timestep_j = 0;
 #endif
         
-        
+#ifdef GRACKLE
+        if(RestartFlag == 0)
+        {
+#if (GRACKLE_CHEMISTRY >= 1)
+            SphP[i].grHI    = HYDROGEN_MASSFRAC;
+            SphP[i].grHII   = 1.0e-20;
+            SphP[i].grHM    = 1.0e-20;
+            SphP[i].grHeI   = 1.0 - HYDROGEN_MASSFRAC;
+            SphP[i].grHeII  = 1.0e-20;
+            SphP[i].grHeIII = 1.0e-20;
+#endif
+#if (GRACKLE_CHEMISTRY >= 2)
+            SphP[i].grH2I   = 1.0e-20;
+            SphP[i].grH2II  = 1.0e-20;
+#endif
+#if (GRACKLE_CHEMISTRY >= 3)
+            SphP[i].grDI    = 2.0 * 3.4e-5;
+            SphP[i].grDII   = 1.0e-20;
+            SphP[i].grHDI   = 1.0e-20;
+#endif
+        }
+#endif        
     }
     
     
@@ -874,3 +937,14 @@ int compare_IDs(const void *a, const void *b)
     
     return 0;
 }
+
+#ifdef GRACKLE_FIX_TEMPERATURE
+void compute_temperature()
+{
+    int i;
+    for(i=0;i<N_gas;i++)
+    {
+       SphP[i].InternalEnergyPred = CallGrackle(SphP[i].InternalEnergy, SphP[i].Density, 0, &(SphP[i].Ne), i, 2);
+    }
+}
+#endif

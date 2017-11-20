@@ -626,7 +626,39 @@ void merge_particles_ij(int i, int j)
 #ifdef ENERGY_ENTROPY_SWITCH_IS_ACTIVE
     SphP[j].MaxKineticEnergyNgb = DMAX(SphP[j].MaxKineticEnergyNgb,SphP[i].MaxKineticEnergyNgb); /* for the entropy/energy switch condition */
 #endif
-    
+
+#if defined(FLAG_NOT_IN_PUBLIC_CODE) || defined(GRACKLE_OPTS)
+    for(k=0;k<NUM_METAL_SPECIES;k++)
+        P[j].Metallicity[k] = wt_j*P[j].Metallicity[k] + wt_i*P[i].Metallicity[k]; /* metal-mass conserving */
+#endif
+#if defined(GRACKLE_CHEMISTRY)
+#if (GRACKLE_CHEMISTRY>0)
+    SphP[j].grHI    = wt_j*SphP[j].grHI    + wt_i*SphP[i].grHI;
+    SphP[j].grHII   = wt_j*SphP[j].grHII   + wt_i*SphP[i].grHII;
+    SphP[j].grHeI   = wt_j*SphP[j].grHeI   + wt_i*SphP[i].grHeI;
+    SphP[j].grHeII  = wt_j*SphP[j].grHeII  + wt_i*SphP[i].grHeII;
+    SphP[j].grHeIII = wt_j*SphP[j].grHeIII + wt_i*SphP[i].grHeIII;
+    SphP[j].grHM    = wt_j*SphP[j].grHM    + wt_i*SphP[i].grHM;
+#endif
+#if (GRACKLE_CHEMISTRY>1)
+    SphP[j].grH2I  = wt_j*SphP[j].grH2I  + wt_i*SphP[i].grH2I;
+    SphP[j].grH2II = wt_j*SphP[j].grH2II + wt_i*SphP[i].grH2II;
+    SphP[j].Gamma  = wt_j*SphP[j].Gamma  + wt_i*SphP[i].Gamma;
+#endif
+#if (GRACKLE_CHEMISTRY>2)
+    SphP[j].grDI  = wt_j*SphP[j].grDI  + wt_i*SphP[i].grDI;
+    SphP[j].grDII = wt_j*SphP[j].grDII + wt_i*SphP[i].grDII;
+    SphP[j].grHDI = wt_j*SphP[j].grHDI + wt_i*SphP[i].grHDI;
+#endif
+#endif
+#ifdef GALSF_FB_LUPI
+/*  //old runs
+    if(SphP[i].DelayTime>0 && SphP[j].DelayTime>0)
+        SphP[j].DelayTime=DMIN(SphP[i].DelayTime,SphP[j].DelayTime);
+    else
+        SphP[j].DelayTime=DMAX(SphP[i].DelayTime,SphP[j].DelayTime);*/
+    SphP[j].DelayTimeCoolingSNe = wt_j*DMAX(SphP[j].DelayTimeCoolingSNe,0) + wt_i*DMAX(SphP[i].DelayTimeCoolingSNe,0);
+#endif    
     // below, we need to take care of additional physics //
     
     /* finally zero out the particle mass so it will be deleted */

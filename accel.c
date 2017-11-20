@@ -84,6 +84,11 @@ void compute_hydro_densities_and_forces(void)
         }
 #endif
         density();		/* computes density, and pressure */
+		
+#ifdef GRACKLE_FIX_TEMPERATURE
+        if(RestartFlag == 0 && All.InitGasTemp > 0 && All.TimeStep == 0) fix_temperature();
+#endif
+				
 #ifdef ADAPTIVE_GRAVSOFT_FORALL
         ags_density();
 #endif
@@ -134,4 +139,43 @@ void compute_hydro_densities_and_forces(void)
     }
 }
 
+#ifdef GALSF
+void compute_stellar_feedback(void)
+{
+    CPU_Step[CPU_MISC] += measure_time();
+
+    /* first, check the mechanical sources of feedback */
+#if defined(FLAG_NOT_IN_PUBLIC_CODE) || defined(FLAG_NOT_IN_PUBLIC_CODE) || defined(FLAG_NOT_IN_PUBLIC_CODE)
+    mechanical_fb_calc(-1); /* compute weights for coupling */
+    CPU_Step[CPU_SNIIHEATING] += measure_time();
+#endif // (defined(FLAG_NOT_IN_PUBLIC_CODE)||defined(FLAG_NOT_IN_PUBLIC_CODE) || defined(FLAG_NOT_IN_PUBLIC_CODE))
+    
+    /* alternatively use the 'turn off cooling' sub-grid feedback model */
+    
+    /* now do the local photo-ionization heating */
+    
+    /* finally (if we're not doing it in the star formation routine), do the local radiation pressure */
+#if defined(GALSF_FB_RPWIND_FROMSTARS) && !defined(FLAG_NOT_IN_PUBLIC_CODE)
+    radiation_pressure_winds_consolidated();
+    CPU_Step[CPU_LOCALWIND] += measure_time();
+#endif
+    
+#ifdef GALSF_FB_LUPI
+    //compute coupling for SNae and mass losses
+    lupi_fb_calc(-1);
+    //compute the actual SNa feedback
+    if(All.FeedbackMode % 4 > 0) lupi_fb_calc(0);
+    //compute IM mass star mass loss
+    if(All.FeedbackMode > 4)     lupi_fb_calc(1);
+#endif
+
+#ifdef GENTRY_FB
+    //compute the actual SNe feedback
+    gentry_fb_calc();
+    //compute IM mass star mass loss
+    // if(All.FeedbackMode > 4)     lupi_fb_calc(1);
+#endif
+    CPU_Step[CPU_MISC] += measure_time();
+}
+#endif // GALSF //
 

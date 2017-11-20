@@ -81,7 +81,9 @@ void begrun(void)
   All.Time = All.TimeBegin;
     
 
-
+#ifdef COOLING
+  InitCool();
+#endif
 
 #ifdef PERIODIC
   ewald_init();
@@ -149,7 +151,11 @@ void begrun(void)
 
   All.TimeLastRestartFile = CPUThisRun;
 
-  if(RestartFlag == 0 || RestartFlag == 2 || RestartFlag == 3 || RestartFlag == 4 || RestartFlag == 5 || RestartFlag == 6)
+  if(RestartFlag == 0 || RestartFlag == 2 || RestartFlag == 3 || RestartFlag == 4 || RestartFlag == 5 || RestartFlag == 6
+#ifdef GRACKLE_FIX_TEMPERATURE
+   || RestartFlag == 7
+#endif
+	  )
     {
       init();			/* ... read in initial model */
     }
@@ -211,7 +217,10 @@ void begrun(void)
       memcpy(All.OutputListTimes, all.OutputListTimes, sizeof(double) * All.OutputListLength);
       memcpy(All.OutputListFlag, all.OutputListFlag, sizeof(char) * All.OutputListLength);
 
-        
+#ifdef GALSF
+      All.CritPhysDensity = all.CritPhysDensity;
+      All.MaxSfrTimescale = all.MaxSfrTimescale;
+#endif        
 
 
 #ifdef SPHAV_CD10_VISCOSITY_SWITCH
@@ -261,7 +270,10 @@ void begrun(void)
       */
       strcpy(All.SnapshotFileBase, all.SnapshotFileBase);
 
-
+#ifdef GRACKLE
+      strcpy(All.GrackleDataFile, all.GrackleDataFile);
+#endif
+	  
 #ifdef EOS_TABULATED
         strcpy(All.EosTable, all.EosTable);
 #endif
@@ -317,6 +329,84 @@ void begrun(void)
     All.Ti_nextoutput = find_next_outputtime(All.Ti_Current);
 
   All.TimeLastRestartFile = CPUThisRun;
+
+#ifdef GENTRY_FB
+  // to do - have this be read from my text files
+
+    All.N_SNe = 11;
+
+    All.SN_position_x = (double*) malloc(All.N_SNe*sizeof(double));
+    All.SN_position_y = (double*) malloc(All.N_SNe*sizeof(double));
+    All.SN_position_z = (double*) malloc(All.N_SNe*sizeof(double));
+    {
+      int i;
+      for(i=0; i<All.N_SNe; i++) 
+      {
+        All.SN_position_x[i] = 250*(CM_PER_MPC/1e6)/All.UnitLength_in_cm;
+        All.SN_position_y[i] = 250*(CM_PER_MPC/1e6)/All.UnitLength_in_cm;
+        All.SN_position_z[i] = 250*(CM_PER_MPC/1e6)/All.UnitLength_in_cm;
+      }
+    }
+
+
+    All.SN_time     = (double*) malloc(All.N_SNe * sizeof(double));
+    All.SN_time[ 0] = 0           / All.UnitTime_in_s;
+    All.SN_time[ 1] = 1.99471e+13 / All.UnitTime_in_s;
+    All.SN_time[ 2] = 8.02558e+13 / All.UnitTime_in_s;
+    All.SN_time[ 3] = 9.92043e+13 / All.UnitTime_in_s;
+    All.SN_time[ 4] = 1.22073e+14 / All.UnitTime_in_s;
+    All.SN_time[ 5] = 2.36641e+14 / All.UnitTime_in_s;
+    All.SN_time[ 6] = 2.46039e+14 / All.UnitTime_in_s;
+    All.SN_time[ 7] = 4.41575e+14 / All.UnitTime_in_s;
+    All.SN_time[ 8] = 5.08510e+14 / All.UnitTime_in_s;
+    All.SN_time[ 9] = 8.57144e+14 / All.UnitTime_in_s;
+    All.SN_time[10] = 9.02104e+14 / All.UnitTime_in_s;
+
+
+    All.SN_mass     = (double*) malloc(All.N_SNe * sizeof(double));
+    All.SN_mass[ 0] = 1.32339e+34 / All.UnitMass_in_g;
+    All.SN_mass[ 1] = 2.99848e+34 / All.UnitMass_in_g;
+    All.SN_mass[ 2] = 3.02113e+34 / All.UnitMass_in_g;
+    All.SN_mass[ 3] = 3.10834e+34 / All.UnitMass_in_g;
+    All.SN_mass[ 4] = 3.14317e+34 / All.UnitMass_in_g;
+    All.SN_mass[ 5] = 2.51504e+34 / All.UnitMass_in_g;
+    All.SN_mass[ 6] = 2.46495e+34 / All.UnitMass_in_g;
+    All.SN_mass[ 7] = 2.07013e+34 / All.UnitMass_in_g;
+    All.SN_mass[ 8] = 1.93268e+34 / All.UnitMass_in_g;
+    All.SN_mass[ 9] = 1.46705e+34 / All.UnitMass_in_g;
+    All.SN_mass[10] = 1.42763e+34 / All.UnitMass_in_g;
+
+
+    All.SN_mass_Z     = (double*) malloc(All.N_SNe * sizeof(double));
+    All.SN_mass_Z[ 0] = 1.31011e+34 / All.UnitMass_in_g;
+    All.SN_mass_Z[ 1] = 2.32765e+34 / All.UnitMass_in_g;
+    All.SN_mass_Z[ 2] = 9.76778e+33 / All.UnitMass_in_g;
+    All.SN_mass_Z[ 3] = 7.73080e+33 / All.UnitMass_in_g;
+    All.SN_mass_Z[ 4] = 6.48351e+33 / All.UnitMass_in_g;
+    All.SN_mass_Z[ 5] = 2.56464e+33 / All.UnitMass_in_g;
+    All.SN_mass_Z[ 6] = 2.39965e+33 / All.UnitMass_in_g;
+    All.SN_mass_Z[ 7] = 1.41690e+33 / All.UnitMass_in_g;
+    All.SN_mass_Z[ 8] = 1.41690e+33 / All.UnitMass_in_g;
+    All.SN_mass_Z[ 9] = 1.41690e+33 / All.UnitMass_in_g;
+    All.SN_mass_Z[10] = 1.41690e+33 / All.UnitMass_in_g;
+
+#ifdef WINDS
+    All.wind_mass     = (double*) malloc(All.N_SNe * sizeof(double));    
+    All.wind_mass[ 0] = 9.89864e+34 / All.UnitMass_in_g;
+    All.wind_mass[ 1] = 5.47184e+34 / All.UnitMass_in_g;
+    All.wind_mass[ 2] = 2.04665e+34 / All.UnitMass_in_g;
+    All.wind_mass[ 3] = 1.41344e+34 / All.UnitMass_in_g;
+    All.wind_mass[ 4] = 9.42052e+33 / All.UnitMass_in_g;
+    All.wind_mass[ 5] = 3.62558e+33 / All.UnitMass_in_g;
+    All.wind_mass[ 6] = 3.50378e+33 / All.UnitMass_in_g;
+    All.wind_mass[ 7] = 0           / All.UnitMass_in_g;
+    All.wind_mass[ 8] = 0           / All.UnitMass_in_g;
+    All.wind_mass[ 9] = 0           / All.UnitMass_in_g;
+    All.wind_mass[10] = 0           / All.UnitMass_in_g;
+#endif
+
+#endif  
+  
 }
 
 
@@ -362,7 +452,12 @@ void set_units(void)
   All.MinEgySpec = 1 / meanweight * (1.0 / GAMMA_MINUS1) * (BOLTZMANN / PROTONMASS) * All.MinGasTemp;
   All.MinEgySpec *= All.UnitMass_in_g / All.UnitEnergy_in_cgs;
 
-
+#if defined(GALSF)
+  /* for historical reasons, we need to convert to "All.MaxSfrTimescale", defined as the SF timescale in code units at the critical physical
+     density given above. use the dimensionless SfEffPerFreeFall (which has been read in) to calculate this. This must be done -BEFORE- calling set_units_sfr) */
+  All.MaxSfrTimescale = (1/All.MaxSfrTimescale) * sqrt(3.*M_PI / (32. * All.G * (All.CritPhysDensity * meanweight * 1.67e-24 / (All.UnitDensity_in_cgs*All.HubbleParam*All.HubbleParam))));
+  set_units_sfr();
+#endif
 
 #define cm (All.HubbleParam/All.UnitLength_in_cm)
 #define g  (All.HubbleParam/All.UnitMass_in_g)
@@ -526,7 +621,11 @@ void open_outputfiles(void)
             CPU_SymbolImbalance[CPU_POTENTIAL]);
     fprintf(FdBalance, "PM             = '%c' / '%c'\n", CPU_Symbol[CPU_MESH], CPU_SymbolImbalance[CPU_MESH]);
     fprintf(FdBalance, "Peano-Hilbert  = '%c' / '%c'\n", CPU_Symbol[CPU_PEANO], CPU_SymbolImbalance[CPU_PEANO]);
-    fprintf(FdBalance, "Snapshot dump  = '%c' / '%c'\n", CPU_Symbol[CPU_SNAPSHOT],
+#ifdef COOLING
+  fprintf(FdBalance, "Cooling & SFR  = '%c' / '%c'\n", CPU_Symbol[CPU_COOLINGSFR],
+	  CPU_SymbolImbalance[CPU_COOLINGSFR]);
+#endif    
+	fprintf(FdBalance, "Snapshot dump  = '%c' / '%c'\n", CPU_Symbol[CPU_SNAPSHOT],
             CPU_SymbolImbalance[CPU_SNAPSHOT]);
 #ifdef FOF
     fprintf(FdBalance, "FoF            = '%c' / '%c'\n", CPU_Symbol[CPU_FOF], CPU_SymbolImbalance[CPU_FOF]);
@@ -537,7 +636,14 @@ void open_outputfiles(void)
 
 
 
-
+#ifdef GALSF
+  sprintf(buf, "%s%s", All.OutputDir, "sfr.txt");
+  if(!(FdSfr = fopen(buf, mode)))
+    {
+      printf("error in opening file '%s'\n", buf);
+      endrun(1);
+    }
+#endif
     
     
     
@@ -610,7 +716,11 @@ void read_parameter_file(char *fname)
       endrun(0);
     }
 
-
+#ifdef GRACKLE_OPTS
+  All.MetalCooling   = 0;
+  All.UVBackgroundOn = 0;
+#endif
+  
   if(ThisTask == 0)		/* read parameter file on process 0 */
     {
       nt = 0;
@@ -812,7 +922,7 @@ void read_parameter_file(char *fname)
 #endif
         
 
-#if defined(FLAG_NOT_IN_PUBLIC_CODE) || defined(FLAG_NOT_IN_PUBLIC_CODE) || defined(FLAG_NOT_IN_PUBLIC_CODE) || defined(FLAG_NOT_IN_PUBLIC_CODE) || defined(FLAG_NOT_IN_PUBLIC_CODE) || defined(FLAG_NOT_IN_PUBLIC_CODE)
+#if defined(FLAG_NOT_IN_PUBLIC_CODE) || defined(FLAG_NOT_IN_PUBLIC_CODE) || defined(FLAG_NOT_IN_PUBLIC_CODE) || defined(FLAG_NOT_IN_PUBLIC_CODE) || defined(FLAG_NOT_IN_PUBLIC_CODE) || defined(FLAG_NOT_IN_PUBLIC_CODE)|| defined(GRACKLE_OPTS)
         strcpy(tag[nt],"InitMetallicity");
         addr[nt] = &All.InitMetallicityinSolar;
         id[nt++] = REAL;
@@ -884,7 +994,12 @@ void read_parameter_file(char *fname)
       addr[nt] = &All.ResubmitOn;
       id[nt++] = INT;
 
-        
+#ifdef GRACKLE
+        strcpy(tag[nt], "GrackleDataFile");
+        addr[nt] = All.GrackleDataFile;
+        id[nt++] = STRING;
+#endif
+		        
       strcpy(tag[nt], "TimeLimitCPU");
       addr[nt] = &All.TimeLimitCPU;
       id[nt++] = REAL;
@@ -994,7 +1109,23 @@ void read_parameter_file(char *fname)
 #endif
 
 
+#ifdef GALSF
+      strcpy(tag[nt], "CritPhysDensity");
+      addr[nt] = &All.CritPhysDensity;
+      id[nt++] = REAL;
 
+      strcpy(tag[nt], "SfEffPerFreeFall");
+      addr[nt] = &All.MaxSfrTimescale;
+      id[nt++] = REAL;
+      /* for historical reasons, we need to convert to "MaxSfrTimescale", 
+            defined as the SF timescale in code units at the critical physical 
+            density given above. use the dimensionless SfEffPerFreeFall
+            to calculate this */
+        
+        
+        
+
+#endif
 
 #ifdef RESCALEVINI
       strcpy(tag[nt], "VelIniScale");
@@ -1063,6 +1194,16 @@ void read_parameter_file(char *fname)
 #endif
 #endif
 
+#ifdef GRACKLE_OPTS
+      strcpy(tag[nt], "MetalCoolingOn");
+      addr[nt] = &All.MetalCooling;
+      id[nt++] = INT;
+
+      strcpy(tag[nt], "UVBackgroundOn");
+      addr[nt] = &All.UVBackgroundOn;
+      id[nt++] = INT;
+#endif
+	  
 #ifdef TURB_DRIVING
         
 #if defined(POWERSPEC_GRID)
@@ -1350,9 +1491,15 @@ void read_parameter_file(char *fname)
 
     if(All.ComovingIntegrationOn) {All.ErrTolForceAcc = 0.005; All.ErrTolIntAccuracy = 0.05;}
     All.MaxNumNgbDeviation = All.DesNumNgb / 640.;
+#ifdef GALSF
+    All.MaxNumNgbDeviation = All.DesNumNgb / 64.;
+#endif	
     if(All.MaxNumNgbDeviation < 0.05) All.MaxNumNgbDeviation = 0.05;
 #ifdef ADAPTIVE_GRAVSOFT_FORALL
     All.AGS_MaxNumNgbDeviation = All.AGS_DesNumNgb / 64.;
+#ifdef GALSF
+    All.AGS_MaxNumNgbDeviation = All.AGS_DesNumNgb / 32.;
+#endif	
     if(All.AGS_MaxNumNgbDeviation < 0.05) All.AGS_MaxNumNgbDeviation = 0.05;
 #endif
 #ifdef BH_WIND_SPAWN
@@ -1360,7 +1507,12 @@ void read_parameter_file(char *fname)
 #endif
 #endif // closes DEVELOPER_MODE check //
     
-    
+#ifdef GALSF
+    All.CritOverDensity = 1000.0;
+    /* this just needs to be some number >> 1, or else we get nonsense.
+     In cosmological runs, star formation is not allowed below this overdensity, to prevent spurious
+     star formation at very high redshifts */
+#endif    
 
     All.TypeOfOpeningCriterion = 1;
     /*!< determines tree cell-opening criterion: 0 for Barnes-Hut, 1 for relative criterion: this
@@ -1487,7 +1639,15 @@ void read_parameter_file(char *fname)
     }
 #endif
 
-    
+#ifdef GRACKLE_FULLYIMPLICIT
+    if(All.ComovingIntegrationOn)
+    {
+        printf("An accurate temperature evolution for cosmological runs	is incompatible	with fully implicit cooling \n \
+(because of the minimum	temperature in the table)");
+        endrun(1);
+    }
+#endif
+	    
     for(pnum = 0; All.NumFilesWrittenInParallel > (1 << pnum); pnum++);
     
     if(All.NumFilesWrittenInParallel != (1 << pnum))

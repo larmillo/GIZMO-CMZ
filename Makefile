@@ -105,8 +105,8 @@ OPTIMIZE = -Wall  -g   # optimization and warning flags (default)
 
 MPICHLIB = -lmpich
 
-GRACKLEINCL =
-GRACKLELIBS = -lgrackle
+#GRACKLEINCL = -I./grackle/local/include
+#GRACKLELIBS = -L./grackle/local/lib -lgrackle -lhdf5
 
 
 ifeq (NOTYPEPREFIX_FFTW,$(findstring NOTYPEPREFIX_FFTW,$(CONFIGVARS)))  # fftw installed without type prefix?
@@ -206,6 +206,8 @@ FFTW_INCL= -I/usr/local/include
 FFTW_LIBS= -L/usr/local/lib
 HDF5INCL = -I/usr/local/include -DH5_USE_16_API
 HDF5LIB  = -L/usr/local/lib -lhdf5 -lz
+GRACKLEINCL = -I./grackle/local/include
+GRACKLELIBS = -L./grackle/local/lib -lgrackle -lhdf5
 MPICHLIB = #
 OPT     += #
 endif
@@ -811,6 +813,10 @@ ifeq (GALSF_FB_RPWIND_LOCAL,$(findstring GALSF_FB_RPWIND_LOCAL,$(CONFIGVARS)))
 OBJS    += galaxy_sf/rp_localwinds.o
 endif
 
+ifeq (GENTRY_FB,$(findstring GENTRY_FB,$(CONFIGVARS)))
+OBJS    += gentry_fb.o
+endif
+
 ifeq (BLACK_HOLES,$(findstring BLACK_HOLES,$(CONFIGVARS)))
 OBJS    += galaxy_sf/blackholes/blackhole.o
 OBJS    += galaxy_sf/blackholes/blackhole_util.o
@@ -934,4 +940,14 @@ compile_time_info.c: $(CONFIG)
 clean:
 	rm -f $(OBJS) $(FOBJS) $(EXEC) *.oo *.c~ compile_time_info.c GIZMO_config.h
 
+all:
+	make -C grackle/src/clib/ HDF5_HOME="$(HDF5_HOME)"
+	mkdir -p grackle/local
+	mkdir -p grackle/local/include
+	mkdir -p grackle/local/lib
+	make -C grackle/src/clib/ install
+	make $(EXEC)
 
+cleanall:
+	make -C grackle/src/clib clean
+	make clean

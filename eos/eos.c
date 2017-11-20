@@ -15,8 +15,11 @@
 /* return the pressure of particle i */
 double get_pressure(int i)
 {
+#if (GRACKLE_CHEMISTRY>=2)
+    MyFloat press = (SphP[i].Gamma - 1) * SphP[i].InternalEnergyPred * Particle_density_for_energy_i(i); /* ideal gas EOS (will get over-written it more complex EOS assumed) */
+#else
     MyFloat press = GAMMA_MINUS1 * SphP[i].InternalEnergyPred * Particle_density_for_energy_i(i); /* ideal gas EOS (will get over-written it more complex EOS assumed) */
-    
+#endif
     
     
 #ifdef EOS_HELMHOLTZ

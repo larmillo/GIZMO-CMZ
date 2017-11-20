@@ -119,7 +119,14 @@
 
 
 
+#if defined(GRACKLE) 
+#if !defined(COOLING)
+#define COOLING
+#endif
+#include <grackle.h>
+#endif
 
+#include "gentry_defs.h"
 
 
 
@@ -233,14 +240,14 @@
 #define RT_SOURCES 16
 
 /* cooling must be enabled for RT cooling to function */
-#if defined(FLAG_NOT_IN_PUBLIC_CODE_OLDFORMAT) && !defined(FLAG_NOT_IN_PUBLIC_CODE)
+/*#if defined(FLAG_NOT_IN_PUBLIC_CODE_OLDFORMAT) && !defined(FLAG_NOT_IN_PUBLIC_CODE)
 #define COOLING
-#endif
+#endif*/
 
 
 
 
-#if defined(FLAG_NOT_IN_PUBLIC_CODE) || defined(FLAG_NOT_IN_PUBLIC_CODE) || defined(FLAG_NOT_IN_PUBLIC_CODE) || defined(FLAG_NOT_IN_PUBLIC_CODE) || defined(FLAG_NOT_IN_PUBLIC_CODE) || defined(FLAG_NOT_IN_PUBLIC_CODE) || defined(FLAG_NOT_IN_PUBLIC_CODE) || defined(FLAG_NOT_IN_PUBLIC_CODE) || defined(FLAG_NOT_IN_PUBLIC_CODE) || defined(FLAG_NOT_IN_PUBLIC_CODE) || defined(FLAG_NOT_IN_PUBLIC_CODE)
+#if defined(GALSF) || defined(FLAG_NOT_IN_PUBLIC_CODE) || defined(FLAG_NOT_IN_PUBLIC_CODE) || defined(FLAG_NOT_IN_PUBLIC_CODE) || defined(FLAG_NOT_IN_PUBLIC_CODE) || defined(FLAG_NOT_IN_PUBLIC_CODE) || defined(FLAG_NOT_IN_PUBLIC_CODE) || defined(FLAG_NOT_IN_PUBLIC_CODE) || defined(FLAG_NOT_IN_PUBLIC_CODE) || defined(FLAG_NOT_IN_PUBLIC_CODE) || defined(FLAG_NOT_IN_PUBLIC_CODE)
 #define DO_DENSITY_AROUND_STAR_PARTICLES
 #endif
 
@@ -882,7 +889,9 @@ extern int LastInTimeBin[TIMEBINS];
 extern int *NextInTimeBin;
 extern int *PrevInTimeBin;
 
-
+#ifdef GALSF
+extern double TimeBinSfr[TIMEBINS];
+#endif
 
 extern int ThisTask;		/*!< the number of the local processor  */
 extern int NTask;		/*!< number of processors */
@@ -950,6 +959,10 @@ extern gsl_rng *random_generator;	/*!< the random number generator used */
 
 extern int Gas_split;           /*!< current number of newly-spawned gas particles outside block */
 
+#ifdef GALSF
+extern int Stars_converted;	/*!< current number of star particles in gas particle block */
+#endif
+
 extern double TimeOfLastTreeConstruction;	/*!< holds what it says */
 
 extern int *Ngblist;		/*!< Buffer to hold indices of neighbours retrieved by the neighbour search
@@ -1013,12 +1026,15 @@ extern FILE
 
 
 
+#ifdef GALSF
+extern FILE *FdSfr;		/*!< file handle for sfr.txt log-file. */
+#endif
 
 
 
-
-
-
+#if defined(FLAG_NOT_IN_PUBLIC_CODE) || defined(GALSF_FB_LUPI)
+extern FILE *FdSneIIHeating;	/*!< file handle for SNIIheating.txt log-file */
+#endif
 
 
 
@@ -1271,6 +1287,9 @@ extern struct global_data_all_processes
     RestartFile[100], ResubmitCommand[100], OutputListFilename[100];
     /* EnergyFile[100], CpuFile[100], InfoFile[100], TimingsFile[100], TimebinFile[100], */
 
+#ifdef GRACKLE
+    char GrackleDataFile[100];
+#endif
     
   /*! table with desired output times */
   double OutputListTimes[MAXLEN_OUTPUTLIST];
@@ -1288,17 +1307,14 @@ extern struct global_data_all_processes
     double Grain_Size_Min;
     double Grain_Size_Max;
 #endif
-    
-    
-
-    
+        
 
 
 #if defined(FLAG_NOT_IN_PUBLIC_CODE) || defined(FLAG_NOT_IN_PUBLIC_CODE)
   double GasReturnFraction;
 #endif
     
-#if defined(FLAG_NOT_IN_PUBLIC_CODE) || defined(FLAG_NOT_IN_PUBLIC_CODE) || defined(FLAG_NOT_IN_PUBLIC_CODE) || defined(FLAG_NOT_IN_PUBLIC_CODE) || defined(FLAG_NOT_IN_PUBLIC_CODE) || defined(FLAG_NOT_IN_PUBLIC_CODE)
+#if defined(FLAG_NOT_IN_PUBLIC_CODE) || defined(FLAG_NOT_IN_PUBLIC_CODE) || defined(FLAG_NOT_IN_PUBLIC_CODE) || defined(FLAG_NOT_IN_PUBLIC_CODE) || defined(FLAG_NOT_IN_PUBLIC_CODE) || defined(FLAG_NOT_IN_PUBLIC_CODE)|| defined(GRACKLE_OPTS)
   double InitMetallicityinSolar;
   double InitStellarAgeinGyr;
 #endif
@@ -1361,7 +1377,22 @@ extern struct global_data_all_processes
 
 
 
+#ifdef GALSF		/* star formation and feedback sector */
+  double CritOverDensity;
+  double CritPhysDensity;
+  double OverDensThresh;
+  double PhysDensThresh;
+  double MaxSfrTimescale;
 
+    
+    
+
+#if defined(FLAG_NOT_IN_PUBLIC_CODE) || defined(GALSF_FB_LUPI)
+  double SNeIIEnergyFrac;
+#endif
+
+
+#endif // GALSF
 
 
 #ifdef EOS_TABULATED
@@ -1395,7 +1426,47 @@ extern struct global_data_all_processes
   int FourierGrid;     /*dimension of the Fourier transform (actual size is FourierGrid^3)*/
 #endif
 
+#if defined(COOLING) && defined(GRACKLE)
+    code_units GrackleUnits;
+#endif
+
+
+//Lupi recipes
+#ifdef GRACKLE_OPTS
+  int MetalCooling;
+  int UVBackgroundOn;
+#endif //GRACKLE_OPTS
+
+#if defined(GALSF_FB_LUPI)
+  int FeedbackMode;
+  double SNeIIFraction;
+  double SNeIIDelay;
+  double SNeIIYield;
+  int    SNeBlastWave;
+#endif
+
+#ifdef BH_LUPI
+  int AccretionMode;
+#endif
+//End A Lupi
+
+#ifdef GENTRY_FB
+    int N_SNe;
+
+    // dynamically allocated arrays
+    double* SN_position_x;
+    double* SN_position_y;
+    double* SN_position_z;
+
+    double* SN_time;
+    double* SN_mass;
+    double* SN_mass_Z;
     
+#ifdef WINDS
+    double* wind_mass;
+#endif
+
+#endif    
 }
 All;
 
@@ -1434,7 +1505,12 @@ extern ALIGN(32) struct particle_data
 #endif
 #endif
     
-    
+#ifdef GALSF
+    MyFloat StellarAge;		/*!< formation time of star particle */
+#endif
+#if defined(FLAG_NOT_IN_PUBLIC_CODE) || defined(GRACKLE_OPTS)
+    MyFloat Metallicity[NUM_METAL_SPECIES]; /*!< metallicity (species-by-species) of gas or star particle */
+#endif    
     
 #ifdef GALSF_SFR_IMF_VARIATION
     MyFloat IMF_Mturnover; /*!< IMF turnover mass [in solar] (or any other parameter which conveniently describes the IMF) */
@@ -1455,7 +1531,28 @@ extern ALIGN(32) struct particle_data
     MyFloat KernelSum_Around_RT_Source; /*!< kernel summation around sources for radiation injection (save so can be different from 'density') */
 #endif
 
-    
+#if defined(GALSF_FB_LUPI)
+    MyFloat SNe_ThisTimeStep;
+    MyFloat MassYield_ThisTimeStep;
+    MyFloat MassLoss_ThisTimeStep;
+    MyFloat MetalYield_ThisTimeStep[NUM_METAL_SPECIES];
+    MyFloat StellarInitMass;
+    MyFloat InternalEnergyAroundStar;
+    MyFloat WeightNorm[2];
+#ifdef GALSF_FB_LUPI_BLASTRADIUS
+    MyIDType NearestID;
+    MyFloat Nearest_dist;
+#endif
+#endif
+
+#if defined(BH_LUPI)
+    MyFloat BH_StoredEnergy;
+    MyFloat BH_AccretionRate;
+    MyFloat BH_Luminosity;
+    MyFloat BH_DeltaPos[3];
+    MyFloat BH_DeltaVel[3];
+    MyFloat BH_GasVelocity[3];
+#endif    
     
 #if defined(GRAIN_FLUID)
     MyFloat Grain_Size;
@@ -1559,6 +1656,10 @@ extern struct sph_particle_data
     MyFloat Density_Relative_Maximum_in_Kernel; /*!< hold density_max-density_i, for particle i, so we know if its a local maximum */
 #endif
     
+#if (GRACKLE_CHEMISTRY>=2)
+    MyDouble Gamma;
+#endif
+		
     /* matrix of the primitive variable gradients: rho, P, vx, vy, vz, B, phi */
     struct
     {
@@ -1612,7 +1713,14 @@ extern struct sph_particle_data
 #endif
 
 
-    
+#ifdef COOLING
+  MyFloat Ne;  /*!< electron fraction, expressed as local electron number
+		    density normalized to the hydrogen number density. Gives
+		    indirectly ionization state and mean molecular weight. */
+#endif
+#ifdef GALSF
+  MyFloat Sfr;                      /*!< particle star formation rate */
+#endif    
     
 #ifdef TURB_DRIVING
   MyDouble DuDt_diss;               /*!< quantities specific to turbulent driving routines */
@@ -1678,7 +1786,25 @@ extern struct sph_particle_data
     short int wakeup;                     /*!< flag to wake up particle */
 #endif
     
-    
+#if defined(COOLING) && defined(GRACKLE)
+#if (GRACKLE_CHEMISTRY >= 1)
+    gr_float grHI;
+    gr_float grHII;
+    gr_float grHM;
+    gr_float grHeI;
+    gr_float grHeII;
+    gr_float grHeIII;
+#endif
+#if (GRACKLE_CHEMISTRY >= 2)
+    gr_float grH2I;
+    gr_float grH2II;
+#endif
+#if (GRACKLE_CHEMISTRY >= 3)
+    gr_float grDI;
+    gr_float grDII;
+    gr_float grHDI;
+#endif
+#endif    
 }
   *SphP,				/*!< holds SPH particle data on local processor */
   *DomainSphBuf;			/*!< buffer for SPH particle data in domain decomposition */

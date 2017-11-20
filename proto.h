@@ -6,7 +6,9 @@
 #ifdef ADJ_BOX_POWERSPEC
 #include "power_spec/adj_box_powerspec_proto.h"
 #endif
-
+#ifdef COOLING
+#include "cooling/cooling.h"
+#endif
 
 /* declarations of functions throughout the code */
 /*
@@ -403,6 +405,7 @@ void compute_global_quantities_of_system(void);
 void compute_potential(void);
 void construct_timetree(void);
 void star_formation_parent_routine(void);
+void cooling_and_starformation(void);
 
 #if defined(TURB_DRIVING)
 void do_turb_driving_step_first_half(void);
@@ -459,6 +462,7 @@ int disp_density_isactive(int i);
 
 
 void cooling_parent_routine(void);
+void cooling_only();
 void count_hot_phase(void);
 void delete_node(int i);
 void density(void);
@@ -614,3 +618,11 @@ void *GasGrad_evaluate_secondary(void *p, int gradient_iteration);
 void apply_excision();
 #endif
 
+#if defined(GRACKLE_CHEMISTRY) && (GRACKLE_CHEMISTRY>0)
+void init_species();
+#endif
+
+#ifdef GRACKLE_FIX_TEMPERATURE
+void fix_temperature();
+void compute_temperature();
+#endif
