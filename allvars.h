@@ -585,6 +585,7 @@ typedef unsigned long long peanokey;
 #define  OSCILLATOR_STRENGTH       0.41615
 #define  OSCILLATOR_STRENGTH_HeII  0.41615
 #define  ELECTRONVOLT_IN_ERGS      1.60217733e-12
+#define  PI_VAL      3.14159265
 
 #define KAPPA_IR 10.0   /* in cm^2/g for solar abundances */
 #define KAPPA_OP 180.0
@@ -1383,6 +1384,7 @@ extern struct global_data_all_processes
   double OverDensThresh;
   double PhysDensThresh;
   double MaxSfrTimescale;
+  double SfEffPerFreeFall;
 
     
     

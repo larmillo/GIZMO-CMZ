@@ -106,6 +106,6 @@ MACH_LIBS        = $(LOCAL_LIBS_HDF5) $(LOCAL_LIBS_MACH)
 # Installation
 #-----------------------------------------------------------------------
 
-MACH_INSTALL_PREFIX = /Users/larmillo/Github/GIZMO-CMZ/grackle/local
+MACH_INSTALL_PREFIX = /Users/larmillo/GIZMO-CMZ/grackle/local
 MACH_INSTALL_LIB_DIR =
 MACH_INSTALL_INCLUDE_DIR =

@@ -14,11 +14,11 @@ void auto_show_flags(FILE *fp) {
    fprintf (fp,"INCLUDES = -I/usr/local/include    -I.\n");
    fprintf (fp,"\n");
    fprintf (fp,"CPPFLAGS = -P -traditional \n");
-   fprintf (fp,"CFLAGS   =  -O2\n");
-   fprintf (fp,"CXXFLAGS =  -O2\n");
-   fprintf (fp,"FFLAGS   = -fno-second-underscore -m64 -O2\n");
-   fprintf (fp,"F90FLAGS = -fno-second-underscore -m64 -O2\n");
-   fprintf (fp,"LDFLAGS  = \n");
+   fprintf (fp,"CFLAGS   =  -O2 \n");
+   fprintf (fp,"CXXFLAGS =  -O2 \n");
+   fprintf (fp,"FFLAGS   = -fno-second-underscore -m64 -O2 \n");
+   fprintf (fp,"F90FLAGS = -fno-second-underscore -m64 -O2 \n");
+   fprintf (fp,"LDFLAGS  =  \n");
    fprintf (fp,"\n");
    fprintf (fp,"LIBS     = -L/usr/local/lib -lhdf5 -L/usr/local/lib/gcc/6 -lgfortran  \n");
    fprintf (fp,"\n");

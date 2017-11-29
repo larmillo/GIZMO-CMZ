@@ -1,0 +1,35 @@
+Step= 0  t= 0  dt= 0 
+Nf= 0001000000  total-Nf= 0001000000  ex-frac= 0 (0) iter= 0
+work-load balance: 0 (0 0) rel1to2=0   max=0 avg=0
+particle-load balance: 1
+max. nodes: 35217, filled: 0.414513
+part/sec=1e+26 | 1e+12  ia/part=0 (0)
+
+Step= 0  t= 0  dt= 0 
+Nf= 0001000000  total-Nf= 0002000000  ex-frac= 0 (0) iter= 0
+work-load balance: 0 (0 0) rel1to2=0   max=0 avg=0
+particle-load balance: 1
+max. nodes: 35217, filled: 0.414513
+part/sec=1e+26 | 1e+12  ia/part=0 (0)
+
+Step= 1  t= 4.39453e+11  dt= 4.39453e+11 
+Nf= 0000999656  total-Nf= 0002999656  ex-frac= 0 (0) iter= 0
+work-load balance: 0 (0 0) rel1to2=0   max=0 avg=0
+particle-load balance: 1.00105
+max. nodes: 35236, filled: 0.414736
+part/sec=9.99656e+25 | 9.99656e+11  ia/part=0 (0)
+
+Step= 2  t= 8.78906e+11  dt= 4.39453e+11 
+Nf= 0001000000  total-Nf= 0003999656  ex-frac= 0 (0) iter= 0
+work-load balance: 0 (0 0) rel1to2=0   max=0 avg=0
+particle-load balance: 1
+max. nodes: 35217, filled: 0.414513
+part/sec=1e+26 | 1e+12  ia/part=0 (0)
+
+Step= 3  t= 1.31836e+12  dt= 4.39453e+11 
+Nf= 0000998684  total-Nf= 0004998340  ex-frac= 0 (0) iter= 0
+work-load balance: 0 (0 0) rel1to2=0   max=0 avg=0
+particle-load balance: 1.00125
+max. nodes: 35236, filled: 0.414736
+part/sec=9.98684e+25 | 9.98684e+11  ia/part=0 (0)
+

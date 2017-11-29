@@ -12,11 +12,11 @@ DEFINES = -DLINUX -DH5_USE_16_API   -DCONFIG_BFLOAT_8
 INCLUDES = -I/usr/local/include    -I.
 
 CPPFLAGS = -P -traditional 
-CFLAGS   =  -O2
-CXXFLAGS =  -O2
-FFLAGS   = -fno-second-underscore -m64 -O2
-F90FLAGS = -fno-second-underscore -m64 -O2
-LDFLAGS  = 
+CFLAGS   =  -O2 
+CXXFLAGS =  -O2 
+FFLAGS   = -fno-second-underscore -m64 -O2 
+F90FLAGS = -fno-second-underscore -m64 -O2 
+LDFLAGS  =  
 
 LIBS     = -L/usr/local/lib -lhdf5 -L/usr/local/lib/gcc/6 -lgfortran  
 

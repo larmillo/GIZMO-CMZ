@@ -2,6 +2,7 @@
 void output_compile_time_options(void)
 {
 printf(
+"        PERIODIC\n"
 "        HYDRO_MESHLESS_FINITE_MASS\n"
 "        EOS_GAMMA=(5.0/3.0)\n"
 "        COOLING\n"
@@ -10,5 +11,6 @@ printf(
 "        GRACKLE_OPTS\n"
 "        NOGRAVITY\n"
 "        HAVE_HDF5\n"
+"        OUTPUT_ADDITIONAL_RUNINFO\n"
 "\n");
 }

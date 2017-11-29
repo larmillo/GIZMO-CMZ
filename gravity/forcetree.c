@@ -1659,7 +1659,7 @@ int force_treeevaluate(int target, int mode, int *exportflag, int *exportnodecou
                     // correction only applies to 'shared-kernel' particles: so this needs to check if
                     // these are the same particles for which the kernel lengths are computed
                     // (also checks that these aren't the same particle)
-#if (defined(MAGNETIC) || defined(FLAG_NOT_IN_PUBLIC_CODE) || defined(FLAG_NOT_IN_PUBLIC_CODE) || defined(FLAG_NOT_IN_PUBLIC_CODE))
+#if (defined(MAGNETIC) || defined(COOLING) || defined(GALSF) || defined(FLAG_NOT_IN_PUBLIC_CODE))
                     /* since these modules imply nonstandard cross-particel interactions for certain types, need to limit the correction terms here */
                     if((ptype>0) && (ptype<4) && (ptype_sec>0) && (ptype_sec<4) && (r > 0) && (pmass > 0))
 #else

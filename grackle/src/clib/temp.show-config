@@ -4,4 +4,5 @@
 
    CONFIG_PRECISION  [precision-{32,64}]                     : 64
    CONFIG_OPT  [opt-{warn,debug,high,aggressive}]            : high
+   CONFIG_OMP  [omp-{on,off}]                                : off
 

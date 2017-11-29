@@ -18,7 +18,7 @@
 ####################################################################################################
 # --------------------------------------- Boundary Conditions & Dimensions
 ####################################################################################################
-#PERIODIC                        # Use this if periodic boundaries are needed (otherwise open boundaries are assumed)
+PERIODIC                        # Use this if periodic boundaries are needed (otherwise open boundaries are assumed)
 #BND_PARTICLES                  # particles with ID=0 are forced in place (their accelerations are set =0):
                                 # use for special boundary conditions where these particles represent fixed "walls"
 #LONG_X=1                    # modify box dimensions (non-square periodic box): multiply X (PERIODIC and NOGRAVITY required)
@@ -195,7 +195,7 @@ HAVE_HDF5						# needed when HDF5 I/O support is desired
 #OUTPUTCOOLRATE					# outputs cooling rate, and conduction rate if enabled
 #POWERSPEC_ON_OUTPUT            # compute and output power spectra (not used)
 #RECOMPUTE_POTENTIAL_ON_OUTPUT	# update potential every output even it EVALPOTENTIAL is set
-#OUTPUT_ADDITIONAL_RUNINFO      # enables extended simulation output data (can slow down machines significantly in massively-parallel runs)
+OUTPUT_ADDITIONAL_RUNINFO      # enables extended simulation output data (can slow down machines significantly in massively-parallel runs)
 ####################################################################################################
 
 

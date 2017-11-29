@@ -82,8 +82,8 @@ void do_the_cooling_for_particle(int i)
         
         /* Call the actual COOLING subroutine! */
         unew = DoCooling(uold, SphP[i].Density * All.cf_a3inv, dtime, &ne, i);
-        
-        
+        double T = CallGrackle(SphP[i].InternalEnergyPred, SphP[i].Density, 0, &ne, i, 2);
+        //if (T < 1e5) printf("GRACKLE_CHEMISTRY (%g %g %g %g %g %g)\n", uold, unew, SphP[i].Density, All.cf_a3inv, dtime, T);
         
         
         
@@ -117,13 +117,14 @@ double DoCooling(double u_old, double rho, double dt, double *ne_guess, int targ
   double u, du;
 
 #ifdef GRACKLE
-#if !defined(FLAG_NOT_IN_PUBLIC_CODE) && !defined(GRACKLE_FULLYIMPLICIT)
+#if defined(FLAG_NOT_IN_PUBLIC_CODE) && defined(GRACKLE_FULLYIMPLICIT)
     /* because grackle uses a pre-defined set of libraries, we can't properly incorporate the hydro heating
      into the cooling subroutine. instead, we will use the approximate treatment below
      to split the step */
     du = dt * SphP[target].DtInternalEnergy / (All.HubbleParam * All.UnitEnergy_in_cgs / (All.UnitMass_in_g * All.UnitTime_in_s) * (PROTONMASS/XH));
     u_old += 0.5*du;
     u = CallGrackle(u_old, rho, dt, ne_guess, target, 0);
+	printf("Sono qui! \n");
     /* now we attempt to correct for what the solution would have been if we had included the remaining half-step heating
      term in the full implicit solution. The term "r" below represents the exact solution if the cooling function has
      the form d(u-u0)/dt ~ -a*(u-u0)  around some u0 which is close to the "ufinal" returned by the cooling routine,
@@ -136,6 +137,7 @@ double DoCooling(double u_old, double rho, double dt, double *ne_guess, int targ
      like artificial pressure (but not temperature) floors are used such that the temperature gets
      'contaminated' by the pressure terms */
     u = CallGrackle(u_old, rho, dt, ne_guess, target, 0);
+	//printf("%g %g \n", u, u_old);
 #endif
 #if (GRACKLE_CHEMISTRY>=2)
     SphP[target].Gamma = CallGrackle(u, rho, 0, ne_guess, target, 4);

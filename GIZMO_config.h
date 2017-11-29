@@ -1,3 +1,4 @@
+#define PERIODIC 
 #define HYDRO_MESHLESS_FINITE_MASS 
 #define EOS_GAMMA (5.0/3.0)
 #define COOLING 
@@ -6,3 +7,4 @@
 #define GRACKLE_OPTS 
 #define NOGRAVITY 
 #define HAVE_HDF5 
+#define OUTPUT_ADDITIONAL_RUNINFO 

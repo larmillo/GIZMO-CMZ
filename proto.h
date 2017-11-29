@@ -407,6 +407,10 @@ void construct_timetree(void);
 void star_formation_parent_routine(void);
 void cooling_and_starformation(void);
 
+#ifdef SLUG
+void gas_to_star(void);
+#endif
+
 #if defined(TURB_DRIVING)
 void do_turb_driving_step_first_half(void);
 void do_turb_driving_step_second_half(void);

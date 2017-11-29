@@ -1,0 +1,31 @@
+
+Sync-Point 0, Time: 0, Systemstep: 0
+Occupied timebins: non-cells     cells       dt                 cumulative A D    avg-time  cpu-frac
+ X  bin= 0               0     1000000     0.000000000000          1000000 < *        0.00      0.0%
+               ------------------------
+Total active:            0     1000000    Sum:    1000000
+
+
+Sync-Point 1, Time: 4.39453e+11, Systemstep: 4.39453e+11
+Occupied timebins: non-cells     cells       dt                 cumulative A D    avg-time  cpu-frac
+    bin=18               0         344   878906250000.000000000000          1000000   *        0.00      0.0%
+ X  bin=17               0      999656   439453125000.000000000000           999656 < *        0.00      0.0%
+               ------------------------
+Total active:            0      999656    Sum:     999656
+
+
+Sync-Point 2, Time: 8.78906e+11, Systemstep: 4.39453e+11
+Occupied timebins: non-cells     cells       dt                 cumulative A D    avg-time  cpu-frac
+ X  bin=18               0         344   878906250000.000000000000          1000000 < *        0.00      0.0%
+ X  bin=17               0      999656   439453125000.000000000000           999656   *       11.00    100.0%
+               ------------------------
+Total active:            0     1000000    Sum:    1000000
+
+
+Sync-Point 3, Time: 1.31836e+12, Systemstep: 4.39453e+11
+Occupied timebins: non-cells     cells       dt                 cumulative A D    avg-time  cpu-frac
+    bin=18               0        1316   878906250000.000000000000          1000000   *       10.83     49.6%
+ X  bin=17               0      998684   439453125000.000000000000           998684 < *       11.00     50.4%
+               ------------------------
+Total active:            0      998684    Sum:     998684
+

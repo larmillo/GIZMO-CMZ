@@ -5,10 +5,10 @@
 # It is necessary for linking the library.
 
 # The name that we can dlopen(3).
-dlname='libgrackle-2.1.dylib'
+dlname='libgrackle-3.0.dylib'
 
 # Names of this library.
-library_names='libgrackle-2.1.dylib libgrackle.dylib'
+library_names='libgrackle-3.0.dylib libgrackle.dylib'
 
 # The name of the static archive.
 old_library='libgrackle.a'
@@ -38,4 +38,4 @@ dlopen=''
 dlpreopen=''
 
 # Directory that this library needs to be installed in:
-libdir='/Users/larmillo/Github/GIZMO-CMZ/grackle/local/lib'
+libdir='/Users/larmillo/GIZMO-CMZ/grackle/local/lib'

@@ -380,6 +380,7 @@ integertime get_timestep(int p,		/*!< particle index */
     }
     
     dt = sqrt(2 * All.ErrTolIntAccuracy * All.cf_atime * KERNEL_CORE_SIZE * All.ForceSoftening[P[p].Type] / ac);
+	//if (dt < 1e7) printf("first_dt=(%g %g %g %g %g %g)\n", dt, All.ErrTolIntAccuracy, All.cf_atime, KERNEL_CORE_SIZE, All.ForceSoftening[P[p].Type], ac);
 #ifdef ADAPTIVE_GRAVSOFT_FORALL
     dt = sqrt(2 * All.ErrTolIntAccuracy * All.cf_atime  * KERNEL_CORE_SIZE * DMAX(PPP[p].AGS_Hsml,All.ForceSoftening[P[p].Type]) / ac);
 #endif
@@ -437,7 +438,7 @@ integertime get_timestep(int p,		/*!< particle index */
 
             double dt_prefac_diffusion;
             dt_prefac_diffusion = 0.5;
-#if defined(FLAG_NOT_IN_PUBLIC_CODE) || defined(DIFFUSION_OPTIMIZERS)
+#if defined(GALSF) || defined(DIFFUSION_OPTIMIZERS)
             dt_prefac_diffusion = 1.8;
 #endif
 #ifdef SUPER_TIMESTEP_DIFFUSION
@@ -649,18 +650,18 @@ integertime get_timestep(int p,		/*!< particle index */
 #endif
     
     
-#if defined(GRACKLE_CHEMISTRY) && (GRACKLE_CHEMISTRY>0)
+#if defined(GRACKLE) && defined(COOLING)
     if(P[p].Type==0)
       {
 	double dt_cool = CallGrackle(SphP[p].InternalEnergyPred, SphP[p].Density, 0, &(SphP[p].Ne), p, 1);
+	if(SphP[p].Density>1e-26) printf("GRACKLE_CHEMISTRY dt=(%g %g %g)\n", dt_cool, SphP[p].InternalEnergyPred, SphP[p].Density);
        	dt_cool *= All.HubbleParam;
-        if(dt_cool>0)
-            if(dt_cool<0.1*dt)
-                dt=dt_cool;
+        if(dt_cool<0)
+            if(fabs(dt_cool)<0.1*dt)
+                dt=fabs(dt_cool);
       }
 #endif    
-
-    
+    //if(SphP[p].Density<1e-26) printf("GRACKLE_CHEMISTRY dt=( %g %g)\n", SphP[p].InternalEnergyPred, SphP[p].Density);
     /* convert the physical timestep to dloga if needed. Note: If comoving integration has not been selected, All.cf_hubble_a=1. */
     dt *= All.cf_hubble_a;
     

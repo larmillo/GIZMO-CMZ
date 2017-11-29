@@ -18,13 +18,13 @@
 
 #include "grackle_macros.h"
 #include "grackle_types.h"
-#include "chemistry_data.h"
-#include "code_units.h"
+#include "grackle_chemistry_data.h"
 
 /* function prototypes */
 
 int update_UVbackground_rates(chemistry_data *my_chemistry,
-                              code_units *my_units, double a_value)
+                              chemistry_data_storage *my_rates,
+                              code_units *my_units)
 {
   /* Return if there is no radiation (rates should be all zero). */
 
@@ -34,9 +34,9 @@ int update_UVbackground_rates(chemistry_data *my_chemistry,
 
   /* Return if redshift is outside of table (rates should be all zero). */
 
-  double Redshift = 1.0 / (a_value * my_units->a_units) - 1;
-  if ( (Redshift < my_chemistry->UVbackground_table.zmin) ||
-       (Redshift > my_chemistry->UVbackground_table.zmax) )
+  double Redshift = 1.0 / (my_units->a_value * my_units->a_units) - 1;
+  if ( (Redshift < my_rates->UVbackground_table.zmin) ||
+       (Redshift > my_rates->UVbackground_table.zmax) )
     return SUCCESS;
 
   /* ------------------------------------------------------------------ */
@@ -49,13 +49,13 @@ int update_UVbackground_rates(chemistry_data *my_chemistry,
       Redshift >= my_chemistry->UVbackground_redshift_off) {
 
     if (Redshift > my_chemistry->UVbackground_redshift_fullon)
-      Ramp = 0.5 - 0.5*tanh(15.0*(Redshift - 0.5*
-	    (my_chemistry->UVbackground_redshift_on+my_chemistry->UVbackground_redshift_fullon)));
+      Ramp = 0.5 - 0.5 * tanh(15.0 * (Redshift - 0.5 *
+        (my_chemistry->UVbackground_redshift_on +
+         my_chemistry->UVbackground_redshift_fullon)));
     else if (Redshift < my_chemistry->UVbackground_redshift_drop)
-      Ramp = (Redshift - my_chemistry->UVbackground_redshift_off + 
-	      (my_chemistry->UVbackground_redshift_drop - Redshift)) /
-             (my_chemistry->UVbackground_redshift_drop - 
-	      my_chemistry->UVbackground_redshift_off);
+      Ramp = 0.5 - 0.5 * tanh(15.0 * (0.5 *
+        (my_chemistry->UVbackground_redshift_drop +
+         my_chemistry->UVbackground_redshift_off) - Redshift));
     else
       Ramp = 1.0;
 
@@ -65,66 +65,113 @@ int update_UVbackground_rates(chemistry_data *my_chemistry,
   /* Interpolate the UV background table. */
   
   // find interpolation index
-  double *zvec = my_chemistry->UVbackground_table.z;
+  double *zvec = my_rates->UVbackground_table.z;
+  double slope;
   int index=0;
   while (Redshift > zvec[index])
     index++;
   if(index == 0) index=1;
-  if(index == my_chemistry->UVbackground_table.Nz) index--;
+  if(index == my_rates->UVbackground_table.Nz) index--;
 
   // printf("index = %d, %.3f <= %.3f <= %.3f\n",index,zvec[index-1],Redshift,zvec[index]);
 
   // *** k24 ***
-  double slope = (my_chemistry->UVbackground_table.k24[index] - my_chemistry->UVbackground_table.k24[index-1]) / (zvec[index] - zvec[index-1]);
-  my_chemistry->k24 = (Redshift - zvec[index-1]) * slope + my_chemistry->UVbackground_table.k24[index-1];
+  slope = (my_rates->UVbackground_table.k24[index] -
+           my_rates->UVbackground_table.k24[index-1]) / (zvec[index] - zvec[index-1]);
+  my_rates->k24 = (Redshift - zvec[index-1]) * slope +
+    my_rates->UVbackground_table.k24[index-1];
 
   // *** k25 ***
-  slope = (my_chemistry->UVbackground_table.k25[index] - my_chemistry->UVbackground_table.k25[index-1]) / (zvec[index] - zvec[index-1]);
-  my_chemistry->k25 = (Redshift - zvec[index-1]) * slope + my_chemistry->UVbackground_table.k25[index-1];
+  slope = (my_rates->UVbackground_table.k25[index] -
+           my_rates->UVbackground_table.k25[index-1]) / (zvec[index] - zvec[index-1]);
+  my_rates->k25 = (Redshift - zvec[index-1]) * slope +
+    my_rates->UVbackground_table.k25[index-1];
 
   // *** k26 ***
-  slope = (my_chemistry->UVbackground_table.k26[index] - my_chemistry->UVbackground_table.k26[index-1]) / (zvec[index] - zvec[index-1]);
-  my_chemistry->k26 = (Redshift - zvec[index-1]) * slope + my_chemistry->UVbackground_table.k26[index-1];
+  slope = (my_rates->UVbackground_table.k26[index] -
+           my_rates->UVbackground_table.k26[index-1]) / (zvec[index] - zvec[index-1]);
+  my_rates->k26 = (Redshift - zvec[index-1]) * slope +
+    my_rates->UVbackground_table.k26[index-1];
 
   if (my_chemistry->primordial_chemistry > 1) {
 
     // *** k27 ***
-    slope = (my_chemistry->UVbackground_table.k27[index] - my_chemistry->UVbackground_table.k27[index-1]) / (zvec[index] - zvec[index-1]);
-    my_chemistry->k27 = (Redshift - zvec[index-1]) * slope + my_chemistry->UVbackground_table.k27[index-1];
+    slope = (my_rates->UVbackground_table.k27[index] -
+             my_rates->UVbackground_table.k27[index-1]) / (zvec[index] - zvec[index-1]);
+    my_rates->k27 = (Redshift - zvec[index-1]) * slope +
+      my_rates->UVbackground_table.k27[index-1];
 
     // *** k28 ***
-    slope = (my_chemistry->UVbackground_table.k28[index] - my_chemistry->UVbackground_table.k28[index-1]) / (zvec[index] - zvec[index-1]);
-    my_chemistry->k28 = (Redshift - zvec[index-1]) * slope + my_chemistry->UVbackground_table.k28[index-1];
+    slope = (my_rates->UVbackground_table.k28[index] -
+             my_rates->UVbackground_table.k28[index-1]) / (zvec[index] - zvec[index-1]);
+    my_rates->k28 = (Redshift - zvec[index-1]) * slope +
+      my_rates->UVbackground_table.k28[index-1];
 
     // *** k29 ***
-    slope = (my_chemistry->UVbackground_table.k29[index] - my_chemistry->UVbackground_table.k29[index-1]) / (zvec[index] - zvec[index-1]);
-    my_chemistry->k29 = (Redshift - zvec[index-1]) * slope + my_chemistry->UVbackground_table.k29[index-1];
+    slope = (my_rates->UVbackground_table.k29[index] -
+             my_rates->UVbackground_table.k29[index-1]) / (zvec[index] - zvec[index-1]);
+    my_rates->k29 = (Redshift - zvec[index-1]) * slope +
+      my_rates->UVbackground_table.k29[index-1];
 
     // *** k30 ***
-    slope = (my_chemistry->UVbackground_table.k30[index] - my_chemistry->UVbackground_table.k30[index-1]) / (zvec[index] - zvec[index-1]);
-    my_chemistry->k30 = (Redshift - zvec[index-1]) * slope + my_chemistry->UVbackground_table.k30[index-1];
+    slope = (my_rates->UVbackground_table.k30[index] -
+             my_rates->UVbackground_table.k30[index-1]) / (zvec[index] - zvec[index-1]);
+    my_rates->k30 = (Redshift - zvec[index-1]) * slope +
+      my_rates->UVbackground_table.k30[index-1];
 
     // *** k31 ***
-    slope = (my_chemistry->UVbackground_table.k31[index] - my_chemistry->UVbackground_table.k31[index-1]) / (zvec[index] - zvec[index-1]);
-    my_chemistry->k31 = (Redshift - zvec[index-1]) * slope + my_chemistry->UVbackground_table.k31[index-1];
+    slope = (my_rates->UVbackground_table.k31[index] -
+             my_rates->UVbackground_table.k31[index-1]) / (zvec[index] - zvec[index-1]);
+    my_rates->k31 = (Redshift - zvec[index-1]) * slope +
+      my_rates->UVbackground_table.k31[index-1];
 
   }
 
   // *** piHI ***
-  slope = (my_chemistry->UVbackground_table.piHI[index] - my_chemistry->UVbackground_table.piHI[index-1]) / (zvec[index] - zvec[index-1]);
-  my_chemistry->piHI = (Redshift - zvec[index-1]) * slope + my_chemistry->UVbackground_table.piHI[index-1];
+  slope = (my_rates->UVbackground_table.piHI[index] -
+           my_rates->UVbackground_table.piHI[index-1]) / (zvec[index] - zvec[index-1]);
+  my_rates->piHI = (Redshift - zvec[index-1]) * slope +
+    my_rates->UVbackground_table.piHI[index-1];
 
   // *** piHeII ***
-  slope = (my_chemistry->UVbackground_table.piHeII[index] - my_chemistry->UVbackground_table.piHeII[index-1]) / (zvec[index] - zvec[index-1]);
-  my_chemistry->piHeII = (Redshift - zvec[index-1]) * slope + my_chemistry->UVbackground_table.piHeII[index-1];
+  slope = (my_rates->UVbackground_table.piHeII[index] -
+           my_rates->UVbackground_table.piHeII[index-1]) / (zvec[index] - zvec[index-1]);
+  my_rates->piHeII = (Redshift - zvec[index-1]) * slope +
+    my_rates->UVbackground_table.piHeII[index-1];
 
   // *** piHeI ***
-  slope = (my_chemistry->UVbackground_table.piHeI[index] - my_chemistry->UVbackground_table.piHeI[index-1]) / (zvec[index] - zvec[index-1]);
-  my_chemistry->piHeI = (Redshift - zvec[index-1]) * slope + my_chemistry->UVbackground_table.piHeI[index-1];
+  slope = (my_rates->UVbackground_table.piHeI[index] -
+           my_rates->UVbackground_table.piHeI[index-1]) / (zvec[index] - zvec[index-1]);
+  my_rates->piHeI = (Redshift - zvec[index-1]) * slope +
+    my_rates->UVbackground_table.piHeI[index-1];
 
+  //
+  // Cross sections are read from table in cgs, and remain in cgs.
+  // Analytic self-shielding method assumes cross sections in cgs units
+  //
+
+  // *** crsHI ***
+  if (my_chemistry->self_shielding_method > 0){
+    slope = (my_rates->UVbackground_table.crsHI[index] -
+             my_rates->UVbackground_table.crsHI[index-1]) / (zvec[index] - zvec[index-1]);
+    my_rates->hi_avg_crs = (Redshift - zvec[index-1]) * slope +
+      my_rates->UVbackground_table.crsHI[index-1];
+
+    // *** crsHeI ***
+    slope = (my_rates->UVbackground_table.crsHeI[index] -
+             my_rates->UVbackground_table.crsHeI[index-1]) / (zvec[index] - zvec[index-1]);
+    my_rates->hei_avg_crs = (Redshift - zvec[index-1]) * slope +
+      my_rates->UVbackground_table.crsHeI[index-1];
+
+    // *** crsHeII ***
+    slope = (my_rates->UVbackground_table.crsHeII[index] -
+             my_rates->UVbackground_table.crsHeII[index-1]) / (zvec[index] - zvec[index-1]);
+    my_rates->heii_avg_crs = (Redshift - zvec[index-1]) * slope +
+      my_rates->UVbackground_table.crsHeII[index-1];
+  }
 
   // Now convert the rates to code units.
-  
+
   /* Get conversion units. */
 
   double co_length_units, co_density_units;
@@ -134,49 +181,54 @@ int update_UVbackground_rates(chemistry_data *my_chemistry,
   }
   else {
     co_length_units = my_units->length_units *
-      a_value * my_units->a_units;
+      my_units->a_value * my_units->a_units;
     co_density_units = my_units->density_units /
-      POW(a_value * my_units->a_units, 3);
+      POW(my_units->a_value * my_units->a_units, 3);
   }
 
   double tbase1 = my_units->time_units;
-  double xbase1 = co_length_units/(a_value * my_units->a_units);
-  double dbase1 = co_density_units*POW(a_value * my_units->a_units, 3);
+  double xbase1 = co_length_units /
+    (my_units->a_value * my_units->a_units);
+  double dbase1 = co_density_units *
+    POW(my_units->a_value * my_units->a_units, 3);
   double mh     = 1.67262171e-24;
   double ev2erg = 1.60217653e-12;
-  double CoolingUnits = (POW(my_units->a_units, 5) * xbase1*xbase1 * mh*mh) / (POW(tbase1, 3) * dbase1) / ev2erg;  // compared to Enzo source, there's an additional factor of 1/ev2erg here, because the heating rates are stored as eV/s.
+  /* compared to Enzo source, there's an additional factor of
+     1/ev2erg here, because the heating rates are stored as eV/s. */
+  double CoolingUnits = (POW(my_units->a_units, 5) * xbase1*xbase1 * mh*mh) /
+    (POW(tbase1, 3) * dbase1) / ev2erg;
 
 
-  my_chemistry->k24 *= my_units->time_units;
-  my_chemistry->k25 *= my_units->time_units;
-  my_chemistry->k26 *= my_units->time_units;
+  my_rates->k24 *= my_units->time_units;
+  my_rates->k25 *= my_units->time_units;
+  my_rates->k26 *= my_units->time_units;
   
   if (my_chemistry->primordial_chemistry > 1) {
-    my_chemistry->k27 *= my_units->time_units;
-    my_chemistry->k28 *= my_units->time_units;
-    my_chemistry->k29 *= my_units->time_units;
-    my_chemistry->k30 *= my_units->time_units;
-    my_chemistry->k31 *= my_units->time_units;
+    my_rates->k27 *= my_units->time_units;
+    my_rates->k28 *= my_units->time_units;
+    my_rates->k29 *= my_units->time_units;
+    my_rates->k30 *= my_units->time_units;
+    my_rates->k31 *= my_units->time_units;
   }
     
-  my_chemistry->piHI /= CoolingUnits;
-  my_chemistry->piHeII /= CoolingUnits;
-  my_chemistry->piHeI /= CoolingUnits;
+  my_rates->piHI /= CoolingUnits;
+  my_rates->piHeII /= CoolingUnits;
+  my_rates->piHeI /= CoolingUnits;
   
   // Now apply the Ramp factor
-  my_chemistry->k24 *= Ramp;
-  my_chemistry->k25 *= Ramp;
-  my_chemistry->k26 *= Ramp; 
+  my_rates->k24 *= Ramp;
+  my_rates->k25 *= Ramp;
+  my_rates->k26 *= Ramp;
   if (my_chemistry->primordial_chemistry > 1) {
-    my_chemistry->k27 *= Ramp;
-    my_chemistry->k28 *= Ramp;
-    my_chemistry->k29 *= Ramp; 
-    my_chemistry->k30 *= Ramp; 
-    my_chemistry->k31 *= Ramp; 
+    my_rates->k27 *= Ramp;
+    my_rates->k28 *= Ramp;
+    my_rates->k29 *= Ramp;
+    my_rates->k30 *= Ramp;
+    my_rates->k31 *= Ramp;
   } 
-  my_chemistry->piHI *= Ramp;
-  my_chemistry->piHeII *= Ramp;
-  my_chemistry->piHeI *= Ramp; 
+  my_rates->piHI *= Ramp;
+  my_rates->piHeII *= Ramp;
+  my_rates->piHeI *= Ramp;
 
   /* Molecular hydrogen constant photo-dissociation */
 
@@ -185,7 +237,7 @@ int update_UVbackground_rates(chemistry_data *my_chemistry,
      0.0). */
 
   if (my_chemistry->LWbackground_intensity > 0.0) 
-    my_chemistry->k31 = 1.13e8 * my_chemistry->LWbackground_intensity * my_units->time_units;
+    my_rates->k31 = 1.13e8 * my_chemistry->LWbackground_intensity * my_units->time_units;
   
   /* LWbackground_sawtooth_suppression is supposed to account for the
      suppression of LW flux due to Lyman-series absorption (giving a
@@ -197,7 +249,7 @@ int update_UVbackground_rates(chemistry_data *my_chemistry,
   if (my_chemistry->LWbackground_sawtooth_suppression) {
     double LymanSawtoothSuppressionFactor = 0.1 + 0.9 * Ramp;
   
-    my_chemistry->k31 *= LymanSawtoothSuppressionFactor;
+    my_rates->k31 *= LymanSawtoothSuppressionFactor;
   }
 
   /* Compton X-ray heating */
@@ -211,7 +263,7 @@ int update_UVbackground_rates(chemistry_data *my_chemistry,
        is the average photon energy in keV, corrected for relativistic
        effects.  Eq.(4) and Eq.(11) of Madau & Efstathiou (1999) */
     
-    my_chemistry->comp_xray = 4.15e-13 * 3.0e10 * 
+    my_rates->comp_xray = 4.15e-13 * 3.0e10 *
       (31.8*POW(1.0+Redshift, 0.3333)/511.0) * 
       (6.3e-5 * 1.6e-12) * 
       POW(1.0 + Redshift, 4) * 
@@ -223,7 +275,7 @@ int update_UVbackground_rates(chemistry_data *my_chemistry,
        Efstathiou (1999) with U_xray(z=0) = 6.3e-5 and U_cmb(z=0) =
        0.256 eV/cm3 */
     
-    my_chemistry->temp_xray = 31.8e3*POW(1.0+Redshift, 0.3333)*1.6e-12/
+    my_rates->temp_xray = 31.8e3*POW(1.0+Redshift, 0.3333)*1.6e-12/
       (4.0*1.38e-16) *
       6.3e-5 * POW(1.0 + Redshift, 4) * 
       exp(-POW(Redshift/RedshiftXrayCutoff, 2)) /

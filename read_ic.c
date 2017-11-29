@@ -149,7 +149,16 @@ void read_ic(char *fname)
      masses and keeping MassTable fixed won't allow that to happen */
     for(i=0;i<6;i++) All.MassTable[i]=0;
     
-    
+#ifdef GALSF
+    if(RestartFlag == 0)
+    {
+        if(All.MassTable[4] == 0 && All.MassTable[0] > 0)
+        {
+            All.MassTable[0] = 0;
+            All.MassTable[4] = 0;
+        }
+    }
+#endif    
     
     
 #if defined(FLAG_NOT_IN_PUBLIC_CODE) || defined(FLAG_NOT_IN_PUBLIC_CODE)
@@ -319,6 +328,10 @@ void empty_read_buffer(enum iofields blocknr, int offset, int pc, int type)
             break;
             
         case IO_AGE:		/* Age of stars */
+#ifdef GALSF
+            for(n = 0; n < pc; n++)
+                P[offset + n].StellarAge = *fp++;
+#endif		
             break;
             
         case IO_GRAINSIZE:
@@ -485,6 +498,11 @@ void empty_read_buffer(enum iofields blocknr, int offset, int pc, int type)
              initial conditions of the code */
             
         case IO_SFR:
+#ifdef GALSF
+            for(n = 0; n < pc; n++)
+             	PPPZ[offset + n].Sfr = *fp++;
+	    break;
+#endif
         case IO_POT:
         case IO_ACCEL:
         case IO_DTENTR:

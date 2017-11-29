@@ -1,4 +1,3 @@
-#include "fortran.def"
 #include "phys_const.def"
 
 !=======================================================================
@@ -62,6 +61,9 @@
 
       implicit NONE
 #include "grackle_fortran_types.def"
+#ifdef _OPENMP
+#include "omp_lib.h"
+#endif
 
 !  General Arguments
 
@@ -84,25 +86,23 @@
 
 !  Parameters
 
-      integer ijk
-      parameter (ijk = MAX_ANY_SINGLE_DIRECTION)
-
       real*8 mh
       parameter (mh = mass_h)
 
 !  Locals
 
       integer i, j, k
+      integer t, dj, dk
       real*8 dom, zr
       real*8 dbase1, tbase1, xbase1
 
 !  row temporaries
 
-      real*8 tgas(ijk), rhoH(ijk), mmw(ijk)
+      real*8 tgas(in), rhoH(in), mmw(in)
 
 !  Iteration mask
 
-      logical itmask(ijk)
+      logical itmask(in)
 !
 !\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\/////////////////////////////////
 !=======================================================================
@@ -127,8 +127,20 @@
 
 !  Loop over zones, and do an entire i-column in one go
 
-      do k = ks+1, ke+1
-      do j = js+1, je+1
+      dk = ke - ks + 1
+      dj = je - js + 1
+
+! parallelize the k and j loops with OpenMP
+! flat j and k loops for better parallelism
+#ifdef _OPENMP
+!$omp parallel do schedule(runtime) private(
+!$omp&  i, j, k, 
+!$omp&  tgas, rhoH, mmw,
+!$omp&  itmask )
+#endif
+      do t = 0, dk*dj-1
+        k = t/dj      + ks+1
+        j = mod(t,dj) + js+1
 
 !     Initialize iteration mask to true for all cells.
 
@@ -156,6 +168,10 @@
             temperature(i,j,k) = tgas(i)
          enddo
 
+      enddo
+#ifdef _OPENMP
+!$omp end parallel do
+#endif
 
 !     Convert densities back to comoving from proper
 
@@ -166,9 +182,6 @@
      &                  in, jn, kn, imetal, aye**3)
 
       endif
-
-      enddo
-      enddo
 
       return
       end

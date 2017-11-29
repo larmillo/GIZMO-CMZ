@@ -8,6 +8,7 @@
 #include <unistd.h>
 #include <gsl/gsl_rng.h>
 #include <ctype.h>
+#include <wordexp.h>
 
 #include "allvars.h"
 #include "proto.h"
@@ -220,6 +221,7 @@ void begrun(void)
 #ifdef GALSF
       All.CritPhysDensity = all.CritPhysDensity;
       All.MaxSfrTimescale = all.MaxSfrTimescale;
+	  All.SfEffPerFreeFall = all.SfEffPerFreeFall;
 #endif        
 
 
@@ -926,7 +928,8 @@ void read_parameter_file(char *fname)
         strcpy(tag[nt],"InitMetallicity");
         addr[nt] = &All.InitMetallicityinSolar;
         id[nt++] = REAL;
-        
+#endif        
+#if defined(FLAG_NOT_IN_PUBLIC_CODE)
         strcpy(tag[nt],"InitStellarAge");
         addr[nt] = &All.InitStellarAgeinGyr;
         id[nt++] = REAL;
@@ -1122,7 +1125,9 @@ void read_parameter_file(char *fname)
             density given above. use the dimensionless SfEffPerFreeFall
             to calculate this */
         
-        
+      strcpy(tag[nt], "SfEffPerFreeFall");
+      addr[nt] = &All.SfEffPerFreeFall;
+      id[nt++] = REAL;  
         
 
 #endif

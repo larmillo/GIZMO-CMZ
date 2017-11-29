@@ -28,6 +28,10 @@ void reconstruct_timebins(void)
         TimeBinCountSph[bin] = 0;
         FirstInTimeBin[bin] = -1;
         LastInTimeBin[bin] = -1;
+		
+#ifdef GALSF
+        TimeBinSfr[bin] = 0;
+#endif	
     }
     
     for(i = 0; i < NumPart; i++)
@@ -49,7 +53,10 @@ void reconstruct_timebins(void)
         TimeBinCount[bin]++;
         if(P[i].Type == 0)
             TimeBinCountSph[bin]++;
-        
+#ifdef GALSF
+        if(P[i].Type == 0)
+            TimeBinSfr[bin] += SphP[i].Sfr;
+#endif    
     }
     
     make_list_of_active_particles();

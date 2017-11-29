@@ -16,14 +16,18 @@
 #include <math.h>
 #include "grackle_macros.h"
 #include "grackle_types.h"
-#include "chemistry_data.h"
-#include "code_units.h"
+#include "grackle_chemistry_data.h"
 #include "phys_constants.h"
+#ifdef _OPENMP
+#include <omp.h>
+#endif
 
-extern chemistry_data grackle_data;
+extern chemistry_data *grackle_data;
+extern chemistry_data_storage grackle_rates;
 
 int _calculate_pressure(chemistry_data *my_chemistry,
-                        code_units *my_units, double a_value,
+                        chemistry_data_storage *my_rates,
+                        code_units *my_units,
                         int grid_rank, int *grid_dimension,
                         int *grid_start, int *grid_end,
                         gr_float *density, gr_float *internal_energy,
@@ -43,6 +47,9 @@ int _calculate_pressure(chemistry_data *my_chemistry,
   for (dim = 0; dim < grid_rank; dim++)
     size *= grid_dimension[dim];
 
+# ifdef _OPENMP
+# pragma omp parallel for schedule( runtime ) private( i )
+# endif
   for (i = 0; i < size; i++) {
  
     pressure[i] = (my_chemistry->Gamma - 1.0) * density[i] * internal_energy[i];
@@ -62,6 +69,10 @@ int _calculate_pressure(chemistry_data *my_chemistry,
     double number_density, nH2, GammaH2Inverse,
       GammaInverse = 1.0/(my_chemistry->Gamma-1.0), x, Gamma1, temp;
   
+#   ifdef _OPENMP
+#   pragma omp parallel for schedule( runtime ) \
+    private( i, number_density, nH2, GammaH2Inverse, x, Gamma1, temp )
+#   endif
     for (i = 0; i < size; i++) {
  
       number_density =
@@ -102,68 +113,25 @@ int _calculate_pressure(chemistry_data *my_chemistry,
   return SUCCESS;
 }
 
-int calculate_pressure(code_units *my_units, double a_value,
-                       int grid_rank, int *grid_dimension,
-                       int *grid_start, int *grid_end,
-                       gr_float *density, gr_float *internal_energy,
-                       gr_float *HI_density, gr_float *HII_density, gr_float *HM_density,
-                       gr_float *HeI_density, gr_float *HeII_density, gr_float *HeIII_density,
-                       gr_float *H2I_density, gr_float *H2II_density,
-                       gr_float *DI_density, gr_float *DII_density, gr_float *HDI_density,
-                       gr_float *e_density, gr_float *metal_density,
+int calculate_pressure(code_units *my_units,
+                       grackle_field_data *my_fields,
                        gr_float *pressure)
 {
-  if (_calculate_pressure(&grackle_data,
-                          my_units, a_value,
-                          grid_rank, grid_dimension,
-                          grid_start, grid_end,
-                          density, internal_energy,
-                          HI_density, HII_density, HM_density,
-                          HeI_density, HeII_density, HeIII_density,
-                          H2I_density, H2II_density,
-                          DI_density, DII_density, HDI_density,
-                          e_density, metal_density,
+  if (_calculate_pressure(grackle_data, &grackle_rates, my_units,
+                          my_fields->grid_rank, my_fields->grid_dimension,
+                          my_fields->grid_start, my_fields->grid_end,
+                          my_fields->density, my_fields->internal_energy,
+                          my_fields->HI_density, my_fields->HII_density,
+                          my_fields->HM_density,
+                          my_fields->HeI_density, my_fields->HeII_density,
+                          my_fields->HeIII_density,
+                          my_fields->H2I_density, my_fields->H2II_density,
+                          my_fields->DI_density, my_fields->DII_density,
+                          my_fields->HDI_density,
+                          my_fields->e_density, my_fields->metal_density,
                           pressure) == FAIL) {
     fprintf(stderr, "Error in _calculate_pressure.\n");
     return FAIL;
   }
   return SUCCESS;
-}
-
-int calculate_pressure_(int *comoving_coordinates,
-                        double *density_units, double *length_units,
-                        double *time_units, double *velocity_units,
-                        double *a_units, double *a_value,
-                        int *grid_rank, int *grid_dimension,
-                        int *grid_start, int *grid_end,
-                        gr_float *density, gr_float *internal_energy,
-                        gr_float *HI_density, gr_float *HII_density, gr_float *HM_density,
-                        gr_float *HeI_density, gr_float *HeII_density, gr_float *HeIII_density,
-                        gr_float *H2I_density, gr_float *H2II_density,
-                        gr_float *DI_density, gr_float *DII_density, gr_float *HDI_density,
-                        gr_float *e_density, gr_float *metal_density,
-                        gr_float *pressure)
-{
-
-  code_units my_units;
-  my_units.comoving_coordinates = *comoving_coordinates;
-  my_units.density_units = *density_units;
-  my_units.length_units = *length_units;
-  my_units.time_units = *time_units;
-  my_units.velocity_units = *velocity_units;
-  my_units.a_units = *a_units;
-
-  int rval;
-  rval = calculate_pressure(&my_units, *a_value,
-                            *grid_rank, grid_dimension,
-                            grid_start, grid_end,
-                            density, internal_energy,
-                            HI_density, HII_density, HM_density,
-                            HeI_density, HeII_density, HeIII_density,
-                            H2I_density, H2II_density,
-                            DI_density, DII_density, HDI_density,
-                            e_density, metal_density,
-                            pressure);
-  return rval;
-
 }

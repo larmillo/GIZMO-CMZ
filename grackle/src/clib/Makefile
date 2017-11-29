@@ -36,8 +36,7 @@ OUTPUT      = out.compile
 VERBOSE     = 0
 SVN         = hg
 GRACKLE_DIR = .
-#GRACKLE_HOME = /home/alupi/Desktop/AGORA/gizmo_MHD_gr2.1/MHD_LUPI2/grackle/local
-DEFAULT_INSTALL_PREFIX = ${shell pwd}/../../local
+DEFAULT_INSTALL_PREFIX = /usr/local
 
 #-----------------------------------------------------------------------
 # Make.config.settings is used for setting default values to all compile-time 
@@ -267,7 +266,7 @@ install:
 	@(if [ ! -d $(INSTALL_INCLUDE_DIR) ]; then \
 		mkdir $(INSTALL_INCLUDE_DIR); \
 	fi)
-	@cp grackle.h grackle_macros.h grackle_types.h code_units.h chemistry_data.h grackle_fortran_types.def $(INSTALL_INCLUDE_DIR)
+	@cp grackle.h grackle_macros.h grackle_types.h grackle_chemistry_data.h grackle.def grackle_fortran_types.def grackle_fortran_interface.def $(INSTALL_INCLUDE_DIR)
 	@(if [ ! -d $(INSTALL_LIB_DIR) ]; then \
 		mkdir $(INSTALL_LIB_DIR); \
 	fi)

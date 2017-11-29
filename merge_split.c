@@ -428,7 +428,10 @@ void split_particle_i(int i, int n_particles_split, int i_nearest, double r2_nea
     /* this is allowed to push particles over the 'edges' of periodic boxes, because we will call the box-wrapping routine immediately below. 
         but it is important that the periodicity of the box be accounted for in relative positions and that we correct for this before allowing
         any other operations on the particles */
-    
+#ifdef GALSF
+    SphP[j].Sfr /= 2;
+    SphP[i].Sfr /= 2;
+#endif
     /* Note: New tree construction can be avoided because of  `force_add_star_to_tree()' */
     force_add_star_to_tree(i, j);// (buggy)
     /* we solve this by only calling the merge/split algorithm when we're doing the new domain decomposition */
@@ -670,6 +673,10 @@ void merge_particles_ij(int i, int j)
         P[i].dp[k] += P[i].Mass*P[i].Vel[k] - p_old_i[k];
         P[j].dp[k] += P[j].Mass*P[j].Vel[k] - p_old_j[k];
     }
+	
+#ifdef GALSF
+    SphP[j].Sfr = get_starformation_rate(j);
+#endif
     /* call the pressure routine to re-calculate pressure (and sound speeds) as needed */
     SphP[j].Pressure = get_pressure(j);
     return;
@@ -702,7 +709,17 @@ void rearrange_particle_sequence(void)
         Gas_split = 0;
         do_loop_check = 1;
     }
-    if(NumPart <= N_gas) do_loop_check=0;
+    
+#ifdef GALSF
+    if(Stars_converted)
+    {
+        N_gas -= Stars_converted;
+        Stars_converted = 0;
+        do_loop_check = 1;
+    }
+#endif
+	
+	if(NumPart <= N_gas) do_loop_check=0;
     if(N_gas <= 0) do_loop_check=0;
     
     /* if more gas than stars, need to be sure the block ordering is correct (gas first, then stars) */

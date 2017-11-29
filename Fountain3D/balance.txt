@@ -1,0 +1,33 @@
+
+Treewalk1      = '*' / 't'
+Treewalk2      = '=' / 'u'
+Treewait1      = ';' / 'v'
+Treewait2      = '<' / 'b'
+Treesend       = '[' / 'w'
+Treerecv       = '^' / 'd'
+Treebuild      = '.' / 'h'
+Treeupdate     = '~' / 'm'
+Treehmaxupdate = '|' / 'n'
+Treemisc =       ':' / 'r'
+Domain decomp  = '+' / 'l'
+Density compute= '"' / 'o'
+Density imbal  = '/' / 'p'
+Density commu  = '`' / 's'
+Density misc   = ',' / 'f'
+Hydro compute  = '>' / 'i'
+Hydro imbalance= '@' / 'g'
+Hydro comm     = '#' / 'c'
+Hydro misc     = '&' / 'e'
+Drifts         = '$' / 'x'
+Blackhole      = '4' / 'B'
+Kicks          = ']' / 'y'
+Potential      = '(' / 'z'
+PM             = '?' / 'A'
+Peano-Hilbert  = ')' / 'I'
+Cooling & SFR  = '1' / 'W'
+Snapshot dump  = '2' / 'T'
+Miscellaneous  = '5' / 'C'
+
+Step=      0  sec=     8.365  Nf= 0001000000  ..|++++++++++l""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""o/p`,,,,,>>>>>>>>>>>>>>>>>>>#&)))2225555
+Step=      1  sec=    11.000  Nf= 0000999656  .+++""""""""""""""""""""`,>>>>>>>>>>>>>>#$]]]]]]]]]]]]]]]]]]]]]]]]])1111111111111111111111111111111111111111111111111225
+Step=      2  sec=    10.832  Nf= 0001000000  .+++""""""""""""""""""""s,>>>>>>>>>>>>>>#&]]]]]]]]]]]]]]]]]]]]]]]]])11111111111111111111111111111111111111111111111111W5

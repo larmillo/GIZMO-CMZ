@@ -1,4 +1,3 @@
-#include "fortran.def"
 !=======================================================================
 !////////////////////  SUBROUTINE COOL_MULTI_TIME_G  \\\\\\\\\\\\\\\\\\\
 
@@ -19,15 +18,18 @@
      &                hyd01ka, h2k01a, vibha, rotha, rotla,
      &                gpldla, gphdla, hdltea, hdlowa,
      &                gaHIa, gaH2a, gaHea, gaHpa, gaela,
-     &                gasgra, 
+     &                h2ltea, gasgra,
+     &                iradshield, avgsighi, avgsighei, avgsigheii,
+     &                k24, k26, iradtrans, photogamma,
      &                ih2optical, iciecool, ciecoa, 
-     &                icmbTfloor, iClHeat,
+     &                icmbTfloor, iClHeat, clEleFra,
      &                priGridRank, priGridDim,
-     &                priPar1, priPar2, priPar3,
+     &                priPar1, priPar2, priPar3, priPar4, priPar5,
      &                priDataSize, priCooling, priHeating, priMMW,
      &                metGridRank, metGridDim,
-     &                metPar1, metPar2, metPar3,
-     &                metDataSize, metCooling, metHeating,udot)
+     &                metPar1, metPar2, metPar3, metPar4, metPar5,
+     &                metDataSize, metCooling, metHeating, clnew,
+     &                iVheat, iMheat, Vheat, Mheat)
 
 !  SOLVE RADIATIVE COOLING/HEATING EQUATIONS
 !
@@ -49,36 +51,42 @@
 
       implicit NONE
 #include "grackle_fortran_types.def"
+#ifdef _OPENMP
+#include "omp_lib.h"
+#endif
 
 !  Arguments
 
       integer in, jn, kn, is, js, ks, ie, je, ke, nratec, 
      &        iexpand, ih2co, ipiht, ispecies, imetal, idim,
-     &        imcool, idust, igammah, ih2optical, iciecool
+     &        imcool, idust, igammah, ih2optical, iciecool,
+     &        clnew, iVheat, iMheat, iradtrans, iradshield
+
       real*8  aye, temstart, temend,
      &        utem, uxyz, uaye, urho, utim,
-     &        gamma, fh, z_solar
+     &        gamma, fh, z_solar, clEleFra
       R_PREC  d(in,jn,kn),   e(in,jn,kn),
      &        u(in,jn,kn),   v(in,jn,kn),    w(in,jn,kn),
      &        de(in,jn,kn),  HI(in,jn,kn),   HII(in,jn,kn),
      &        HeI(in,jn,kn), HeII(in,jn,kn), HeIII(in,jn,kn),
      &        HM(in,jn,kn),  H2I(in,jn,kn),  H2II(in,jn,kn),
      &        DI(in,jn,kn),  DII(in,jn,kn),  HDI(in,jn,kn),
-     &        metal(in,jn,kn),
-     &        cooltime(in,jn,kn),udot
+     &        metal(in,jn,kn), Vheat(in,jn,kn), Mheat(in,jn,kn),
+     &        cooltime(in,jn,kn)
+      real*8  photogamma(in,jn,kn)
       real*8  hyd01ka(nratec), h2k01a(nratec), vibha(nratec), 
      &        rotha(nratec), rotla(nratec), gpldla(nratec),
      &        gphdla(nratec), hdltea(nratec), hdlowa(nratec),
      &        gaHIa(nratec), gaH2a(nratec), gaHea(nratec),
-     &        gaHpa(nratec), gaela(nratec), gasgra(nratec),
-     &        ciecoa(nratec),
+     &        gaHpa(nratec), gaela(nratec), h2ltea(nratec),
+     &        gasgra(nratec), ciecoa(nratec),
      &        ceHIa(nratec), ceHeIa(nratec), ceHeIIa(nratec),
      &        ciHIa(nratec), ciHeIa(nratec), ciHeISa(nratec), 
      &        ciHeIIa(nratec), reHIIa(nratec), reHeII1a(nratec), 
      &        reHeII2a(nratec), reHeIIIa(nratec), brema(nratec),
      &        compa, piHI, piHeI, piHeII, comp_xraya, comp_temp,
-     &        gammaha
-
+     &        gammaha, avgsighi, avgsighei, avgsigheii,
+     &        k24, k26
 !  Cloudy cooling data
 
       integer icmbTfloor, iClHeat
@@ -86,53 +94,76 @@
      &     metGridRank, metDataSize,
      &     priGridDim(priGridRank), metGridDim(metGridRank)
       real*8 priPar1(priGridDim(1)), priPar2(priGridDim(2)), 
-     &     priPar3(priGridDim(3)),
+     &     priPar3(priGridDim(3)), priPar4(priGridDim(4)),
+     &     priPar5(priGridDim(5)),
      &     metPar1(metGridDim(1)), metPar2(metGridDim(2)), 
-     &     metPar3(metGridDim(3)),
+     &     metPar3(metGridDim(3)), metPar4(metGridDim(4)),
+     &     metPar5(metGridDim(5)),
      &     priCooling(priDataSize), priHeating(priDataSize),
      &     priMMW(priDataSize),
      &     metCooling(metDataSize), metHeating(metDataSize)
 
 !  Parameters
 
-      integer ijk
-      parameter (ijk = MAX_ANY_SINGLE_DIRECTION)
-
 !  Locals
 
       integer i, j, k
+      integer t, dj, dk
       real*8 comp1, comp2, energy
 
 !  Slice locals
  
-      integer*8 indixe(ijk)
-      real*8 t1(ijk), t2(ijk), logtem(ijk), tdef(ijk), p2d(ijk),
-     &       tgas(ijk), tgasold(ijk),
-     &       tdust(ijk), metallicity(ijk), rhoH(ijk)
-      real*8 edot(ijk)
+      integer*8 indixe(in)
+      real*8 t1(in), t2(in), logtem(in), tdef(in), p2d(in),
+     &       tgas(in), tgasold(in),
+     &       tdust(in), metallicity(in), rhoH(in)
+      real*8 edot(in)
 
 !  Cooling/heating slice locals
 
-      real*8 ceHI(ijk), ceHeI(ijk), ceHeII(ijk),
-     &       ciHI(ijk), ciHeI(ijk), ciHeIS(ijk), ciHeII(ijk),
-     &       reHII(ijk), reHeII1(ijk), reHeII2(ijk), reHeIII(ijk),
-     &       brem(ijk), cieco(ijk),
-     &       hyd01k(ijk), h2k01(ijk), vibh(ijk), roth(ijk), rotl(ijk),
-     &       gpldl(ijk), gphdl(ijk), hdlte(ijk), hdlow(ijk)
+      real*8 ceHI(in), ceHeI(in), ceHeII(in),
+     &       ciHI(in), ciHeI(in), ciHeIS(in), ciHeII(in),
+     &       reHII(in), reHeII1(in), reHeII2(in), reHeIII(in),
+     &       brem(in), cieco(in),
+     &       hyd01k(in), h2k01(in), vibh(in), roth(in), rotl(in),
+     &       gpldl(in), gphdl(in), hdlte(in), hdlow(in)
           
 !  Iteration mask for multi_cool
 
-      logical itmask(ijk)
+      logical itmask(in)
 
 !\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\/////////////////////////////////
 !=======================================================================
+      dk = ke - ks + 1
+      dj = je - js + 1
 
 !     Convert densities from comoving to 'proper'
 
       if (iexpand .eq. 1) then
 
-      do k = ks+1, ke+1
-         do j = js+1, je+1
+! parallelize the k and j loops with OpenMP
+! flat j and k loops for better parallelism
+#ifdef _OPENMP
+!$omp parallel do schedule(runtime) private(
+!$omp&   i, j, k,
+!$omp&   comp1, comp2, energy,
+!$omp&   indixe,
+!$omp&   t1, t2, logtem, tdef, p2d,
+!$omp&   tgas, tgasold,
+!$omp&   tdust, metallicity, rhoH,
+!$omp&   edot,
+!$omp&   ceHI, ceHeI, ceHeII,
+!$omp&   ciHI, ciHeI, ciHeIS, ciHeII,
+!$omp&   reHII, reHeII1, reHeII2, reHeIII,
+!$omp&   brem, cieco,
+!$omp&   hyd01k, h2k01, vibh, roth, rotl,
+!$omp&   gpldl, gphdl, hdlte, hdlow,
+!$omp&   itmask )
+#endif
+      do t = 0, dk*dj-1
+        k = t/dj      + ks+1
+        j = mod(t,dj) + js+1
+
             do i = is+1, ie+1
                d(i,j,k)     = d(i,j,k)/real(aye**3, RKIND)
             enddo
@@ -165,15 +196,37 @@
                   metal(i,j,k) = metal(i,j,k)/real(aye**3, RKIND)
                enddo
             endif
-         enddo
       enddo
+#ifdef _OPENMP
+!$omp end parallel do
+#endif
  
       endif
 
 !     Loop over slices (in the k-direction)
 
-      do k = ks+1, ke+1
-       do j = js+1, je+1
+! parallelize the k and j loops with OpenMP
+! flat j and k loops for better parallelism
+#ifdef _OPENMP
+!$omp parallel do schedule(runtime) private(
+!$omp&   i, j, k,
+!$omp&   comp1, comp2, energy,
+!$omp&   indixe,
+!$omp&   t1, t2, logtem, tdef, p2d,
+!$omp&   tgas, tgasold,
+!$omp&   tdust, metallicity, rhoH,
+!$omp&   edot,
+!$omp&   ceHI, ceHeI, ceHeII,
+!$omp&   ciHI, ciHeI, ciHeIS, ciHeII,
+!$omp&   reHII, reHeII1, reHeII2, reHeIII,
+!$omp&   brem, cieco,
+!$omp&   hyd01k, h2k01, vibh, roth, rotl,
+!$omp&   gpldl, gphdl, hdlte, hdlow,
+!$omp&   itmask )
+#endif
+      do t = 0, dk*dj-1
+        k = t/dj      + ks+1
+        j = mod(t,dj) + js+1
 
          do i = is+1, ie+1
             itmask(i) = .true.
@@ -200,19 +253,22 @@
      &                gpldla, gphdla, gpldl, gphdl,
      &                hdltea, hdlowa, hdlte, hdlow,
      &                gaHIa, gaH2a, gaHea, gaHpa, gaela,
-     &                gasgra,
+     &                h2ltea, gasgra,
      &                ceHI, ceHeI, ceHeII, ciHI, ciHeI, ciHeIS, ciHeII,
      &                reHII, reHeII1, reHeII2, reHeIII, brem,
      &                indixe, t1, t2, logtem, tdef, edot,
      &                tgas, tgasold, p2d, tdust, metallicity, rhoH,
+     &                iradshield, avgsighi, avgsighei, avgsigheii,
+     &                k24, k26, iradtrans, photogamma,
      &                ih2optical, iciecool, ciecoa, cieco,
-     &                icmbTfloor, iClHeat, 
+     &                icmbTfloor, iClHeat, clEleFra,
      &                priGridRank, priGridDim,
-     &                priPar1, priPar2, priPar3,
+     &                priPar1, priPar2, priPar3, priPar4, priPar5,
      &                priDataSize, priCooling, priHeating, priMMW,
      &                metGridRank, metGridDim,
-     &                metPar1, metPar2, metPar3,
-     &                metDataSize, metCooling, metHeating,udot,
+     &                metPar1, metPar2, metPar3, metPar4, metPar5,
+     &                metDataSize, metCooling, metHeating, clnew,
+     &                iVheat, iMheat, Vheat, Mheat,
      &                itmask)
 
 !        Compute the cooling time on the slice
@@ -224,15 +280,38 @@
             cooltime(i,j,k) = real(energy/edot(i), RKIND)
          enddo
 
-       enddo
       enddo
+#ifdef _OPENMP
+!$omp end parallel do
+#endif
 
 !     Convert densities back to comoving from 'proper'
 
       if (iexpand .eq. 1) then
 
-      do k = ks+1, ke+1
-         do j = js+1, je+1
+! parallelize the k and j loops with OpenMP
+! flat j and k loops for better parallelism
+#ifdef _OPENMP
+!$omp parallel do schedule(runtime) private(
+!$omp&   i, j, k,
+!$omp&   comp1, comp2, energy,
+!$omp&   indixe,
+!$omp&   t1, t2, logtem, tdef, p2d,
+!$omp&   tgas, tgasold,
+!$omp&   tdust, metallicity, rhoH,
+!$omp&   edot,
+!$omp&   ceHI, ceHeI, ceHeII,
+!$omp&   ciHI, ciHeI, ciHeIS, ciHeII,
+!$omp&   reHII, reHeII1, reHeII2, reHeIII,
+!$omp&   brem, cieco,
+!$omp&   hyd01k, h2k01, vibh, roth, rotl,
+!$omp&   gpldl, gphdl, hdlte, hdlow,
+!$omp&   itmask )
+#endif
+      do t = 0, dk*dj-1
+        k = t/dj      + ks+1
+        j = mod(t,dj) + js+1
+
             do i = is+1, ie+1
                d(i,j,k)     = d(i,j,k)*real(aye**3, RKIND)
             enddo
@@ -265,8 +344,10 @@
                   metal(i,j,k) = metal(i,j,k)*real(aye**3, RKIND)
                enddo
             endif
-         enddo
       enddo
+#ifdef _OPENMP
+!$omp end parallel do
+#endif
 
       endif
 

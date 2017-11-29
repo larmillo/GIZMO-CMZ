@@ -223,7 +223,9 @@ void restart(int modus)
 
 	  /* now store relevant data for tree */
         in(&Gas_split, modus);
-
+#ifdef GALSF
+        in(&Stars_converted, modus);
+#endif
 
 	  /* now store relevant data for tree */
 

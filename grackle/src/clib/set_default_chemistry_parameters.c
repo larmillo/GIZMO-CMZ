@@ -17,22 +17,23 @@
 
 #include "grackle_macros.h"
 #include "grackle_types.h"
-#include "chemistry_data.h"
-#include "code_units.h"
+#include "grackle_chemistry_data.h"
 
 int grackle_verbose = FALSE;
 
-chemistry_data grackle_data;
+chemistry_data *grackle_data = NULL;
+chemistry_data_storage grackle_rates;
 
-chemistry_data _set_default_chemistry_parameters();
+chemistry_data _set_default_chemistry_parameters(void);
 
-int set_default_chemistry_parameters()
+int set_default_chemistry_parameters(chemistry_data *my_grackle)
 {
-  grackle_data = _set_default_chemistry_parameters();
+  *my_grackle = _set_default_chemistry_parameters();
+  grackle_data = my_grackle;
   return SUCCESS;
 }
 
-chemistry_data _set_default_chemistry_parameters()
+chemistry_data _set_default_chemistry_parameters(void)
 {
 
   chemistry_data my_chemistry;
@@ -48,32 +49,21 @@ chemistry_data _set_default_chemistry_parameters()
   my_chemistry.grackle_data_file              = "";
 
   my_chemistry.three_body_rate                = 0;   // ABN02
-  my_chemistry.cie_cooling                    = 1;
-  my_chemistry.h2_optical_depth_approximation = 1;
+  my_chemistry.cie_cooling                    = 0;
+  my_chemistry.h2_optical_depth_approximation = 0;
 
   my_chemistry.photoelectric_heating          = 0;
   my_chemistry.photoelectric_heating_rate     = 8.5e-26;  // ergs cm-3 s-1
 
+  my_chemistry.use_volumetric_heating_rate    = 0;
+  my_chemistry.use_specific_heating_rate      = 0;
+
   my_chemistry.UVbackground                   = 0;
 
-  my_chemistry.UVbackground_table.Nz     = 0;
-  my_chemistry.UVbackground_table.z      = NULL;
-  my_chemistry.UVbackground_table.k24    = NULL;
-  my_chemistry.UVbackground_table.k25    = NULL;
-  my_chemistry.UVbackground_table.k26    = NULL;
-  my_chemistry.UVbackground_table.k27    = NULL;
-  my_chemistry.UVbackground_table.k28    = NULL;
-  my_chemistry.UVbackground_table.k29    = NULL;
-  my_chemistry.UVbackground_table.k30    = NULL;
-  my_chemistry.UVbackground_table.k31    = NULL;
-  my_chemistry.UVbackground_table.piHI   = NULL;
-  my_chemistry.UVbackground_table.piHeII = NULL;
-  my_chemistry.UVbackground_table.piHeI  = NULL;
-
-  my_chemistry.UVbackground_redshift_on      = 7.0;
-  my_chemistry.UVbackground_redshift_off     = 0.0;
-  my_chemistry.UVbackground_redshift_fullon  = 6.0;
-  my_chemistry.UVbackground_redshift_drop    = 0.0;
+  my_chemistry.UVbackground_redshift_on      = FLOAT_UNDEFINED;
+  my_chemistry.UVbackground_redshift_off     = FLOAT_UNDEFINED;
+  my_chemistry.UVbackground_redshift_fullon  = FLOAT_UNDEFINED;
+  my_chemistry.UVbackground_redshift_drop    = FLOAT_UNDEFINED;
 
   my_chemistry.Compton_xray_heating   = 0;
 
@@ -99,15 +89,27 @@ chemistry_data _set_default_chemistry_parameters()
   my_chemistry.ipiht                        = 1;
   my_chemistry.TemperatureStart             = 1.0;
   my_chemistry.TemperatureEnd               = 1.0e9;
-  my_chemistry.comp_xray                    = 0;
-  my_chemistry.temp_xray                    = 0;
   my_chemistry.CaseBRecombination           = 0; // default to case A rates
   my_chemistry.NumberOfDustTemperatureBins  = 250;
   my_chemistry.DustTemperatureStart         = 1.0;
   my_chemistry.DustTemperatureEnd           = 1500.0;
 
-  my_chemistry.cloudy_metal.grid_rank        = 0;
   my_chemistry.cloudy_electron_fraction_factor = 9.153959e-3; // Cloudy 07.02 abundances
+
+  /* radiative transfer parameters */
+  my_chemistry.use_radiative_transfer                 = 0;
+  my_chemistry.radiative_transfer_coupled_rate_solver = 0;
+  my_chemistry.radiative_transfer_intermediate_step   = 0;
+  my_chemistry.radiative_transfer_hydrogen_only       = 0;
+
+  /* approximate self-shielding */
+  my_chemistry.self_shielding_method                  = 0;
+  my_chemistry.H2_self_shielding                      = 0;
+
+//number of OpenMP threads
+# ifdef _OPENMP
+  my_chemistry.omp_nthreads = omp_get_max_threads(); // maximum allowed number
+# endif
 
   return my_chemistry;
 }

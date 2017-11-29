@@ -1,4 +1,3 @@
-#include "fortran.def"
 #include "phys_const.def"
 
 !=======================================================================
@@ -23,19 +22,23 @@
      &                gpldla, gphdla, gpldl, gphdl,
      &                hdltea, hdlowa, hdlte, hdlow,
      &                gaHIa, gaH2a, gaHea, gaHpa, gaela,
-     &                gasgra,
+     &                h2ltea, gasgra,
      &                ceHI, ceHeI, ceHeII, ciHI, ciHeI, ciHeIS, ciHeII,
      &                reHII, reHeII1, reHeII2, reHeIII, brem,
      &                indixe, t1, t2, logtem, tdef, edot,
-     &                tgas, tgasold, p2d, tdust, metallicity, rhoH, 
+     &                tgas, tgasold, p2d, tdust, metallicity, rhoH,
+     &                iradshield, avgsighi, avgsighei,
+     &                avgsigheii,
+     &                k24, k26, iradtrans, photogamma,
      &                ih2optical, iciecool, ciecoa, cieco,
-     &                icmbTfloor, iClHeat, 
+     &                icmbTfloor, iClHeat, clEleFra,
      &                priGridRank, priGridDim,
-     &                priPar1, priPar2, priPar3,
+     &                priPar1, priPar2, priPar3, priPar4, priPar5,
      &                priDataSize, priCooling, priHeating, priMMW,
      &                metGridRank, metGridDim,
-     &                metPar1, metPar2, metPar3,
-     &                metDataSize, metCooling, metHeating,udot,
+     &                metPar1, metPar2, metPar3, metPar4, metPar5,
+     &                metDataSize, metCooling, metHeating, clnew,
+     &                iVheat, iMheat, Vheat, Mheat,
      &                itmask)
 
 !  SOLVE RADIATIVE COOLING/HEATING EQUATIONS
@@ -65,29 +68,33 @@
 
       integer in, jn, kn, is, ie, j, k, nratec, idim,
      &        iexpand, ih2co, ipiht, ispecies, imcool, idust, 
-     &        imetal, igammah, ih2optical, iciecool
+     &        imetal, igammah, ih2optical, iciecool, clnew,
+     &        iVheat, iMheat, iradtrans, iradshield
+
       real*8  aye, temstart, temend, z_solar,
      &        utem, uxyz, uaye, urho, utim,
-     &        gamma, fh
+     &        gamma, fh, clEleFra
       R_PREC  d(in,jn,kn),    e(in,jn,kn),
      &        u(in,jn,kn),    v(in,jn,kn),     w(in,jn,kn),
      &        de(in,jn,kn),   HI(in,jn,kn),   HII(in,jn,kn),
      &        HeI(in,jn,kn), HeII(in,jn,kn), HeIII(in,jn,kn),
      &        HM(in,jn,kn),  H2I(in,jn,kn), H2II(in,jn,kn),
      &        DI(in,jn,kn),  DII(in,jn,kn), HDI(in,jn,kn),
-     &        metal(in,jn,kn),udot
+     &        metal(in,jn,kn), Vheat(in,jn,kn), Mheat(in,jn,kn)
+      real*8  photogamma(in,jn,kn)
       real*8  hyd01ka(nratec), h2k01a(nratec), vibha(nratec), 
      &        rotha(nratec), rotla(nratec), gpldla(nratec),
      &        gphdla(nratec), hdltea(nratec), hdlowa(nratec),
      &        gaHIa(nratec), gaH2a(nratec), gaHea(nratec),
-     &        gaHpa(nratec), gaela(nratec), gasgra(nratec), 
-     &        ciecoa(nratec),
+     &        gaHpa(nratec), gaela(nratec), h2ltea(nratec),
+     &        gasgra(nratec), ciecoa(nratec),
      &        ceHIa(nratec), ceHeIa(nratec), ceHeIIa(nratec),
      &        ciHIa(nratec), ciHeIa(nratec), ciHeISa(nratec), 
      &        ciHeIIa(nratec), reHIIa(nratec), reHeII1a(nratec), 
      &        reHeII2a(nratec), reHeIIIa(nratec), brema(nratec),
      &        compa, piHI, piHeI, piHeII, comp_xraya, comp_temp,
-     &        gammaha, gammaha_eff
+     &        gammaha, gammaha_eff, avgsighi, avgsighei,
+     &        avgsigheii, k24, k26
 
 !  Cloudy cooling data
 
@@ -96,9 +103,11 @@
      &     metGridRank, metDataSize,
      &     priGridDim(priGridRank), metGridDim(metGridRank)
       real*8 priPar1(priGridDim(1)), priPar2(priGridDim(2)), 
-     &     priPar3(priGridDim(3)),
+     &     priPar3(priGridDim(3)), priPar4(priGridDim(4)),
+     &     priPar5(priGridDim(5)),
      &     metPar1(metGridDim(1)), metPar2(metGridDim(2)), 
-     &     metPar3(metGridDim(3)),
+     &     metPar3(metGridDim(3)), metPar4(metGridDim(4)),
+     &     metPar5(metGridDim(5)),
      &     priCooling(priDataSize), priHeating(priDataSize),
      &     priMMW(priDataSize),
      &     metCooling(metDataSize), metHeating(metDataSize)
@@ -113,13 +122,14 @@
 
 !  Locals
 
-      integer i, iter, ti
+      integer i, iter, ti, iradfield
       real*8 dom, qq, vibl, logtem0, logtem9, dlogtem, zr,
      &       comp1, comp2, 
      &       hdlte1, hdlow1, gamma2, x, fudge, fH2,
      &       gphdl1, dom_inv, tau, ciefudge,
-     &       coolunit, dbase1, tbase1, xbase1, rtunits,
-     &       nH2, nother, myde
+     &       coolunit, dbase1, tbase1, xbase1,
+     &       nH2, nother, myde, nSSh, nratio, nssh_he, nratio_he,
+     &       fSShHI, fSShHeI
 
 !  Slice locals
  
@@ -139,7 +149,7 @@
      &       hyd01k(in), h2k01(in), vibh(in), roth(in), rotl(in),
      &       gpldl(in), gphdl(in), hdlte(in), hdlow(in),
      &       gaHI(in), gaH2(in), gaHe(in), gaHp(in), gael(in),
-     &       galdl(in), gasgr(in), gasgr_tdust(in)
+     &       h2lte(in), galdl(in), gasgr(in), gasgr_tdust(in)
 
 !  Iteration mask
 
@@ -164,6 +174,7 @@
       coolunit = (uaye**5 * xbase1**2 * mh**2) / (tbase1**3 * dbase1)
       zr       = 1._DKIND/(aye*uaye) - 1._DKIND
       fudge    = 1._DKIND
+      iradfield = -1
 
 !     Set compton cooling coefficients (and temperature)
 
@@ -413,10 +424,16 @@
      &             )
 
          if (edot(i) .ne. edot(i)) then
+#ifdef _OPENMP
+!$omp critical
+#endif
             write(6,*) 'NaN in edot[1]: ', i, j, k, edot(i), 
      &           HI(i,j,k), HII(i,j,k), HeI(i,j,k), HeII(i,j,k), 
      &           HeIII(i,j,k), de(i,j,k), d(i,j,k), 
      &           tgas(i), p2d(i)
+#ifdef _OPENMP
+!$omp end critical
+#endif
          endif
          
          end if
@@ -444,6 +461,8 @@
      &         *(gaela(indixe(i)+1) - gaela(indixe(i)))
             gphdl(i) = gphdla(indixe(i)) + tdef(i)
      &         *(gphdla(indixe(i)+1) - gphdla(indixe(i)))
+            h2lte(i) = h2ltea(indixe(i)) + tdef(i)
+     &         *(h2ltea(indixe(i)+1) - h2ltea(indixe(i)))
             cieco(i) = ciecoa(indixe(i)) + tdef(i)
      &         *(ciecoa(indixe(i)+1) - ciecoa(indixe(i)))
             end if
@@ -471,12 +490,15 @@
             else
                 fudge = 1._DKIND
             endif
-            galdl(i) = gaHI(i) * HI(i,j,k)  + gaH2(i) * H2I(i,j,k)
-     &               + gaHe(i) * HeI(i,j,k) + gaHp(i) * HII(i,j,k)
+            galdl(i) = gaHI(i) * HI(i,j,k)  
+     &               + gaH2(i) * H2I(i,j,k) / 2._DKIND
+     &               + gaHe(i) * HeI(i,j,k) / 4._DKIND
+     &               + gaHp(i) * HII(i,j,k)
      &               + gael(i) * de(i,j,k)
-            gphdl1 = gphdl(i)/dom
+c            gphdl1 = gphdl(i)/dom
+            gphdl1 = h2lte(i)/dom
             edot(i) = edot(i) - real(ih2co, DKIND)*fudge*H2I(i,j,k)*
-     &           gphdl(i)/(1._DKIND + gphdl1/galdl(i)) / (2._DKIND*dom)
+     &           h2lte(i)/(1._DKIND + gphdl1/galdl(i)) / (2._DKIND*dom)
 
             end if
          enddo
@@ -677,15 +699,158 @@ c  new (correct) way: (april 4, 2007)
 
       if (ispecies .gt. 0) then
 
-      do i = is+1, ie+1
-         if ( itmask(i) ) then
-            edot(i) = edot(i) + real(ipiht, DKIND)*(
-     &           + piHI  *HI  (i,j,k) ! pi of HI
-     &           + piHeI *HeI (i,j,k)*0.25_DKIND ! pi of HeI
-     &           + piHeII*HeII(i,j,k)*0.25_DKIND ! pi of HeII
+      if (iradshield == 0) then ! no shielding
+        do i = is+1, ie+1
+           if ( itmask(i) ) then
+              edot(i) = edot(i) + real(ipiht, DKIND)*(
+     &               piHI  *HI  (i,j,k) ! pi of HI
+     &             + piHeI *HeI (i,j,k)*0.25_DKIND ! pi of HeI
+     &             + piHeII*HeII(i,j,k)*0.25_DKIND ! pi of HeII
+     &             )/dom
+           end if
+        enddo
+
+      else if (iradshield == 1) then
+!
+!     approximate self shielding using Eq. 13 and 14 from
+!     Rahmati et. al. 2013 (MNRAS, 430, 2427-2445)
+!     to shield HI, while leaving HeI and HeII optically thin
+!
+
+        do i = is+1, ie+1
+           if (itmask(i)) then
+              if (k24 .lt. tiny8) then
+                 fSShHI = 1._DKIND
+              else
+                 nSSh = 6.73e-3_DKIND *
+     &            (avgsighi /2.49e-18_DKIND)**(-2._DKIND/3._DKIND)*
+     &            (tgas(i)/1.0e4_DKIND)**(0.17_DKIND)*
+     &            (k24/tbase1/1.0e-12_DKIND)**(2._DKIND/3._DKIND)
+                 nratio = (HI(i,j,k) + HII(i,j,k))*dom/nSSh
+                 fSShHI =
+     &            0.98_DKIND*(1._DKIND+
+     &            nratio**(1.64_DKIND))**(-2.28_DKIND) +
+     &            0.02_DKIND*(1._DKIND+
+     &            nratio)**(-0.84_DKIND)
+              endif
+
+             edot(i) = edot(i) + real(ipiht,DKIND)*(
+     &              piHI  *HI  (i,j,k)* fSShHI
+     &            + piHeI * HeI(i,j,k)*0.25_DKIND*
+     &            + piHeII*HeII(i,j,k)*0.25_DKIND
+     &             )/dom
+           endif
+        enddo
+
+      else if (iradshield == 2)  then
+!
+!     Better self-shielding in HI using Eq. 13 and 14 from
+!     Rahmati et. al. 2013 (MNRAS, 430, 2427-2445)
+!     approximate self shielding in HeI and HeII
+!
+
+        do i = is+1, ie+1
+           if ( itmask(i) ) then
+!
+!            HI self shielding ratio
+!
+              if (k24 .lt. tiny8) then
+                 fSShHI = 1._DKIND
+              else
+                 nSSh = 6.73e-3_DKIND *
+     &            (avgsighi/2.49e-18_DKIND)**(-2._DKIND/3._DKIND)*
+     &            (tgas(i)/1.0e4_DKIND)**(0.17_DKIND)*
+     &            (k24/tbase1/1.0e-12_DKIND)**(2._DKIND/3._DKIND)
+                 nratio = (HI(i,j,k) + HII(i,j,k))*dom/nSSh
+                 fSShHI =
+     &            0.98_DKIND*(1._DKIND+
+     &             nratio**(1.64_DKIND))**(-2.28_DKIND)+
+     &            0.02_DKIND*(1._DKIND+
+     &             nratio)**(-0.84_DKIND)
+              endif
+!
+!            HeI self shielding ratio
+!
+              if (k26 .lt. tiny8) then
+                 fSShHeI = 1._DKIND
+              else
+                 nSSh_he = 6.73e-3_DKIND *
+     &            (avgsighei/ 2.49e-18_DKIND)**(-2._DKIND/3._DKIND)*
+     &            (tgas(i)/1.0e4_DKIND)**(0.17_DKIND)*
+     &            (k26/tbase1/1.0e-12_DKIND)**(2._DKIND/3._DKIND)
+                 nratio_he = 0.25_DKIND*
+     &            (HeI(i,j,k) + HeII(i,j,k) + HeIII(i,j,k))*dom/nSSh_he
+                 fSShHeI =
+     &            0.98_DKIND*(1._DKIND+
+     &             nratio_he**(1.64_DKIND))**(-2.28_DKIND)+
+     &            0.02_DKIND*(1._DKIND+
+     &             nratio_he)**(-0.84_DKIND)
+              endif
+
+             edot(i) = edot(i) + real(ipiht, DKIND)*(
+     &              piHi * HI(i,j,k)* fSShHI
+     &            + piHeI * HeI(i,j,k)*0.25_DKIND* fSShHeI
+     &            + piHeII*HeII(i,j,k)*0.25_DKIND
+     &              )/dom
+           endif
+        enddo
+
+      else if (iradshield == 3) then
+!
+!     shielding using Eq. 13 and 14 from
+!     Rahmati et. al. 2013 (MNRAS, 430, 2427-2445)
+!     in HI and HeI, but ignoring HeII heating entirely
+!
+
+        do i = is+1, ie+1
+           if ( itmask(i) ) then
+!
+!            HI self shielding ratio
+!
+              if (k24 .lt. tiny8) then
+                 fSShHI = 1._DKIND
+              else
+                 nSSh = 6.73e-3_DKIND *
+     &            (avgsighi /2.49e-18_DKIND)**(-2._DKIND/3._DKIND)*
+     &            (tgas(i)/1.0e4_DKIND)**(0.17_DKIND)*
+     &            (k24/tbase1/1.0e-12_DKIND)**(2._DKIND/3._DKIND)
+                 nratio = (HI(i,j,k) + HII(i,j,k))*dom/nSSh
+                 fSShHI =
+     &            0.98_DKIND*(1._DKIND+
+     &             nratio**(1.64_DKIND))**(-2.28_DKIND)+
+     &            0.02_DKIND*(1._DKIND+
+     &             nratio)**(-0.84_DKIND)
+              endif
+!
+!            HeI self shielding ratio
+!
+              if (k26 .lt. tiny8) then
+                 fSShHeI = 1._DKIND
+              else
+                 nSSh_he = 6.73e-3_DKIND *
+     &            (avgsighei /2.49e-18_DKIND)**(-2._DKIND/3._DKIND)*
+     &            (tgas(i)/1.0e4_DKIND)**(0.17_DKIND)*
+     &            (k26/tbase1/1.0e-12_DKIND)**(2._DKIND/3._DKIND)
+                 nratio_he = 0.25_DKIND*
+     &            (HeI(i,j,k) + HeII(i,j,k) + HeIII(i,j,k))*dom/nSSh_he
+                 fSShHeI =
+     &            0.98_DKIND*(1._DKIND+
+     &             nratio_he**(1.64_DKIND))**(-2.28_DKIND)+
+     &            0.02_DKIND*(1._DKIND+
+     &             nratio_he)**(-0.84_DKIND)
+              endif
+
+             edot(i) = edot(i) + real(ipiht, DKIND)*(
+     &              piHi * HI (i,j,k)* fSShHI
+     &           + piHeI * HeI(i,j,k)* fSShHeI
      &           )/dom
-         end if
-      enddo
+!
+!          Ignoring HeII heating (HeII heating rate -> 0)
+!
+           endif
+        enddo
+
+      endif
 
       endif
 
@@ -732,30 +897,90 @@ c  new (correct) way: (april 4, 2007)
          enddo
 
       endif
+ 
+!     Photoheating from radiative transfer
+
+      if (iradtrans .eq. 1) then
+          do i = is + 1, ie + 1
+            if (itmask(i)) then
+              edot(i) = edot(i) + real(ipiht, DKIND) * photogamma(i,j,k)
+     &                          / coolunit * HI(i,j,k) / dom
+c              if (photogamma(i,j,k) .gt. 0) then
+c                print*, i,j,k,edot(i), photogamma(i,j,k), dom,
+c      $                 aye, utim, coolunit, d(i,j,k), hi(i,j,k), tgas(i)
+c              endif
+              if (edot(i) .ne. edot(i)) then
+#ifdef _OPENMP
+!$omp critical
+#endif
+                  write(6,*) 'NaN in edot[2]: ', i,j,k, edot(i),
+     &                photogamma(i,j,k), HI(i,j,k), de(i,j,k), d(i,j,k),
+     &                e(i,j,k), p2d(i), tgas(i), dom, urho, aye, mh
+#ifdef _OPENMP
+!$omp end critical
+#endif
+              endif
+
+            endif
+          enddo
+        endif
 
 !     --- Cloudy metal cooling and heating ---
 
       if (imcool .eq. 1) then
 
-         iZscale = 1
-         call cool1d_cloudy_g(d, rhoH, metallicity,
-     &        in, jn, kn, is, ie, j, k,
-     &        logtem, edot, comp2, dom, zr,
-     &        icmbTfloor, iClHeat, iZscale,
-     &        metGridRank, metGridDim,
-     &        metPar1, metPar2, metPar3,
-     &        metDataSize, metCooling, metHeating,
-     &        itmask)
+         if (clnew .eq. 1) then
+
+            iZscale = 1
+            call cool1d_cloudy_g(d, rhoH, metallicity,
+     &           in, jn, kn, is, ie, j, k,
+     &           logtem, edot, comp2, dom, zr,
+     &           icmbTfloor, iClHeat, iZscale,
+     &           metGridRank, metGridDim,
+     &           metPar1, metPar2, metPar3,
+     &           metDataSize, metCooling, metHeating,
+     &           itmask)
+
+         else
+
+            call cool1D_cloudy_old_tables_g(
+     &           d, de, rhoH, metallicity,
+     &           in, jn, kn, is, ie, j, k,
+     &           logtem, edot, comp2, ispecies, dom, zr,
+     &           icmbTfloor, iClHeat, 
+     &           clEleFra, metGridRank, metGridDim,
+     &           metPar1, metPar2, metPar3, metPar4, metPar5,
+     &           metDataSize, metCooling, metHeating, 
+     &           itmask)
+
+         endif
 
       endif
 
-!     Add hydro step
-      do i=is+1, ie+1
+!     Add user-provided volumetric and/or specific heating terms
+
+      if (iVheat .eq. 1) then
+
+      do i = is+1, ie+1
          if ( itmask(i) ) then
-	 edot(i) = edot(i) + udot
+            edot(i) = edot(i) + (
+     &           Vheat(i,j,k) * d(i,j,k) / coolunit
+     &           ) / dom
          end if
       enddo
 
+      endif
+
+      if (iMheat .eq. 1) then
+
+      do i = is+1, ie+1
+         if ( itmask(i) ) then
+            edot(i) = edot(i) + (
+     &           Mheat(i,j,k) * d(i,j,k)**2 / coolunit)
+         end if
+      enddo
+
+      endif
 
 !     Set tgasold
 
