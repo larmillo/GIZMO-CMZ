@@ -1,8 +1,0 @@
-
-Sync-Point 0, Time: 0, Nf = 0001000000, Systemstep: 0
-
-Sync-Point 1, Time: 4.39453e+11, Nf = 0000999656, Systemstep: 4.39453e+11
-
-Sync-Point 2, Time: 8.78906e+11, Nf = 0001000000, Systemstep: 4.39453e+11
-
-Sync-Point 3, Time: 1.31836e+12, Nf = 0000998684, Systemstep: 4.39453e+11
