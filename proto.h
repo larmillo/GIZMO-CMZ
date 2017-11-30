@@ -407,7 +407,7 @@ void construct_timetree(void);
 void star_formation_parent_routine(void);
 void cooling_and_starformation(void);
 
-#ifdef SLUG
+#ifdef STAR_FORMATION
 void gas_to_star(void);
 #endif
 

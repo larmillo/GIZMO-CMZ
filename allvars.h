@@ -1027,7 +1027,7 @@ extern FILE
 
 
 
-#ifdef GALSF
+#if defined(GALSF) || defined(STAR_FORMATION)
 extern FILE *FdSfr;		/*!< file handle for sfr.txt log-file. */
 #endif
 
@@ -1592,6 +1592,7 @@ extern ALIGN(32) struct particle_data
     short int wakeup;                     /*!< flag to wake up particle */
 #endif
 #endif
+	void *SlugOb;
 }
  *P,				/*!< holds particle data on local processor */
  *DomainPartBuf;		/*!< buffer for particle data used in domain decomposition */

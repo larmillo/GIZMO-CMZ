@@ -29,7 +29,7 @@ void reconstruct_timebins(void)
         FirstInTimeBin[bin] = -1;
         LastInTimeBin[bin] = -1;
 		
-#ifdef GALSF
+#if defined(STAR_FORMATION) || defined(GALSF)
         TimeBinSfr[bin] = 0;
 #endif	
     }
@@ -53,7 +53,7 @@ void reconstruct_timebins(void)
         TimeBinCount[bin]++;
         if(P[i].Type == 0)
             TimeBinCountSph[bin]++;
-#ifdef GALSF
+#if defined(STAR_FORMATION) || defined(GALSF)
         if(P[i].Type == 0)
             TimeBinSfr[bin] += SphP[i].Sfr;
 #endif    

@@ -103,7 +103,9 @@ size_t HighMark_run, HighMark_domain, HighMark_gravtree,
 size_t HighMark_turbpower;
 #endif
 
-
+#if defined(STAR_FORMATION) || defined(GALSF)
+double TimeBinSfr[TIMEBINS];
+#endif
 
 
 
@@ -195,7 +197,9 @@ FILE
 #endif
 *FdCPU;         /*!< file handle for cpu.txt log-file. */
 
-
+#if defined(GALSF) || defined(STAR_FORMATION)
+FILE *FdSfr;			/*!< file handle for sfr.txt log-file. */
+#endif
 
 
 

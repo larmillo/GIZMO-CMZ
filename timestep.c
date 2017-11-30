@@ -197,6 +197,10 @@ void find_timesteps(void)
             if(P[i].Type == 0)
             {
                 TimeBinCountSph[binold]--;
+#if defined(STAR_FORMATION) || defined(GALSF)
+                TimeBinSfr[binold] -= SphP[i].Sfr;
+                TimeBinSfr[bin] += SphP[i].Sfr;
+#endif				
             }
             
             

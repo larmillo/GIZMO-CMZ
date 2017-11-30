@@ -817,6 +817,14 @@ ifeq (GENTRY_FB,$(findstring GENTRY_FB,$(CONFIGVARS)))
 OBJS    += gentry_fb.o
 endif
 
+ifeq (SLUG,$(findstring SLUG,$(CONFIGVARS)))
+OBJS    += gentry_fb.o
+endif
+
+ifeq (STAR_FORMATION,$(findstring STAR_FORMATION,$(CONFIGVARS)))
+OBJS    += sf/starformation.o
+endif
+
 ifeq (BLACK_HOLES,$(findstring BLACK_HOLES,$(CONFIGVARS)))
 OBJS    += galaxy_sf/blackholes/blackhole.o
 OBJS    += galaxy_sf/blackholes/blackhole_util.o

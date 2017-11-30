@@ -360,7 +360,7 @@ void init(void)
             SphP[i].Ne = 1.0;
 #endif			
         }
-#ifdef GALSF
+#if defined(GALSF) || defined(STAR_FORMATION)
         SphP[i].Sfr = 0;
 #endif
 				
