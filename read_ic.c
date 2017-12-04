@@ -328,7 +328,7 @@ void empty_read_buffer(enum iofields blocknr, int offset, int pc, int type)
             break;
             
         case IO_AGE:		/* Age of stars */
-#ifdef GALSF
+#if defined(GALSF) || defined(STAR_FORMATION)
             for(n = 0; n < pc; n++)
                 P[offset + n].StellarAge = *fp++;
 #endif		

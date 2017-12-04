@@ -710,7 +710,7 @@ void rearrange_particle_sequence(void)
         do_loop_check = 1;
     }
     
-#ifdef GALSF
+#if defined(GALSF) || defined(STAR_FORMATION)
     if(Stars_converted)
     {
         N_gas -= Stars_converted;

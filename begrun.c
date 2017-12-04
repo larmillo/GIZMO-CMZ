@@ -218,7 +218,7 @@ void begrun(void)
       memcpy(All.OutputListTimes, all.OutputListTimes, sizeof(double) * All.OutputListLength);
       memcpy(All.OutputListFlag, all.OutputListFlag, sizeof(char) * All.OutputListLength);
 
-#ifdef GALSF
+#if defined(GALSF) || defined(STAR_FORMATION)
       All.CritPhysDensity = all.CritPhysDensity;
       All.MaxSfrTimescale = all.MaxSfrTimescale;
 	  All.SfEffPerFreeFall = all.SfEffPerFreeFall;
@@ -929,7 +929,7 @@ void read_parameter_file(char *fname)
         addr[nt] = &All.InitMetallicityinSolar;
         id[nt++] = REAL;
 #endif        
-#if defined(FLAG_NOT_IN_PUBLIC_CODE)
+#if defined(STAR_FORMATION)
         strcpy(tag[nt],"InitStellarAge");
         addr[nt] = &All.InitStellarAgeinGyr;
         id[nt++] = REAL;
@@ -1112,7 +1112,7 @@ void read_parameter_file(char *fname)
 #endif
 
 
-#ifdef GALSF
+#if defined(GALSF) || defined(STAR_FORMATION)
       strcpy(tag[nt], "CritPhysDensity");
       addr[nt] = &All.CritPhysDensity;
       id[nt++] = REAL;

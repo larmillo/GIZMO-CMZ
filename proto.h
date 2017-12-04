@@ -9,6 +9,9 @@
 #ifdef COOLING
 #include "cooling/cooling.h"
 #endif
+#ifdef SLUG
+#include "sf/slug_object.h"
+#endif 
 
 /* declarations of functions throughout the code */
 /*
@@ -409,6 +412,9 @@ void cooling_and_starformation(void);
 
 #ifdef STAR_FORMATION
 void gas_to_star(void);
+#endif
+#ifdef SLUG
+
 #endif
 
 #if defined(TURB_DRIVING)

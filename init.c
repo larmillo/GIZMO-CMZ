@@ -243,7 +243,7 @@ void init(void)
 #if defined(EVALPOTENTIAL) || defined(COMPUTE_POTENTIAL_ENERGY)    
         P[i].Potential = 0;
 #endif
-#ifdef GALSF
+#if defined(GALSF) || defined(STAR_FORMATION)
         if(RestartFlag == 0)
         {
             P[i].StellarAge = 0;
@@ -457,7 +457,7 @@ void init(void)
     
     
     Gas_split = 0;
-#ifdef GALSF
+#if defined(GALSF) || defined(STAR_FORMATION)
     Stars_converted = 0;
 #endif	
     domain_Decomposition(0, 0, 0);	/* do initial domain decomposition (gives equal numbers of particles) */

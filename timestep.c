@@ -658,7 +658,7 @@ integertime get_timestep(int p,		/*!< particle index */
     if(P[p].Type==0)
       {
 	double dt_cool = CallGrackle(SphP[p].InternalEnergyPred, SphP[p].Density, 0, &(SphP[p].Ne), p, 1);
-	if(SphP[p].Density>1e-26) printf("GRACKLE_CHEMISTRY dt=(%g %g %g)\n", dt_cool, SphP[p].InternalEnergyPred, SphP[p].Density);
+	//if(SphP[p].Density>1e-26) printf("GRACKLE_CHEMISTRY dt=(%g %g %g)\n", dt_cool, SphP[p].InternalEnergyPred, SphP[p].Density);
        	dt_cool *= All.HubbleParam;
         if(dt_cool<0)
             if(fabs(dt_cool)<0.1*dt)

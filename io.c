@@ -3043,6 +3043,11 @@ void write_file(char *fname, int writeTask, int lastTask)
     header.flag_feedback = 1;
     header.flag_stellarage = 1;
 #endif
+
+#ifdef STAR_FORMATION	
+header.flag_stellarage = 1;
+header.flag_stellarage = 1;	
+#endif
     
 #if defined(FLAG_NOT_IN_PUBLIC_CODE) || defined(GRACKLE_OPTS)
     header.flag_metals = NUM_METAL_SPECIES;

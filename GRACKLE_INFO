@@ -1,26 +1,19 @@
-2017-11-29 16:22:24
+2017-12-04 14:02:30
 
 The Grackle Version 3.0
 Mercurial Branch   default
 Mercurial Revision 461945e5cd9c+
 
 Grackle build options:
-
-   MACHINE: Darwin (OSX) 
-   MACHINE-NAME: darwin
-
-   CONFIG_PRECISION  [precision-{32,64}]                     : 64
-   CONFIG_OPT  [opt-{warn,debug,high,aggressive}]            : high
-   CONFIG_OMP  [omp-{on,off}]                                : off
-
+make[1]: *** No rule to make target `DEPEND'.  Stop.
 Grackle build flags:
 
 CPP = /usr/bin/cpp
-CC  = /usr/local/bin/gcc
-CXX = /usr/local/bin/g++
+CC  = /usr/bin/gcc
+CXX = /usr/bin/g++
 FC  = /usr/local/bin/gfortran
 F90 = /usr/local/bin/gfortran
-LD  = /usr/local/bin/gcc
+LD  = /usr/bin/gcc
 LIBTOOL = /usr/local/bin/glibtool
 
 DEFINES = -DLINUX -DH5_USE_16_API   -DCONFIG_BFLOAT_8
@@ -34,7 +27,7 @@ FFLAGS   = -fno-second-underscore -m64 -O2
 F90FLAGS = -fno-second-underscore -m64 -O2 
 LDFLAGS  =  
 
-LIBS     = -L/usr/local/lib -lhdf5 -L/usr/local/lib/gcc/6 -lgfortran  
+LIBS     = -L/usr/local/lib -lhdf5 -L/usr/local/lib/gcc/7 -lgfortran  
 
 Grackle run-time parameters:
 use_grackle                       = 1
@@ -42,7 +35,7 @@ with_radiative_cooling            = 1
 primordial_chemistry              = 0
 metal_cooling                     = 1
 UVbackground                      = 0
-grackle_data_file                 = /Users/larmillo/GIZMO-CMZ/grackle/input/CloudyData_noUVB.h5
+grackle_data_file                 = /Users/larmillo/Github/GIZMO-CMZ/grackle/input/CloudyData_UVB=HM2012.h5
 cmb_temperature_floor             = 1
 Gamma                             = 1.66667
 h2_on_dust                        = 0

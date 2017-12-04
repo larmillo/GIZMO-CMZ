@@ -18,7 +18,7 @@
 ####################################################################################################
 # --------------------------------------- Boundary Conditions & Dimensions
 ####################################################################################################
-PERIODIC                        # Use this if periodic boundaries are needed (otherwise open boundaries are assumed)
+#PERIODIC                        # Use this if periodic boundaries are needed (otherwise open boundaries are assumed)
 #BND_PARTICLES                  # particles with ID=0 are forced in place (their accelerations are set =0):
                                 # use for special boundary conditions where these particles represent fixed "walls"
 #LONG_X=1                    # modify box dimensions (non-square periodic box): multiply X (PERIODIC and NOGRAVITY required)
@@ -123,16 +123,16 @@ GRACKLE_OPTS			# additional options for GRACKLE chemistry solver (Lupi)
 #PM_PLACEHIGHRESREGION=1+2+16   # COSMO enable: particle types to place high-res PMGRID around
 #PM_HIRES_REGION_CLIPPING=1000  # for stability: clips particles that escape the hires region in zoom/isolated sims
 #PM_HIRES_REGION_CLIPDM         # split low-res DM particles that enter high-res region (completely surrounded by high-res)
-#MULTIPLEDOMAINS=64             # Multi-Domain option for the top-tree level: iso=16,COSMO=64-128
+MULTIPLEDOMAINS=64             # Multi-Domain option for the top-tree level: iso=16,COSMO=64-128
 ## -----------------------------------------------------------------------------------------------------
 # ---------------------------------------- Adaptive Grav. Softening (including Lagrangian conservation terms!)
-#ADAPTIVE_GRAVSOFT_FORGAS       # allows variable softening length (=Hsml) for gas particles
+ADAPTIVE_GRAVSOFT_FORGAS       # allows variable softening length (=Hsml) for gas particles
 #ADAPTIVE_GRAVSOFT_FORALL=100   # enable adaptive gravitational softening lengths for all particle types
                                 # (ADAPTIVE_GRAVSOFT_FORGAS should be disabled). the softening is set to the distance
                                 # enclosing a neighbor number set in the parameter file. baryons search for other baryons,
                                 # dm for dm, sidm for sidm, etc. If set to numerical value, the maximum softening is this times All.ForceSoftening[for appropriate particle type]
 ## -----------------------------------------------------------------------------------------------------
-NOGRAVITY                      # turn off self-gravity (compatible with analytic_gravity)
+#NOGRAVITY                      # turn off self-gravity (compatible with analytic_gravity)
 #GRAVITY_NOT_PERIODIC           # self-gravity is not periodic, even though the rest of the box is periodic
 ## -----------------------------------------------------------------------------------------------------
 #ANALYTIC_GRAVITY               # Specific analytic gravitational force to use instead of/with self-gravity. If set to a numerical value

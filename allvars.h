@@ -36,6 +36,7 @@
 #include <omp.h>
 #endif
 
+
 #include "GIZMO_config.h"
 /*------- Things that are always recommended (this must follow loading GIZMO_config.h!) -------*/
 #define DOUBLEPRECISION         /* using double (not floating-point) precision */
@@ -125,6 +126,10 @@
 #endif
 #include <grackle.h>
 #endif
+
+#if defined(SLUG)
+#include "sf/slug_object.h"
+#endif 
 
 #include "gentry_defs.h"
 
@@ -890,7 +895,7 @@ extern int LastInTimeBin[TIMEBINS];
 extern int *NextInTimeBin;
 extern int *PrevInTimeBin;
 
-#ifdef GALSF
+#if defined(GALSF) || defined(STAR_FORMATION)
 extern double TimeBinSfr[TIMEBINS];
 #endif
 
@@ -960,7 +965,7 @@ extern gsl_rng *random_generator;	/*!< the random number generator used */
 
 extern int Gas_split;           /*!< current number of newly-spawned gas particles outside block */
 
-#ifdef GALSF
+#if defined(GALSF) || defined(STAR_FORMATION) 
 extern int Stars_converted;	/*!< current number of star particles in gas particle block */
 #endif
 
@@ -1378,7 +1383,7 @@ extern struct global_data_all_processes
 
 
 
-#ifdef GALSF		/* star formation and feedback sector */
+#if defined(GALSF) || defined(STAR_FORMATION)		/* star formation and feedback sector */
   double CritOverDensity;
   double CritPhysDensity;
   double OverDensThresh;
@@ -1507,7 +1512,7 @@ extern ALIGN(32) struct particle_data
 #endif
 #endif
     
-#ifdef GALSF
+#if defined(GALSF) || defined(STAR_FORMATION)
     MyFloat StellarAge;		/*!< formation time of star particle */
 #endif
 #if defined(FLAG_NOT_IN_PUBLIC_CODE) || defined(GRACKLE_OPTS)
@@ -1574,8 +1579,17 @@ extern ALIGN(32) struct particle_data
     MyFloat ProtoStellar_Radius; /*!< protostellar radius (also tracks evolution from protostar to ZAMS star) */
 #endif
     
-
-    
+#ifdef STAR_FORMATION
+//	Myfloat InitialStellarMass;
+#endif	
+#ifdef SLUG
+    int Nsn; //cumulative number of SNe	
+	int Nsn_timestep; //number of SNe per dt
+	MyDouble Mej_timestep;
+	MyDouble Mej;
+	MyDouble Lum;
+#endif	
+	    
     float GravCost[GRAVCOSTLEVELS];   /*!< weight factor used for balancing the work-load */
     
 #ifdef WAKEUP
@@ -1592,7 +1606,9 @@ extern ALIGN(32) struct particle_data
     short int wakeup;                     /*!< flag to wake up particle */
 #endif
 #endif
-	void *SlugOb;
+#ifdef SLUG	
+	slug_object *SlugOb;
+#endif	
 }
  *P,				/*!< holds particle data on local processor */
  *DomainPartBuf;		/*!< buffer for particle data used in domain decomposition */
@@ -1721,7 +1737,7 @@ extern struct sph_particle_data
 		    density normalized to the hydrogen number density. Gives
 		    indirectly ionization state and mean molecular weight. */
 #endif
-#ifdef GALSF
+#if defined(GALSF) || defined(STAR_FORMATION)
   MyFloat Sfr;                      /*!< particle star formation rate */
 #endif    
     

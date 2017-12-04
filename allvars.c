@@ -148,7 +148,9 @@ int NtypeLocal[6];		/*!< local number of particles of each type */
 gsl_rng *random_generator;	/*!< the random number generator used */
 
 int Gas_split;           /*!< current number of newly-spawned gas particles outside block */
-
+#if defined(GALSF) || defined(STAR_FORMATION)
+int Stars_converted;
+#endif
 double TimeOfLastTreeConstruction;	/*!< holds what it says */
 
 int *Ngblist;			/*!< Buffer to hold indices of neighbours retrieved by the neighbour search

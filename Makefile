@@ -208,8 +208,11 @@ HDF5INCL = -I/usr/local/include -DH5_USE_16_API
 HDF5LIB  = -L/usr/local/lib -lhdf5 -lz
 GRACKLEINCL = -I./grackle/local/include
 GRACKLELIBS = -L./grackle/local/lib -lgrackle -lhdf5
+SLUGINCL = -I/Users/larmillo/slug2/src
+SLUGLIB = -L/Users/larmillo/slug2/src -lslug -lboost_system-mt -lboost_filesystem-mt -lboost_regex-mt -lcfitsio
 MPICHLIB = #
 OPT     += #
+CXXFLAGS = $(CFLAGS) -std=c++11
 endif
 
 
@@ -818,7 +821,8 @@ OBJS    += gentry_fb.o
 endif
 
 ifeq (SLUG,$(findstring SLUG,$(CONFIGVARS)))
-OBJS    += gentry_fb.o
+OBJS    += sf/slug_object.o
+INCL    += sf/slug_object.h
 endif
 
 ifeq (STAR_FORMATION,$(findstring STAR_FORMATION,$(CONFIGVARS)))
@@ -910,14 +914,13 @@ ifeq (TURB_DRIVING,$(findstring TURB_DRIVING,$(CONFIGVARS)))
 OBJS	+= turb/turb_driving.o turb/turb_powerspectra.o
 endif
 
-CFLAGS = $(OPTIONS) $(GSL_INCL) $(FFTW_INCL) $(HDF5INCL) $(GMP_INCL) $(GRACKLEINCL)
+CFLAGS = $(OPTIONS) $(GSL_INCL) $(FFTW_INCL) $(HDF5INCL) $(GMP_INCL) $(GRACKLEINCL) $(SLUGINCL)
 
 ifeq (VIP,$(findstring VIP,$(CONFIGVARS)))
 FFLAGS = $(FOPTIONS)
 else
 FFLAGS = $(OPTIONS)
 endif
-
 
 ifeq (ALTERNATIVE_PSORT,$(findstring ALTERNATIVE_PSORT,$(CONFIGVARS)))
 OBJS  += fof_alt_psort.o modules/psort-1.0/error_handling.o
@@ -928,14 +931,14 @@ endif
 FFTW = $(FFTW_LIBS)  $(FFTW_LIBNAMES) 
 
 
-LIBS   = -lm $(HDF5LIB) -g $(MPICHLIB) $(GSL_LIBS) -lgsl -lgslcblas $(FFTW) $(GRACKLELIBS)
+LIBS   = -lm $(HDF5LIB) -g $(MPICHLIB) $(GSL_LIBS) -lgsl -lgslcblas $(FFTW) $(GRACKLELIBS) $(SLUGLIB)
 
 ifeq (PTHREADS_NUM_THREADS,$(findstring PTHREADS_NUM_THREADS,$(CONFIGVARS))) 
 LIBS   +=  -lpthread
 endif
 
 $(EXEC): $(OBJS) $(FOBJS)  
-	$(FC) $(OPTIMIZE) $(OBJS) $(FOBJS) $(LIBS) $(RLIBS) -o $(EXEC)
+	$(CXX) $(OPTIMIZE) $(OBJS) $(FOBJS) $(LIBS) $(RLIBS) -o $(EXEC)
 
 $(OBJS): $(INCL)  $(CONFIG)  compile_time_info.c
 
