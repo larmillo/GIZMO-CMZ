@@ -638,7 +638,7 @@ void open_outputfiles(void)
 
 
 
-#ifdef GALSF
+#if defined(GALSF) || defined(STAR_FORMATION)
   sprintf(buf, "%s%s", All.OutputDir, "sfr.txt");
   if(!(FdSfr = fopen(buf, mode)))
     {
@@ -1116,7 +1116,7 @@ void read_parameter_file(char *fname)
       strcpy(tag[nt], "CritPhysDensity");
       addr[nt] = &All.CritPhysDensity;
       id[nt++] = REAL;
-
+#ifdef GALSF
       strcpy(tag[nt], "SfEffPerFreeFall");
       addr[nt] = &All.MaxSfrTimescale;
       id[nt++] = REAL;
@@ -1124,12 +1124,12 @@ void read_parameter_file(char *fname)
             defined as the SF timescale in code units at the critical physical 
             density given above. use the dimensionless SfEffPerFreeFall
             to calculate this */
-        
+#else        
       strcpy(tag[nt], "SfEffPerFreeFall");
       addr[nt] = &All.SfEffPerFreeFall;
       id[nt++] = REAL;  
         
-
+#endif
 #endif
 
 #ifdef RESCALEVINI
@@ -1496,13 +1496,13 @@ void read_parameter_file(char *fname)
 
     if(All.ComovingIntegrationOn) {All.ErrTolForceAcc = 0.005; All.ErrTolIntAccuracy = 0.05;}
     All.MaxNumNgbDeviation = All.DesNumNgb / 640.;
-#ifdef GALSF
+#if defined(GALSF) || defined(STAR_FORMATION)
     All.MaxNumNgbDeviation = All.DesNumNgb / 64.;
 #endif	
     if(All.MaxNumNgbDeviation < 0.05) All.MaxNumNgbDeviation = 0.05;
 #ifdef ADAPTIVE_GRAVSOFT_FORALL
     All.AGS_MaxNumNgbDeviation = All.AGS_DesNumNgb / 64.;
-#ifdef GALSF
+#if defined(GALSF) || defined(STAR_FORMATION)
     All.AGS_MaxNumNgbDeviation = All.AGS_DesNumNgb / 32.;
 #endif	
     if(All.AGS_MaxNumNgbDeviation < 0.05) All.AGS_MaxNumNgbDeviation = 0.05;

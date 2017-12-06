@@ -414,7 +414,7 @@ void cooling_and_starformation(void);
 void gas_to_star(void);
 #endif
 #ifdef SLUG
-
+void star_handler(void);
 #endif
 
 #if defined(TURB_DRIVING)

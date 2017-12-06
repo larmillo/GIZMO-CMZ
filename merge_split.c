@@ -428,7 +428,7 @@ void split_particle_i(int i, int n_particles_split, int i_nearest, double r2_nea
     /* this is allowed to push particles over the 'edges' of periodic boxes, because we will call the box-wrapping routine immediately below. 
         but it is important that the periodicity of the box be accounted for in relative positions and that we correct for this before allowing
         any other operations on the particles */
-#ifdef GALSF
+#if defined(GALSF) || defined(STAR_FORMATION)
     SphP[j].Sfr /= 2;
     SphP[i].Sfr /= 2;
 #endif

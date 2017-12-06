@@ -18,8 +18,7 @@ void gas_to_star()
 	double tff, Prandom, Jeans_mass;
 	int stars_converted, tot_stars_converted;
 	double cspeed, RJ, star_probability, dtime, VelGradTens;
-	double mu, alpha, fsh, tau_a, phi_a, theta_a, ModRhoGrad, sfrate = 0.; 
-	double crit_density;
+	double mu, alpha, fsh, tau_a, phi_a, theta_a, ModRhoGrad, sfrate, crit_density = 0;
 	double sfrrate, totsfrrate, sum_sm, total_sm, sum_mass_stars, total_sum_mass_stars, rate, rate_in_msunperyear;
 	sum_sm = sum_mass_stars = 0;
 	int i,j,k, bin;
@@ -33,12 +32,12 @@ void gas_to_star()
 		
 	/* My implementation for SPH code */ 
 	for(i = FirstActiveParticle; i >= 0; i = NextActiveParticle[i])
-	{			
-	dtime = (P[i].TimeBin ? (1 << P[i].TimeBin) : 0) * All.Timebase_interval / All.cf_hubble_a; //TESTARE!!!!
-	
-	if((P[i].Type == 0)&&(P[i].Mass>0)&&(dtime>0.)&&(P[i].TimeBin)) //TESTARE ULTIMA CONDIZIONE!!!!
 	{	
-		SphP[i].Sfr = 0;	
+	//printf('Entra nel ciclo \n');	
+	dtime = (P[i].TimeBin ? (1 << P[i].TimeBin) : 0) * All.Timebase_interval / All.cf_hubble_a; //TESTARE!!!!
+	SphP[i].Sfr = 0;	
+	if((P[i].Type == 0)&&(P[i].Mass>0)&&(dtime>0)&&(P[i].TimeBin)) //TESTARE ULTIMA CONDIZIONE!!!!
+	{		
 		SphP[i].Pressure = get_pressure(i);
 		cspeed = sqrt(GAMMA * SphP[i].Pressure / Particle_density_for_energy_i(i));
 		VelGradTens = 0.;
@@ -46,7 +45,7 @@ void gas_to_star()
 		{
 			for(j = 0; j < 3; j++) VelGradTens += SphP[i].Gradients.Velocity[j][k]*SphP[i].Gradients.Velocity[j][k];
 		}
-		alpha = (VelGradTens + pow(cspeed/Get_Particle_Size(i),2))/(8*PI_VAL*All.G*SphP[i].Density);	
+		alpha = (VelGradTens + pow(cspeed/Get_Particle_Size(i),2))/(8*PI_VAL*All.G*SphP[i].Density);
 		/* Self-gravitating criterion */	
 		if(alpha < 1)
 		{
@@ -63,6 +62,8 @@ void gas_to_star()
 			if(fsh > 0)
 			{	 
 				sfrate *= fsh;
+							
+				// Dovremmo calcolare la temperatura e quindi la densità numerica
 				/* Sufficiently-Dense */
 				mu = 4.0 / (1 + 3 * HYDROGEN_MASSFRAC);	/* note: assuming NEUTRAL GAS */
 				crit_density = All.CritPhysDensity * mu * 1.67e-24 / (All.UnitDensity_in_cgs);
@@ -77,16 +78,13 @@ void gas_to_star()
 						
 						sfrate *= All.SfEffPerFreeFall * P[i].Mass / tff;
 			            SphP[i].Sfr = sfrate * (All.UnitMass_in_g / SOLAR_MASS) / (All.UnitTime_in_s / SEC_PER_YEAR);
+			  	      	if(dtime>0) TimeBinSfr[P[i].TimeBin] += SphP[i].Sfr;
 						
-			  	      	if(dtime>0.) TimeBinSfr[P[i].TimeBin] += SphP[i].Sfr;
-						
-						star_probability = All.SfEffPerFreeFall * fsh * dtime / tff;
-						//star_probability=1.-exp(-sfrate*dtime/tff); //like in Hopkins paper
+						star_probability = All.SfEffPerFreeFall * All.Time / tff;
 						Prandom = get_random_number(ThisTask);
-						//printf("JEANS_MASS %e %e \n",star_probability, Prandom);
 						if (star_probability > Prandom)
 						{
-							P[i].Type = 4;
+							/*P[i].Type = 4;
 			  		      	TimeBinCountSph[P[i].TimeBin]--;
 			  		        TimeBinSfr[P[i].TimeBin] -= SphP[i].Sfr;
 						  
@@ -94,10 +92,6 @@ void gas_to_star()
 							stars_converted+=1;
 							P[i].StellarAge = All.Time;
 							sum_mass_stars += P[i].Mass;
-#ifdef SEPARATE_STELLARDOMAINDECOMP
-							N_stars += 1;
-#endif							
-							printf("STELLA!!!! %e %e \n",star_probability, Prandom);
 							
 #ifdef DO_DENSITY_AROUND_STAR_PARTICLES
                 			P[i].DensAroundStar = SphP[i].Density;
@@ -106,13 +100,9 @@ void gas_to_star()
 #ifdef SLUG
 							//Slug part
 							double particle_mass = P[i].Mass;
-							particle_mass *= (All.UnitMass_in_g / SOLAR_MASS); //solar masses
 							P[i].SlugOb = slug_object_new();
 							slug_construct_cluster(P[i].SlugOb, particle_mass);
-				  		  	size_t sizeSlug = slug_buffer_size(P[i].SlugOb);
-				  		    //printf("Sono qui size +\n");
-				  		    printf("size SF %ld %d \n", sizeSlug, P[i].ID);
-#endif						
+#endif						*/
 						}		
 					}
 				}
@@ -139,7 +129,7 @@ void gas_to_star()
         else
             rate = 0;
         /* convert to solar masses per yr */
-        rate_in_msunperyear = totsfrrate * (All.UnitMass_in_g / SOLAR_MASS) / (All.UnitTime_in_s / SEC_PER_YEAR);
+        rate_in_msunperyear = rate * (All.UnitMass_in_g / SOLAR_MASS) / (All.UnitTime_in_s / SEC_PER_YEAR);
         fprintf(FdSfr, "%g %g %g %g %g\n", All.Time, total_sm, totsfrrate, rate_in_msunperyear, total_sum_mass_stars);
         fflush(FdSfr); // can flush it, because only occuring on master steps anyways
     } // thistask==0
@@ -147,31 +137,21 @@ void gas_to_star()
 	CPU_Step[CPU_COOLINGSFR] += measure_time();		
 }/* end of gas_to_star routine*/
 
-
-#ifdef SLUG
-void star_handler()
+/*void star_handler()
 {
 	double time_cluster, Num_supernovae_tot, Mass_tot;
-	int i;
+	
 	//UNITS FOR SLUG : YEARS AND SOLAR MASSES
-	for(i = FirstActiveParticle; i >= 0; i = NextActiveParticle[i])
-	{
+	
 	if(P[i].Type == 4)
 	{
-		//Mass_tot = slug_get_stellar_mass(P[i].SlugOb);
-		//slug_buffer_size(P[i].SlugOb);
-		//printf("CIAO \n");
-		/*P[i].Nsn_timestep = P[i].Mej_timestep = P[i].Lum = 0;
+		P[i].Nsn_timestep = P[i].Mej_timestep = P[i].Lum = 0;
 		
 		time_cluster = All.Time - P[i].StellarAge;
-		time_cluster *= (All.UnitTime_in_s / SEC_PER_YEAR);
-		slug_advance(P[i].SlugOb, time_cluster);
-		Mass_tot = slug_get_stellar_mass(P[i].SlugOb);
-		printf("Massa = %e\n", P[i].StellarMass);*/
 		//Funzione slug per avanzare il cluster di time_cluster
 		
 		//Funzione slug per calcolare il numero di SN a time_cluster
-		/*P[i].Nsn_timestep = Num_supernovae_tot - P[i].Nsn; //Nsn_tot(current_time) - Nsn_tot(current_time-dt)
+		P[i].Nsn_timestep = Num_supernovae_tot - P[i].Nsn; //Nsn_tot(current_time) - Nsn_tot(current_time-dt)
 		P[i].Nsn = Num_supernovae_tot;//update of cumulative number of SNe
 		
 		//Funzione slug per calcolare la massa del cluster a time_cluster
@@ -185,9 +165,8 @@ void star_handler()
 		
         if (P[i].Nsn_timestep < 0) printf("Warning: Negative value! Nsn_timestep[i] = %d\n", P[i].Nsn_timestep);
         if (P[i].Mej_timestep < 0.0) printf("Warning: Negative value! m_total_eject[i] = %e\n", P[i].Mej_timestep);
-        if (s49_tot_slug[i] < 0.0) printf("Warning: Negetive value! s49_tot_slug[i] = %e\n", s49_tot_slug[i]);*/
- 	    //slug_object_delete(P[i].SlugOb);
-	}}	
+        if (s49_tot_slug[i] < 0.0) printf("Warning: Negetive value! s49_tot_slug[i] = %e\n", s49_tot_slug[i]);
+ 
+	}	
 	
-}	
-#endif
+}*/	

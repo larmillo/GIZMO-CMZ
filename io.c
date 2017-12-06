@@ -449,7 +449,7 @@ void fill_write_buffer(enum iofields blocknr, int *startindex, int pc, int type)
             break;
             
         case IO_SFR:
-#ifdef GALSF
+#if defined(GALSF) 
             for(n = 0; n < pc; pindex++)
                 if(P[pindex].Type == type)
                 {
@@ -462,7 +462,7 @@ void fill_write_buffer(enum iofields blocknr, int *startindex, int pc, int type)
             break;
             
         case IO_AGE:
-#ifdef GALSF
+#if defined(GALSF) || defined(STAR_FORMATION)
             for(n = 0; n < pc; pindex++)
                 if(P[pindex].Type == type)
                 {
@@ -1805,7 +1805,7 @@ int blockpresent(enum iofields blocknr)
             
         case IO_SFR:
         case IO_AGE:
-#ifdef GALSF
+#if defined(GALSF) || defined(STAR_FORMATION)
             if(blocknr == IO_SFR)
                 return 1;
             if(blocknr == IO_AGE)
@@ -3045,7 +3045,7 @@ void write_file(char *fname, int writeTask, int lastTask)
 #endif
 
 #ifdef STAR_FORMATION	
-header.flag_stellarage = 1;
+header.flag_sfr = 1;
 header.flag_stellarage = 1;	
 #endif
     

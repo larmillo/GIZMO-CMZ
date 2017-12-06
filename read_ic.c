@@ -149,7 +149,7 @@ void read_ic(char *fname)
      masses and keeping MassTable fixed won't allow that to happen */
     for(i=0;i<6;i++) All.MassTable[i]=0;
     
-#ifdef GALSF
+#if defined(GALSF) || defined(STAR_FORMATION)
     if(RestartFlag == 0)
     {
         if(All.MassTable[4] == 0 && All.MassTable[0] > 0)
@@ -498,7 +498,7 @@ void empty_read_buffer(enum iofields blocknr, int offset, int pc, int type)
              initial conditions of the code */
             
         case IO_SFR:
-#ifdef GALSF
+#if defined(GALSF) || defined(STAR_FORMATION)
             for(n = 0; n < pc; n++)
              	PPPZ[offset + n].Sfr = *fp++;
 	    break;

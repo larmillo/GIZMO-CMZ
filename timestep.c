@@ -408,7 +408,7 @@ integertime get_timestep(int p,		/*!< particle index */
             if(dt_divv < dt) {dt = dt_divv;}
             double dt_cour = All.CourantFac * (KERNEL_CORE_SIZE*PPP[p].AGS_Hsml*All.cf_atime) / (MIN_REAL_NUMBER + 0.5*P[p].AGS_vsig*All.cf_afac3);
             if(dt_cour < dt) {dt = dt_cour;}
-#ifdef GALSF
+#if defined(GALSF) || defined(STAR_FORMATION)
             if(((P[p].Type == 4)||((All.ComovingIntegrationOn==0)&&((P[p].Type == 2)||(P[p].Type==3))))&&(P[p].Mass>0)) {tmp_ags_h = DMAX(tmp_ags_h , PPP[p].Hsml);}
 #endif	
         }
@@ -653,7 +653,6 @@ integertime get_timestep(int p,		/*!< particle index */
     }
 #endif
     
-    
 #if defined(GRACKLE) && defined(COOLING)
     if(P[p].Type==0)
       {
@@ -806,7 +805,7 @@ void find_dt_displacement_constraint(double hfac /*!<  should be  a^2*H(a)  */ )
         {
             if(count_sum[type] > 0)
             {
-#ifdef GALSF
+#if defined(GALSF) || defined(STAR_FORMATION)
                 if(type == 0 || type == 4)
 #else
                 if(type == 0)

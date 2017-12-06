@@ -245,8 +245,8 @@ OUTPUT_ADDITIONAL_RUNINFO      # enables extended simulation output data (can sl
 
 #NOTEST_FOR_IDUNIQUENESS
 
-#SLUG
-#STAR_FORMATION
+SLUG
+STAR_FORMATION
 
 
 

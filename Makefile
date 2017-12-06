@@ -951,6 +951,13 @@ compile_time_info.c: $(CONFIG)
 clean:
 	rm -f $(OBJS) $(FOBJS) $(EXEC) *.oo *.c~ compile_time_info.c GIZMO_config.h
 
+slug:
+	cd /Users/larmillo/slug2 &&\
+	make clean &&\
+	make MACHINE=darwin MPI=ENABLE_MPI lib &&\
+	cp /Users/larmillo/slug2/src/libslug.dylib /usr/local/lib
+	make
+	
 all:
 	make -C grackle/src/clib/ HDF5_HOME="$(HDF5_HOME)"
 	mkdir -p grackle/local

@@ -674,7 +674,7 @@ void density(void)
                 if((P[i].Type!=0)&&(P[i].Type!=5))
                 {
                     desnumngb = All.DesNumNgb;
-#ifdef GALSF
+#if defined(GALSF) || defined(STAR_FORMATION)
                     if(desnumngb < 64.0) {desnumngb = 64.0;} // we do want a decent number to ensure the area around the particle is 'covered'
                     // if we're finding this for feedback routines, there isn't any good reason to search beyond a modest physical radius //
                     double unitlength_in_kpc=All.UnitLength_in_cm/All.HubbleParam/3.086e21*All.cf_atime;
@@ -729,7 +729,7 @@ void density(void)
                         particle_set_to_minhsml_flag = 1;
                     }
                 }
-#if defined(GALSF) && !defined(GALSF_FB_LUPI)
+#if defined(GALSF) || defined(STAR_FORMATION) && !defined(GALSF_FB_LUPI)
                 if((All.ComovingIntegrationOn)&&(All.Time>All.TimeBegin))
                 {
                     if((P[i].Type==4)&&(iter>1)&&(PPP[i].NumNgb>4)&&(PPP[i].NumNgb<100)&&(redo_particle==1)) {redo_particle=0;}
@@ -1273,13 +1273,14 @@ int density_isactive(int n)
 #ifdef DO_DENSITY_AROUND_STAR_PARTICLES
     if(((P[n].Type == 4)||((All.ComovingIntegrationOn==0)&&((P[n].Type == 2)||(P[n].Type==3))))&&(P[n].Mass>0))
     {
-#if defined(GALSF)
+#if defined(GALSF) || defined(STAR_FORMATION)
         if(P[n].DensAroundStar<=0) return 1;
         // only do stellar age evaluation if we have to //
         if(All.ComovingIntegrationOn==0)
         {
             float star_age=0;
-            star_age = evaluate_stellar_age_Gyr(P[n].StellarAge);
+            star_age = All.Time - P[n].StellarAge;
+			star_age *= 0.001*All.UnitTime_in_Megayears/All.HubbleParam; // convert to absolute Gyr
             if(star_age < 0.035) return 1;
         }
 #endif

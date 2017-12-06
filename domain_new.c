@@ -836,11 +836,10 @@ void domain_exchange(void)
 #endif
   
 #ifdef SLUG
-  int MaxDimSlugBuf = 40000;
   offset_slug[0] = 0;
   for(i = 1; i < NTask; i++)
   {
-  	offset_slug[i] = offset_slug[i - 1] + toGoStars[i - 1] * MaxDimSlugBuf;
+  	offset_slug[i] = offset_slug[i - 1] + toGoStars[i - 1];
   }
 #endif 
 
@@ -870,6 +869,7 @@ void domain_exchange(void)
   keyBuf = (peanokey *) mymalloc("keyBuf", count_togo * sizeof(peanokey));
   
 #ifdef SLUG
+  int MaxDimSlugBuf = 40000;
   char *buf_object = (char*) malloc(count_togo_stars * MaxDimSlugBuf);
   char *buf_recv_object = (char*) malloc(count_get_stars * MaxDimSlugBuf);
   size_t sizeSl = 0;//(size_t*) malloc(NTask*sizeof(size_t));
@@ -884,14 +884,15 @@ void domain_exchange(void)
 #endif
 
 #ifdef SLUG
-  for(i = 0; i < NTask; i++) count_slug[i] = 0;
+  for(i = 0; i < NTask; i++) 
+	  count_slug[i] = 0;
 #endif 
 
 
   for(n = 0; n < NumPart; n++)
     {
 #ifdef SLUG		
-	 P[n].TagExp = ThisTask;  
+	  P[n].TagExp = 0; 
 #endif
 	  	  		
       if((P[n].Type & (32 + 16)) == (32 + 16))
@@ -907,16 +908,15 @@ void domain_exchange(void)
 
 	  target = DomainTask[no];
 	  
-#ifdef SLUG ///parte da sistemare
+#ifdef SLUG 
 	  if(P[n].Type == 4)
 	  {
 		  sizeSl += slug_buffer_size(P[n].SlugOb);
-		  //printf("Sono qui size +\n");
-		  printf("size target %ld %d %d\n", sizeSl, ThisTask, P[n].ID);
-		  slug_pack_buffer(P[n].SlugOb, &buf_object[offset_slug[target] + count_slug[target] * MaxDimSlugBuf]);
-		  //printf("Sono qui \n");
+		  printf("size target %ld %d \n", sizeSl, ThisTask);
+		  slug_pack_buffer(P[n].SlugOb, &buf_object[offset_slug[target] + count_slug[target]]);
 		  slug_object_delete(P[n].SlugOb);
-		  count_slug[target]++;	  	  
+		  count_slug[target]++;
+		  P[n].TagExp = 1;	  	  
 	  }
 #endif  
 
@@ -1023,7 +1023,7 @@ void domain_exchange(void)
   
   for(i = 1; i < NTask; i++)
   {
-  	offset_recv_slug[i] = offset_recv_slug[i - 1] + count_recv_slug[i - 1] * MaxDimSlugBuf;
+  	offset_recv_slug[i] = offset_recv_slug[i - 1] + count_recv_slug[i - 1];
   }
 #endif 
 
@@ -1142,9 +1142,9 @@ void domain_exchange(void)
 #ifdef SLUG
 	  if(count_slug[target] > 0)
 	    {
-	      MPI_Isend(&buf_object[offset_slug[target]], count_slug[target] * MaxDimSlugBuf,
+	      MPI_Isend(&buf_object[offset_slug[target]], sizeSl,
 			MPI_BYTE, target, TAG_PDATA_SLUG, MPI_COMM_WORLD, &requests[n_requests++]);
-	    }		
+	    }			
 #endif	
 		
 	}
@@ -1232,38 +1232,26 @@ void domain_exchange(void)
 
 #endif
 
-  NumPart += count_get;
-  N_gas += count_get_sph;
-#ifdef SEPARATE_STELLARDOMAINDECOMP
-  N_stars += count_get_stars;
-#endif 
-#ifdef SLUG  
-	/*for(n = 0; n < NumPart; n++)
-  	  if (P[n].Type == 4 && P[n].TagExp == 1)
-  		{
-			printf("Ciao %d %d %d %d %d \n", P[n].TagExp, ThisTask, offset_recv_slug[ThisTask], count_recv_slug[0], count_recv_slug[1]);
-			P[n].SlugOb = slug_object_new();
-			slug_reconstruct_cluster(P[n].SlugOb, &buf_recv_object[0]);
-			size_t ciao = slug_buffer_size(P[n].SlugOb);
-			
-		}*/
-    int *l = (int*) malloc(NTask*sizeof(size_t));
-	for (i=0; i<NTask; i++) l[i]=0;
-	for(n = 0; n < NumPart; n++){
-	  	
-  	  if (P[n].Type == 4 && P[n].TagExp != ThisTask)
-  		{ 
-			if(count_recv_slug[P[n].TagExp] > 0)
-			{				//{
-				printf("Ciao %d %d %d %d \n", P[n].TagExp, ThisTask, offset_recv_slug[P[n].TagExp], l[P[n].TagExp]);
-				P[n].SlugOb = slug_object_new();
-				slug_reconstruct_cluster(P[n].SlugOb, &buf_recv_object[offset_recv_slug[P[n].TagExp] + l[P[n].TagExp] * MaxDimSlugBuf]);
-				size_t ciao = slug_buffer_size(P[n].SlugOb);
-				printf("Newsize %d %d %d %d %d %ld\n", P[n].ID, P[n].TagExp, ThisTask, offset_recv_slug[P[n].TagExp], l[P[n].TagExp], ciao);
-				l[P[n].TagExp] +=1;
-	        }}}
-#endif			
+	
+    NumPart += count_get;
+    N_gas += count_get_sph;
+   #ifdef SEPARATE_STELLARDOMAINDECOMP
+    N_stars += count_get_stars;
+   #endif	
 
+#ifdef SLUG	
+  	for(n = 0; n < NumPart; n++){
+    	  if (P[n].Type == 4 && P[n].TagExp == 1)
+    		{ 
+				for(i = 1; i < NTask; i++)
+ 			    {
+  				printf("Ciao %d %d %d %d \n", P[n].TagExp, ThisTask, offset_recv_slug[i], count_recv_slug[i]);
+  				P[n].SlugOb = slug_object_new();
+  				slug_reconstruct_cluster(P[n].SlugOb, &buf_recv_object[offset_recv_slug[i] + count_recv_slug[i]]);
+  				size_t ciao = slug_buffer_size(P[n].SlugOb);
+		        }}}
+#endif
+			
   if(NumPart > All.MaxPart)
     {
       printf("Task=%d NumPart=%d All.MaxPart=%d\n", ThisTask, NumPart, All.MaxPart);
@@ -1278,7 +1266,6 @@ void domain_exchange(void)
   buf_object = NULL;
   free(buf_recv_object);
   buf_recv_object = NULL;
-
 #endif 
 
   myfree(keyBuf);

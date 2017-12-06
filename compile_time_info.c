@@ -12,5 +12,7 @@ printf(
 "        ADAPTIVE_GRAVSOFT_FORGAS\n"
 "        HAVE_HDF5\n"
 "        OUTPUT_ADDITIONAL_RUNINFO\n"
+"        SLUG\n"
+"        STAR_FORMATION\n"
 "\n");
 }

@@ -252,7 +252,7 @@
 
 
 
-#if defined(GALSF) || defined(FLAG_NOT_IN_PUBLIC_CODE) || defined(FLAG_NOT_IN_PUBLIC_CODE) || defined(FLAG_NOT_IN_PUBLIC_CODE) || defined(FLAG_NOT_IN_PUBLIC_CODE) || defined(FLAG_NOT_IN_PUBLIC_CODE) || defined(FLAG_NOT_IN_PUBLIC_CODE) || defined(FLAG_NOT_IN_PUBLIC_CODE) || defined(FLAG_NOT_IN_PUBLIC_CODE) || defined(FLAG_NOT_IN_PUBLIC_CODE) || defined(FLAG_NOT_IN_PUBLIC_CODE)
+#if defined(GALSF) || defined(STAR_FORMATION) || defined(FLAG_NOT_IN_PUBLIC_CODE) || defined(FLAG_NOT_IN_PUBLIC_CODE) || defined(FLAG_NOT_IN_PUBLIC_CODE) || defined(FLAG_NOT_IN_PUBLIC_CODE) || defined(FLAG_NOT_IN_PUBLIC_CODE) || defined(FLAG_NOT_IN_PUBLIC_CODE) || defined(FLAG_NOT_IN_PUBLIC_CODE) || defined(FLAG_NOT_IN_PUBLIC_CODE) || defined(FLAG_NOT_IN_PUBLIC_CODE)
 #define DO_DENSITY_AROUND_STAR_PARTICLES
 #endif
 
@@ -953,6 +953,9 @@ extern char DumpFlag;
 
 extern int NumPart;		/*!< number of particles on the LOCAL processor */
 extern int N_gas;		/*!< number of gas particles on the LOCAL processor  */
+#ifdef SLUG
+#define SEPARATE_STELLARDOMAINDECOMP
+#endif
 #ifdef SEPARATE_STELLARDOMAINDECOMP
 extern int N_stars;
 #endif
@@ -1514,6 +1517,7 @@ extern ALIGN(32) struct particle_data
     
 #if defined(GALSF) || defined(STAR_FORMATION)
     MyFloat StellarAge;		/*!< formation time of star particle */
+	MyFloat StellarMass;
 #endif
 #if defined(FLAG_NOT_IN_PUBLIC_CODE) || defined(GRACKLE_OPTS)
     MyFloat Metallicity[NUM_METAL_SPECIES]; /*!< metallicity (species-by-species) of gas or star particle */
@@ -1608,6 +1612,7 @@ extern ALIGN(32) struct particle_data
 #endif
 #ifdef SLUG	
 	slug_object *SlugOb;
+	int TagExp;
 #endif	
 }
  *P,				/*!< holds particle data on local processor */

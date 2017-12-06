@@ -99,4 +99,5 @@
 #define TAG_PDATA_BHS     95
 #define TAG_KEY_BHS       96
 #define TAG_BHDATA        97
+#define TAG_PDATA_SLUG    98
 

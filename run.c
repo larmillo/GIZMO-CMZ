@@ -255,6 +255,9 @@ void calculate_non_standard_physics(void)
 #endif // closes if GALSF
 #ifdef STAR_FORMATION
 	gas_to_star();
+#ifdef SLUG
+	star_handler();	
+#endif				
 	CPU_Step[CPU_COOLINGSFR] += measure_time();    
 #endif /*ends COOLING */    
     
