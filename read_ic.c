@@ -55,6 +55,7 @@ void read_ic(char *fname)
     
     NumPart = 0;
     N_gas = 0;
+	N_stars = 0;
     All.TotNumPart = 0;
     
     num_files = find_files(fname);
@@ -224,11 +225,15 @@ void empty_read_buffer(enum iofields blocknr, int offset, int pc, int type)
     MyInputPosFloat *fp_pos;
     MyIDType *ip;
     float *fp_single;
+	size_t *ip_sizet;
+	char *fp_char;
     
     fp = (MyInputFloat *) CommBuffer;
     fp_pos = (MyInputPosFloat *) CommBuffer;
     fp_single = (float *) CommBuffer;
     ip = (MyIDType *) CommBuffer;
+	ip_sizet = (size_t *) CommBuffer;
+	fp_char = (char *) CommBuffer;
     
     switch (blocknr)
     {
@@ -271,6 +276,19 @@ void empty_read_buffer(enum iofields blocknr, int offset, int pc, int type)
                     P[offset + n].ID_child_number = *ip++;
             }
             break;
+			
+        case IO_SLUGSIZE:		
+#ifdef SLUG		
+		if(RestartFlag == 2){
+			for(n = 0; n < pc; n++)
+			if (P[offset + n].Type == 4)
+				{	
+                    P[offset + n].SlugOb_size = *ip_sizet++;
+					//printf("%ld \n",P[offset + n].SlugOb_size);
+        		}
+		}		
+#endif			
+            break;			
 
         case IO_GENERATION_ID:		// particle generation ID //
             if(RestartFlag == 2)
@@ -333,6 +351,24 @@ void empty_read_buffer(enum iofields blocknr, int offset, int pc, int type)
                 P[offset + n].StellarAge = *fp++;
 #endif		
             break;
+			
+        case IO_SLUG:		
+#if defined(SLUG)
+			if(RestartFlag == 2){
+				for(n = 0; n < pc; n++){	
+				if (P[offset + n].Type == 4){
+			    //printf("Slug buffer size %ld %d \n", P[offset + n].SlugOb_size, P[offset + n].ID);
+				size_t dimBuf = P[offset + n].SlugOb_size;
+				char *buf_slug = (char*) malloc(dimBuf);
+				for(int i = 0; i < dimBuf; i++) buf_slug[i] = fp_char[i];
+				fp_char += MAX_SLUGBUFF_SIZE;
+				P[offset + n].SlugOb = slug_object_new();
+				slug_reconstruct_cluster(P[offset + n].SlugOb, buf_slug);
+				free (buf_slug);
+				buf_slug = NULL;
+			}}}
+#endif		
+        break;			
             
         case IO_GRAINSIZE:
 #ifdef GRAIN_FLUID
@@ -1007,7 +1043,11 @@ void read_file(char *fname, int readTask, int lastTask)
                                         hdf5_dataset = H5Dopen(hdf5_grp[type], buf);
                                         
                                         dims[0] = header.npart[type];
+#ifdef SLUG
+										dims[1] = get_values_per_blockelement(blocknr, type);
+#else																				
                                         dims[1] = get_values_per_blockelement(blocknr);
+#endif																			
                                         if(dims[1] == 1)
                                             rank = 1;
                                         else
@@ -1022,7 +1062,11 @@ void read_file(char *fname, int readTask, int lastTask)
                                         start[1] = 0;
                                         
                                         count[0] = pc;
+#ifdef SLUG
+										count[1] = get_values_per_blockelement(blocknr, type);
+#else																				
                                         count[1] = get_values_per_blockelement(blocknr);
+#endif
                                         pcsum += pc;
                                         
                                         H5Sselect_hyperslab(hdf5_dataspace_in_file, H5S_SELECT_SET,
@@ -1051,6 +1095,12 @@ void read_file(char *fname, int readTask, int lastTask)
                                                 hdf5_datatype = H5Tcopy(H5T_NATIVE_FLOAT);
 #endif
                                                 break;
+                                            case 4:
+											    hdf5_datatype = H5Tcopy(H5T_NATIVE_CHAR);
+											    break;	
+											case 5:
+											    hdf5_datatype = H5Tcopy(H5T_NATIVE_ULONG);
+											    break;	
                                         }
                                         
                                         H5Dread(hdf5_dataset, hdf5_datatype, hdf5_dataspace_in_memory,

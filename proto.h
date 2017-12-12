@@ -301,7 +301,12 @@ void write_file(char *fname, int readTask, int lastTask);
 void distribute_file(int nfiles, int firstfile, int firsttask, int lasttask, int *filenr, int *master,
 		     int *last);
 
-int get_values_per_blockelement(enum iofields blocknr);
+
+#ifdef SLUG
+			 int get_values_per_blockelement(enum iofields blocknr, int type);
+#else
+			 int get_values_per_blockelement(enum iofields blocknr);
+#endif
 
 int get_datatype_in_block(enum iofields blocknr);
 void get_dataset_name(enum iofields blocknr, char *buf);

@@ -110,8 +110,16 @@ void gas_to_star()
 							P[i].SlugOb = slug_object_new();
 							slug_construct_cluster(P[i].SlugOb, particle_mass);
 				  		  	size_t sizeSlug = slug_buffer_size(P[i].SlugOb);
+							P[i].SlugOb_size = sizeSlug;
 				  		    //printf("Sono qui size +\n");
-				  		    printf("size SF %ld %d \n", sizeSlug, P[i].ID);
+							//char *buf_slug = (char*) malloc(sizeSlug);
+							//slug_pack_buffer(P[i].SlugOb, buf_slug);
+							//for (int n=0;n<30000;n++) 
+							//printf("Slug buf %c \n", buf_slug[100]);
+							
+							//free (buf_slug);
+							//buf_slug = NULL;
+							printf("size SF %ld %d \n", P[i].SlugOb_size, P[i].ID);
 #endif						
 						}		
 					}

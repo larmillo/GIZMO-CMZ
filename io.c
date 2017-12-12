@@ -30,6 +30,7 @@ static long long ntot_type_all[6];
 
 static int n_info;
 
+
 /*! This function writes a snapshot of the particle distribution to one or
  * several files using Gadget's default file format.  If
  * NumFilesPerSnapshot>1, the snapshot is distributed into several files,
@@ -181,7 +182,9 @@ void fill_write_buffer(enum iofields blocknr, int *startindex, int pc, int type)
     MyOutputPosFloat *fp_pos;
     MyIDType *ip;
     int *ip_int;
+	size_t *ip_sizet;
     float *fp_single;
+	char *fp_char;
     integertime dt_step;
     
 #ifdef PERIODIC
@@ -226,6 +229,8 @@ void fill_write_buffer(enum iofields blocknr, int *startindex, int pc, int type)
     fp_pos = (MyOutputPosFloat *) CommBuffer;
     ip = (MyIDType *) CommBuffer;
     ip_int = (int *) CommBuffer;
+	ip_sizet = (size_t *) CommBuffer;
+	fp_char = (char *) CommBuffer;
     
     pindex = *startindex;
     
@@ -318,7 +323,7 @@ void fill_write_buffer(enum iofields blocknr, int *startindex, int pc, int type)
                     n++;
                 }
             break;
-
+			 
         case IO_MASS:		/* particle mass */
             for(n = 0; n < pc; pindex++)
                 if(P[pindex].Type == type)
@@ -671,7 +676,40 @@ void fill_write_buffer(enum iofields blocknr, int *startindex, int pc, int type)
                 }
 #endif
             break;
-            
+			
+        case IO_SLUG:   /*slug buffer object*/
+#ifdef SLUG
+        for(n = 0; n < pc; pindex++)
+            if(P[pindex].Type == type)
+            {
+                if(P[pindex].Type == 4) //probabilmente posso non specificare, allocare un'oggetto con dimensione minima
+				{
+					size_t dimBuf = slug_buffer_size(P[pindex].SlugOb);
+					char *buf_slug = (char*) malloc(dimBuf);
+					slug_pack_buffer(P[pindex].SlugOb, buf_slug);
+					for(int i = 0; i < dimBuf; i++) fp_char[i] = buf_slug[i];
+					for(int i = dimBuf; i < MAX_SLUGBUFF_SIZE; i++) fp_char[i] = 'A';
+					fp_char += MAX_SLUGBUFF_SIZE;
+					free (buf_slug);
+					buf_slug = NULL;
+				}	
+                n++;
+            }
+#endif				
+		    break;
+		
+        case IO_SLUGSIZE:	/* size of particle object */
+#ifdef SLUG		
+             for(n = 0; n < pc; pindex++)
+                if(P[pindex].Type == type)
+                 {
+	                if(P[pindex].Type == 4) *ip_sizet++ = P[pindex].SlugOb_size;
+					//if(P[pindex].Type == 4)  printf("size SF %ld %d \n", P[pindex].SlugOb_size, P[pindex].ID);
+                    n++;
+                 }
+#endif				 
+             break;			   
+			
         case IO_COSMICRAY_ENERGY:	/* energy in the cosmic ray field  */
             break;
             
@@ -1236,7 +1274,26 @@ int get_bytes_per_blockelement(enum iofields blocknr, int mode)
                 bytes_per_blockelement = (N_IMF_FORMPROPS) * sizeof(MyOutputFloat);
 #endif
             break;
-            
+			
+        case IO_SLUG:
+#ifdef SLUG		
+            if(mode)
+                bytes_per_blockelement = MAX_SLUGBUFF_SIZE;
+            else
+                bytes_per_blockelement = MAX_SLUGBUFF_SIZE;
+#endif		
+            break;
+			
+        case IO_SLUGSIZE:
+#ifdef SLUG	
+            if(mode)
+                bytes_per_blockelement = sizeof(size_t);
+            else
+                bytes_per_blockelement = sizeof(size_t);
+#endif		
+            break;
+			
+			    
         case IO_RADGAMMA:
             break;
             
@@ -1328,13 +1385,29 @@ int get_datatype_in_block(enum iofields blocknr)
             typekey = 0;		/* native int */
 #endif
             break;
-
+			
+	    case IO_SLUG:
+#ifdef SLUG
+		    typekey = 4;  /*char*/
+#else
+			typekey = 0;			
+#endif				
+		break;	
         case IO_GENERATION_ID:
         case IO_TRUENGB:
         case IO_BHPROGS:
             typekey = 0;		/* native int */
             break;
-            
+			
+
+        case IO_SLUGSIZE:
+#ifdef SLUG		
+            typekey = 5;		/* unsigned long */
+#else
+			typekey = 0;			
+#endif			
+            break;  
+				          
         default:
             typekey = 1;		/* native MyOutputFloat */
             break;
@@ -1345,7 +1418,11 @@ int get_datatype_in_block(enum iofields blocknr)
 
 
 
-int get_values_per_blockelement(enum iofields blocknr)
+int get_values_per_blockelement(enum iofields blocknr 
+#ifdef SLUG
+, int type
+#endif	
+	)
 {
     int values = 0;
     
@@ -1457,6 +1534,21 @@ int get_values_per_blockelement(enum iofields blocknr)
         case IO_grHDI:
             values = 1;
             break;
+			
+        case IO_SLUGSIZE:
+#ifdef SLUG	
+		if(type == 4) 
+		{
+			values = 1;
+		}
+		else
+		{
+			values = 0;
+		}		
+#else			
+	        values = 0;
+#endif
+            break;
             
         case IO_EDDINGTON_TENSOR:
             values = 0;
@@ -1482,8 +1574,21 @@ int get_values_per_blockelement(enum iofields blocknr)
             values = 0;
 #endif
             break;
-
-            
+			
+	    case IO_SLUG:
+#ifdef SLUG	
+		if(type == 4) 
+		{
+			values = 30000;
+		}
+		else
+		{
+			values = 0;
+		}		
+#else			
+	        values = 0;
+#endif			
+	        break;
         case IO_TIDALTENSORPS:
             values = 9;
             break;
@@ -1674,7 +1779,12 @@ long get_particles_in_block(enum iofields blocknr, int *typelist)
             for(i = 1; i < 6; i++) {if(i != 4 && i != 5) {typelist[i] = 0;}}
             return nstars + header.npart[5];
             break;
-            
+		
+		 case IO_SLUGSIZE:	
+	     case IO_SLUG:
+	        for(i = 1; i < 6; i++) {if(i != 4) {typelist[i] = 0;}}
+	        return nstars;
+	        break;            
             
         case IO_TRUENGB:
             nngb = ngas;
@@ -1959,14 +2069,22 @@ int blockpresent(enum iofields blocknr)
             return 0;
 #endif
             break;
-            
-        case IO_IMF:
-#ifdef GALSF_SFR_IMF_VARIATION
+        case IO_SLUGSIZE:    
+        case IO_SLUG:
+#ifdef SLUG
             return 1;
 #else
             return 0;
 #endif
             break;
+			
+	    case IO_IMF:
+#ifdef GALSF_SFR_IMF_VARIATION
+            return 1;
+#else
+            return 0;
+#endif
+            break;			
             
         case IO_OSTAR:
 #ifdef GALSF_SFR_IMF_SAMPLING
@@ -2388,6 +2506,12 @@ void get_Tab_IO_Label(enum iofields blocknr, char *label)
         case IO_IMF:
             strncpy(label, "IMF ", 4);
             break;
+        case IO_SLUGSIZE:
+            strncpy(label, "SlugSize ", 4);
+            break;
+	    case IO_SLUG:
+	        strncpy(label, "Slug ", 4);
+	        break;			
         case IO_OSTAR:
             strncpy(label, "IMF ", 4);
             break;    
@@ -2741,6 +2865,12 @@ void get_dataset_name(enum iofields blocknr, char *buf)
             break;
         case IO_IMF:
             strcpy(buf, "IMFFormationProperties");
+            break;
+        case IO_SLUGSIZE:
+            strcpy(buf, "SlugOb_Size");
+            break;			
+        case IO_SLUG:
+            strcpy(buf, "SlugBuffer");
             break;
         case IO_OSTAR:
             strcpy(buf, "OStarNumber");
@@ -3139,7 +3269,11 @@ header.flag_stellarage = 1;
                 {
                     for(type = 0; type < 6; type++)
                         InfoBlock[n_info].is_present[type] = typelist[type];
-                    InfoBlock[n_info].ndim = get_values_per_blockelement(blocknr);
+#ifdef SLUG
+					InfoBlock[n_info].ndim = get_values_per_blockelement(blocknr, type);
+#else
+					InfoBlock[n_info].ndim = get_values_per_blockelement(blocknr);
+#endif															
                     get_Tab_IO_Label(blocknr, label);
                     for(i = 0; i < 4; i++)
                         InfoBlock[n_info].label[i] = label[i];
@@ -3182,7 +3316,7 @@ header.flag_stellarage = 1;
                             else
                                 strncpy(InfoBlock[n_info].type, "FLOATN  ", 8);
 #endif
-                            break;
+                            break;	
                     }
                     n_info++;
                 }
@@ -3268,10 +3402,21 @@ header.flag_stellarage = 1;
                                     hdf5_datatype = H5Tcopy(H5T_NATIVE_FLOAT);
 #endif
                                     break;
+								case 4:
+								    hdf5_datatype = H5Tcopy(H5T_NATIVE_CHAR);
+								    break;	
+								case 5:
+								    hdf5_datatype = H5Tcopy(H5T_NATIVE_ULONG);
+								    break;		
                             }
                             
                             dims[0] = header.npart[type];
-                            dims[1] = get_values_per_blockelement(blocknr);
+                            
+#ifdef SLUG
+							dims[1] = get_values_per_blockelement(blocknr, type);
+#else
+							dims[1] = get_values_per_blockelement(blocknr);
+#endif																					
                             if(dims[1] == 1)
                                 rank = 1;
                             else
@@ -3329,14 +3474,22 @@ header.flag_stellarage = 1;
                                         start[1] = 0;
                                         
                                         count[0] = pc;
-                                        count[1] = get_values_per_blockelement(blocknr);
+#ifdef SLUG
+										count[1] = get_values_per_blockelement(blocknr, type);
+#else										
+										count[1] = get_values_per_blockelement(blocknr);
+#endif																				
                                         pcsum += pc;
                                         
                                         H5Sselect_hyperslab(hdf5_dataspace_in_file, H5S_SELECT_SET,
                                                             start, NULL, count, NULL);
                                         
                                         dims[0] = pc;
-                                        dims[1] = get_values_per_blockelement(blocknr);
+#ifdef SLUG
+										dims[1] = get_values_per_blockelement(blocknr, type);
+#else										
+										dims[1] = get_values_per_blockelement(blocknr);
+#endif	
                                         hdf5_dataspace_memory = H5Screate_simple(rank, dims, NULL);
                                         
                                         hdf5_status =

@@ -651,8 +651,9 @@ typedef unsigned long long peanokey;
 
 #define MINRESTFAC 0.05
 
-
-
+#ifdef SLUG
+#define MAX_SLUGBUFF_SIZE 30000
+#endif
 
 #define GDE_TYPES 2
 
@@ -1613,6 +1614,7 @@ extern ALIGN(32) struct particle_data
 #ifdef SLUG	
 	slug_object *SlugOb;
 	int TagExp;
+	size_t SlugOb_size;
 #endif	
 }
  *P,				/*!< holds particle data on local processor */
@@ -2030,6 +2032,8 @@ enum iofields
   IO_BFLD,
   IO_DBDT,
   IO_IMF,
+  IO_SLUGSIZE,
+  IO_SLUG,
   IO_COSMICRAY_ENERGY,
   IO_DIVB,
   IO_ABVC,
