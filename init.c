@@ -247,8 +247,11 @@ void init(void)
         if(RestartFlag == 0)
         {
             P[i].StellarAge = 0;
+			P[i].Nsn_tot = 0;
+			P[i].SlugMass = 0;
         }
 #endif
+		
         if(RestartFlag != 1)
         {
 #if defined(DO_DENSITY_AROUND_STAR_PARTICLES)

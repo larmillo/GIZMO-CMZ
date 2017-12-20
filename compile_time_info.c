@@ -8,11 +8,10 @@ printf(
 "        GRACKLE\n"
 "        GRACKLE_CHEMISTRY=0\n"
 "        GRACKLE_OPTS\n"
-"        MULTIPLEDOMAINS=64\n"
-"        ADAPTIVE_GRAVSOFT_FORGAS\n"
 "        HAVE_HDF5\n"
 "        OUTPUT_ADDITIONAL_RUNINFO\n"
 "        SLUG\n"
 "        STAR_FORMATION\n"
+"        SN_FEEDBACK\n"
 "\n");
 }

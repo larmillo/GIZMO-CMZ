@@ -580,6 +580,8 @@ typedef unsigned long long peanokey;
 #define  C           2.9979e10
 #define  PLANCK      6.6262e-27
 #define  CM_PER_MPC  3.085678e24
+#define  CM_PER_KPC  3.085678e21
+#define  CM_PER_PC  3.085678e18
 #define  PROTONMASS  1.6726e-24
 #define  ELECTRONMASS 9.10953e-28
 #define  THOMPSON     6.65245e-25
@@ -652,7 +654,7 @@ typedef unsigned long long peanokey;
 #define MINRESTFAC 0.05
 
 #ifdef SLUG
-#define MAX_SLUGBUFF_SIZE 30000
+#define MAX_SLUGBUFF_SIZE 170000
 #endif
 
 #define GDE_TYPES 2
@@ -1587,14 +1589,7 @@ extern ALIGN(32) struct particle_data
 #ifdef STAR_FORMATION
 //	Myfloat InitialStellarMass;
 #endif	
-#ifdef SLUG
-    int Nsn; //cumulative number of SNe	
-	int Nsn_timestep; //number of SNe per dt
-	MyDouble Mej_timestep;
-	MyDouble Mej;
-	MyDouble Lum;
-#endif	
-	    
+		    
     float GravCost[GRAVCOSTLEVELS];   /*!< weight factor used for balancing the work-load */
     
 #ifdef WAKEUP
@@ -1615,7 +1610,22 @@ extern ALIGN(32) struct particle_data
 	slug_object *SlugOb;
 	int TagExp;
 	size_t SlugOb_size;
+
+    int Nsn_tot; //cumulative number of SNe	
+	int Nsn_timestep; //number of SNe in dt
+	MyDouble Mej; //ejecta mass in dt
+	MyDouble SlugMass; //Mass if Slug cluster
 #endif	
+#ifdef SN_FEEDBACK
+	//MyDouble omegab_tot;
+#ifdef DO_DENSITY_AROUND_STAR_PARTICLES	
+	MyFloat NVT[3][3];
+#endif	
+	MyDouble omegab_p[3];
+	MyDouble omegab_m[3];
+	MyDouble wb_tot;
+#endif		
+	
 }
  *P,				/*!< holds particle data on local processor */
  *DomainPartBuf;		/*!< buffer for particle data used in domain decomposition */
@@ -1738,7 +1748,11 @@ extern struct sph_particle_data
    MyFloat SmoothedVel[3];
 #endif
 
-
+#ifdef SN_FEEDBACK
+   MyDouble omega_b;
+   MyDouble wb[3];
+#endif
+      
 #ifdef COOLING
   MyFloat Ne;  /*!< electron fraction, expressed as local electron number
 		    density normalized to the hydrogen number density. Gives

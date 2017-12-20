@@ -418,9 +418,23 @@ void cooling_and_starformation(void);
 #ifdef STAR_FORMATION
 void gas_to_star(void);
 #endif
-#ifdef SLUG
-void star_handler(void);
+
+#ifdef SN_FEEDBACK
+void omegab_calc(void);
+int omegab_evaluate(int target, int mode, int *exportflag, int *exportnodecount, int *exportindex, int *ngblist);
+void *omegab_evaluate_primary(void *p);
+void *omegab_evaluate_secondary(void *p);
+void wb_calc(void);
+int wb_evaluate(int target, int mode, int *exportflag, int *exportnodecount, int *exportindex, int *ngblist);
+void *wb_evaluate_primary(void *p);
+void *wb_evaluate_secondary(void *p);
+void SNproduction(void);
+void sn_feedback_calc(void);
+int FB_evaluate(int target, int mode, int *exportflag, int *exportnodecount, int *exportindex, int *ngblist);
+void *FB_evaluate_primary(void *p);
+void *FB_evaluate_secondary(void *p);
 #endif
+
 
 #if defined(TURB_DRIVING)
 void do_turb_driving_step_first_half(void);

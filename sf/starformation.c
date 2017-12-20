@@ -94,6 +94,7 @@ void gas_to_star()
 							stars_converted+=1;
 							P[i].StellarAge = All.Time;
 							sum_mass_stars += P[i].Mass;
+							
 #ifdef SEPARATE_STELLARDOMAINDECOMP
 							N_stars += 1;
 #endif							
@@ -111,14 +112,9 @@ void gas_to_star()
 							slug_construct_cluster(P[i].SlugOb, particle_mass);
 				  		  	size_t sizeSlug = slug_buffer_size(P[i].SlugOb);
 							P[i].SlugOb_size = sizeSlug;
-				  		    //printf("Sono qui size +\n");
-							//char *buf_slug = (char*) malloc(sizeSlug);
-							//slug_pack_buffer(P[i].SlugOb, buf_slug);
-							//for (int n=0;n<30000;n++) 
-							//printf("Slug buf %c \n", buf_slug[100]);
+							P[i].SlugMass = slug_get_stoch_sn(P[i].SlugOb);
 							
-							//free (buf_slug);
-							//buf_slug = NULL;
+
 							printf("size SF %ld %d \n", P[i].SlugOb_size, P[i].ID);
 #endif						
 						}		
@@ -155,47 +151,3 @@ void gas_to_star()
 	CPU_Step[CPU_COOLINGSFR] += measure_time();		
 }/* end of gas_to_star routine*/
 
-
-#ifdef SLUG
-void star_handler()
-{
-	double time_cluster, Num_supernovae_tot, Mass_tot;
-	int i;
-	//UNITS FOR SLUG : YEARS AND SOLAR MASSES
-	for(i = FirstActiveParticle; i >= 0; i = NextActiveParticle[i])
-	{
-	if(P[i].Type == 4)
-	{
-		//Mass_tot = slug_get_stellar_mass(P[i].SlugOb);
-		//slug_buffer_size(P[i].SlugOb);
-		//printf("CIAO \n");
-		/*P[i].Nsn_timestep = P[i].Mej_timestep = P[i].Lum = 0;
-		
-		time_cluster = All.Time - P[i].StellarAge;
-		time_cluster *= (All.UnitTime_in_s / SEC_PER_YEAR);
-		slug_advance(P[i].SlugOb, time_cluster);
-		Mass_tot = slug_get_stellar_mass(P[i].SlugOb);
-		printf("Massa = %e\n", P[i].StellarMass);*/
-		//Funzione slug per avanzare il cluster di time_cluster
-		
-		//Funzione slug per calcolare il numero di SN a time_cluster
-		/*P[i].Nsn_timestep = Num_supernovae_tot - P[i].Nsn; //Nsn_tot(current_time) - Nsn_tot(current_time-dt)
-		P[i].Nsn = Num_supernovae_tot;//update of cumulative number of SNe
-		
-		//Funzione slug per calcolare la massa del cluster a time_cluster
-		P[i].Mej_timestep = Mass_tot - P[i].Mej;
-		P[i].Mej = Mass_ejecta_tot;
-		P[i].Mass -= P[i].mej_timestep;
-		
-		
-		//Funzione slug per calcolare la luminosità
-		P[i].Lum = ;
-		
-        if (P[i].Nsn_timestep < 0) printf("Warning: Negative value! Nsn_timestep[i] = %d\n", P[i].Nsn_timestep);
-        if (P[i].Mej_timestep < 0.0) printf("Warning: Negative value! m_total_eject[i] = %e\n", P[i].Mej_timestep);
-        if (s49_tot_slug[i] < 0.0) printf("Warning: Negetive value! s49_tot_slug[i] = %e\n", s49_tot_slug[i]);*/
- 	    //slug_object_delete(P[i].SlugOb);
-	}}	
-	
-}	
-#endif

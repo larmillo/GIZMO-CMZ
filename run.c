@@ -104,9 +104,9 @@ void run(void)
         }
 #endif
 
-#if (defined(FLAG_NOT_IN_PUBLIC_CODE) || defined(FLAG_NOT_IN_PUBLIC_CODE) || defined(FLAG_NOT_IN_PUBLIC_CODE))
-        /* flag particles which will be feedback centers, so kernel lengths can be computed for them */
-        determine_where_SNe_occur();
+#if (defined(SN_FEEDBACK) || defined(FLAG_NOT_IN_PUBLIC_CODE) || defined(FLAG_NOT_IN_PUBLIC_CODE))
+        /* flag particles which will be feedback centers */
+        SNproduction();
 #endif
         
         compute_hydro_densities_and_forces();	/* densities, gradients, & hydro-accels for synchronous particles */
@@ -206,7 +206,12 @@ void calculate_non_standard_physics(void)
 #ifdef PARTICLE_EXCISION
     apply_excision();
 #endif
+
     
+#ifdef STAR_FORMATION
+    /* PFH set of feedback routines */
+    compute_stellar_feedback();
+#endif    
     
 #if defined(TURB_DRIVING)
 #ifdef EOS_ENFORCE_ADIABAT
@@ -254,10 +259,7 @@ void calculate_non_standard_physics(void)
 	CPU_Step[CPU_COOLINGSFR] += measure_time(); // finish time calc for SFR+cooling
 #endif // closes if GALSF
 #ifdef STAR_FORMATION
-	gas_to_star();
-#ifdef SLUG
-	star_handler();	
-#endif				
+	gas_to_star();	
 	CPU_Step[CPU_COOLINGSFR] += measure_time();    
 #endif /*ends COOLING */    
     

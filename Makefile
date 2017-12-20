@@ -829,6 +829,12 @@ ifeq (STAR_FORMATION,$(findstring STAR_FORMATION,$(CONFIGVARS)))
 OBJS    += sf/starformation.o
 endif
 
+ifeq (SN_FEEDBACK,$(findstring SN_FEEDBACK,$(CONFIGVARS)))
+OBJS    += sf/snfeedback.o
+OBJS    += sf/omegab_weights.o
+OBJS    += sf/wb_weights.o
+endif
+
 ifeq (BLACK_HOLES,$(findstring BLACK_HOLES,$(CONFIGVARS)))
 OBJS    += galaxy_sf/blackholes/blackhole.o
 OBJS    += galaxy_sf/blackholes/blackhole_util.o

@@ -353,7 +353,7 @@ void empty_read_buffer(enum iofields blocknr, int offset, int pc, int type)
             break;
 			
         case IO_SLUG:		
-#if defined(SLUG)
+#ifdef SLUG
 			if(RestartFlag == 2){
 				for(n = 0; n < pc; n++){	
 				if (P[offset + n].Type == 4){
@@ -362,10 +362,14 @@ void empty_read_buffer(enum iofields blocknr, int offset, int pc, int type)
 				char *buf_slug = (char*) malloc(dimBuf);
 				for(int i = 0; i < dimBuf; i++) buf_slug[i] = fp_char[i];
 				fp_char += MAX_SLUGBUFF_SIZE;
-				P[offset + n].SlugOb = slug_object_new();
+				P[offset + n].SlugOb = slug_object_new();							
 				slug_reconstruct_cluster(P[offset + n].SlugOb, buf_slug);
 				free (buf_slug);
 				buf_slug = NULL;
+#ifdef SN_FEEDBACK
+				P[offset + n].Nsn_tot = slug_get_stoch_sn(P[offset + n].SlugOb);
+				P[offset + n].SlugMass = slug_get_stellar_mass(P[offset + n].SlugOb);	
+#endif	
 			}}}
 #endif		
         break;			

@@ -123,10 +123,10 @@ GRACKLE_OPTS			# additional options for GRACKLE chemistry solver (Lupi)
 #PM_PLACEHIGHRESREGION=1+2+16   # COSMO enable: particle types to place high-res PMGRID around
 #PM_HIRES_REGION_CLIPPING=1000  # for stability: clips particles that escape the hires region in zoom/isolated sims
 #PM_HIRES_REGION_CLIPDM         # split low-res DM particles that enter high-res region (completely surrounded by high-res)
-MULTIPLEDOMAINS=64             # Multi-Domain option for the top-tree level: iso=16,COSMO=64-128
+#MULTIPLEDOMAINS=64             # Multi-Domain option for the top-tree level: iso=16,COSMO=64-128
 ## -----------------------------------------------------------------------------------------------------
 # ---------------------------------------- Adaptive Grav. Softening (including Lagrangian conservation terms!)
-ADAPTIVE_GRAVSOFT_FORGAS       # allows variable softening length (=Hsml) for gas particles
+#ADAPTIVE_GRAVSOFT_FORGAS       # allows variable softening length (=Hsml) for gas particles
 #ADAPTIVE_GRAVSOFT_FORALL=100   # enable adaptive gravitational softening lengths for all particle types
                                 # (ADAPTIVE_GRAVSOFT_FORGAS should be disabled). the softening is set to the distance
                                 # enclosing a neighbor number set in the parameter file. baryons search for other baryons,
@@ -247,7 +247,7 @@ OUTPUT_ADDITIONAL_RUNINFO      # enables extended simulation output data (can sl
 
 SLUG
 STAR_FORMATION
-
+SN_FEEDBACK
 
 
 

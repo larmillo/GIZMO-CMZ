@@ -139,7 +139,7 @@ void compute_hydro_densities_and_forces(void)
     }
 }
 
-#ifdef GALSF
+#if defined(GALSF) || defined(STAR_FORMATION)
 void compute_stellar_feedback(void)
 {
     CPU_Step[CPU_MISC] += measure_time();
@@ -160,6 +160,14 @@ void compute_stellar_feedback(void)
     CPU_Step[CPU_LOCALWIND] += measure_time();
 #endif
     
+#ifdef SN_FEEDBACK
+	omegab_calc();
+	//MPI_Barrier(MPI_COMM_WORLD);
+	wb_calc();
+	//MPI_Barrier(MPI_COMM_WORLD);
+    sn_feedback_calc();	
+#endif
+			
 #ifdef GALSF_FB_LUPI
     //compute coupling for SNae and mass losses
     lupi_fb_calc(-1);

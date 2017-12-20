@@ -89,6 +89,7 @@ static struct densdata_out
 
 #ifdef DO_DENSITY_AROUND_STAR_PARTICLES
     MyFloat GradRho[3];
+	MyFloat NVT[3][3];
 #endif
     
 
@@ -188,10 +189,13 @@ void out2particle_density(struct densdata_out *out, int i, int mode)
 #endif
 
 #ifdef DO_DENSITY_AROUND_STAR_PARTICLES
-    if(P[i].Type != 0)
+    if(P[i].Type == 4)
     {
         ASSIGN_ADD(P[i].DensAroundStar, out->Rho, mode);
         for(k = 0; k<3; k++) {ASSIGN_ADD(P[i].GradRho[k], out->GradRho[k], mode);}
+        for(k = 0; k < 3; k++)
+            for(j = 0; j < 3; j++)
+                ASSIGN_ADD(P[i].NVT[k][j], out->NVT[k][j], mode);
     }
 #endif
     
@@ -626,6 +630,69 @@ void density(void)
                     for(k1=0;k1<3;k1++) {for(k2=0;k2<3;k2++) {SphP[i].NV_T[k1][k2]=Tinv[k1][k2];}}
                     /* now NV_T holds the inverted matrix elements, for use in hydro */
                 } // P[i].Type == 0 //
+				
+#if defined(DO_DENSITY_AROUND_STAR_PARTICLES) && defined(SN_FEEDBACK)
+                if(P[i].Type == 4)
+                {
+                    /* fill in the missing elements of NV_T (it's symmetric, so we saved time not computing these directly) */
+                    P[i].NVT[1][0]=P[i].NVT[0][1]; P[i].NVT[2][0]=P[i].NVT[0][2]; P[i].NVT[2][1]=P[i].NVT[1][2];
+                    /* Now invert the NV_T matrix we just measured */
+                    /* Also, we want to be able to calculate the condition number of the matrix to be inverted, since
+                        this will tell us how robust our procedure is (and let us know if we need to expand the neighbor number */
+                    ConditionNumber=CNumHolder=0;
+                    for(k1=0;k1<3;k1++) {for(k2=0;k2<3;k2++) {ConditionNumber += P[i].NVT[k1][k2]*P[i].NVT[k1][k2];}}
+#if (NUMDIMS==1)
+                    /* one-dimensional case */
+                    for(k1=0;k1<3;k1++) {for(k2=0;k2<3;k2++) {Tinv[k1][k2]=0;}}
+                    detT = P[i].NVT[0][0];
+                    if(P[i].NVT[0][0]!=0 && !isnan(P[i].NVT[0][0])) Tinv[0][0] = 1/detT; /* only one non-trivial element in 1D! */
+#endif
+#if (NUMDIMS==2)
+                    /* two-dimensional case */
+                    for(k1=0;k1<3;k1++) {for(k2=0;k2<3;k2++) {Tinv[k1][k2]=0;}}
+                    detT = P[i].NVT[0][0]*P[i].NVT[1][1] - P[i].NVT[0][1]*P[i].NVT[1][0];
+                    if((detT != 0)&&(!isnan(detT)))
+                    {
+                        Tinv[0][0] = P[i].NVT[1][1] / detT;
+                        Tinv[0][1] = -P[i].NVT[0][1] / detT;
+                        Tinv[1][0] = -P[i].NVT[1][0] / detT;
+                        Tinv[1][1] = P[i].NVT[0][0] / detT;
+                    }
+#endif
+#if (NUMDIMS==3)
+                    /* three-dimensional case */
+                    detT = P[i].NVT[0][0] * P[i].NVT[1][1] * P[i].NVT[2][2] +
+                        P[i].NVT[0][1] * P[i].NVT[1][2] * P[i].NVT[2][0] +
+                        P[i].NVT[0][2] * P[i].NVT[1][0] * P[i].NVT[2][1] -
+                        P[i].NVT[0][2] * P[i].NVT[1][1] * P[i].NVT[2][0] -
+                        P[i].NVT[0][1] * P[i].NVT[1][0] * P[i].NVT[2][2] -
+                        P[i].NVT[0][0] * P[i].NVT[1][2] * P[i].NVT[2][1];
+                    /* check for zero determinant */
+                    if((detT != 0) && !isnan(detT))
+                    {
+                        Tinv[0][0] = (P[i].NVT[1][1] * P[i].NVT[2][2] - P[i].NVT[1][2] * P[i].NVT[2][1]) / detT;
+                        Tinv[0][1] = (P[i].NVT[0][2] * P[i].NVT[2][1] - P[i].NVT[0][1] * P[i].NVT[2][2]) / detT;
+                        Tinv[0][2] = (P[i].NVT[0][1] * P[i].NVT[1][2] - P[i].NVT[0][2] * P[i].NVT[1][1]) / detT;
+                        Tinv[1][0] = (P[i].NVT[1][2] * P[i].NVT[2][0] - P[i].NVT[1][0] * P[i].NVT[2][2]) / detT;
+                        Tinv[1][1] = (P[i].NVT[0][0] * P[i].NVT[2][2] - P[i].NVT[0][2] * P[i].NVT[2][0]) / detT;
+                        Tinv[1][2] = (P[i].NVT[0][2] * P[i].NVT[1][0] - P[i].NVT[0][0] * P[i].NVT[1][2]) / detT;
+                        Tinv[2][0] = (P[i].NVT[1][0] * P[i].NVT[2][1] - P[i].NVT[1][1] * P[i].NVT[2][0]) / detT;
+                        Tinv[2][1] = (P[i].NVT[0][1] * P[i].NVT[2][0] - P[i].NVT[0][0] * P[i].NVT[2][1]) / detT;
+                        Tinv[2][2] = (P[i].NVT[0][0] * P[i].NVT[1][1] - P[i].NVT[0][1] * P[i].NVT[1][0]) / detT;
+                    } else {
+                        for(k1=0;k1<3;k1++) {for(k2=0;k2<3;k2++) {Tinv[k1][k2]=0;}}
+                    }
+#endif
+                    
+                    for(k1=0;k1<3;k1++) {for(k2=0;k2<3;k2++) {CNumHolder += Tinv[k1][k2]*Tinv[k1][k2];}}
+                    ConditionNumber = sqrt(ConditionNumber*CNumHolder) / NUMDIMS;
+                    if(ConditionNumber<1) ConditionNumber=1;
+                    /* this = sqrt( ||NV_T^-1||*||NV_T|| ) :: should be ~1 for a well-conditioned matrix */
+                    for(k1=0;k1<3;k1++) {for(k2=0;k2<3;k2++) {P[i].NVT[k1][k2]=Tinv[k1][k2];}}
+                    /* now NV_T holds the inverted matrix elements, for use in hydro */
+                } // P[i].Type == 4 //
+				
+#endif	//DO_DENSITY_AROUND_STAR_PARTICLES							
                 
                 /* now check whether we had enough neighbours */
                 double ncorr_ngb = 1.0;
@@ -1273,6 +1340,12 @@ int density_isactive(int n)
 #ifdef DO_DENSITY_AROUND_STAR_PARTICLES
     if(((P[n].Type == 4)||((All.ComovingIntegrationOn==0)&&((P[n].Type == 2)||(P[n].Type==3))))&&(P[n].Mass>0))
     {
+		
+#if defined(SN_FEEDBACK) || defined(GALSF_FB_THERMAL)
+        /* check if there is going to be a SNe this timestep, in which case, we want the density info! */
+        if(P[n].Nsn_timestep>0) return 1;
+#endif
+		
 #if defined(GALSF) || defined(STAR_FORMATION)
         if(P[n].DensAroundStar<=0) return 1;
         // only do stellar age evaluation if we have to //
@@ -1327,6 +1400,17 @@ void density_evaluate_extra_physics_gas(struct densdata_in *local, struct densda
         out->GradRho[0] += kernel->mj_dwk_r * kernel->dp[0];
         out->GradRho[1] += kernel->mj_dwk_r * kernel->dp[1];
         out->GradRho[2] += kernel->mj_dwk_r * kernel->dp[2];
+#ifdef SN_FEEDBACK
+        if(kernel->r > 0 && local->Type==4)
+        {
+                out->NVT[0][0] +=  kernel->wk * kernel->dp[0] * kernel->dp[0];
+                out->NVT[0][1] +=  kernel->wk * kernel->dp[0] * kernel->dp[1];
+                out->NVT[0][2] +=  kernel->wk * kernel->dp[0] * kernel->dp[2];
+                out->NVT[1][1] +=  kernel->wk * kernel->dp[1] * kernel->dp[1];
+                out->NVT[1][2] +=  kernel->wk * kernel->dp[1] * kernel->dp[2];
+                out->NVT[2][2] +=  kernel->wk * kernel->dp[2] * kernel->dp[2];
+		}		
+#endif				
 #endif
         
     } else { /* local.Type == 0 */
