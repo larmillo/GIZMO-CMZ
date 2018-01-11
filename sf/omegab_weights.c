@@ -53,7 +53,6 @@ void particle2in_omegab(struct omegab_data_in *in, int i)
         for(k=0;k<3;k++)
         {
             in->NV_T[j][k] = P[i].NVT[j][k];
-			//printf("NVT %e \n", P[i].NVT[j][k]);
         }
     }
 }
@@ -70,8 +69,16 @@ struct omegab_data_out
 void out2particle_omegab(struct omegab_data_out *out, int i, int mode);
 void out2particle_omegab(struct omegab_data_out *out, int i, int mode)
 {
-	for(int k=0; k<3; k++) {P[i].omegab_p[k] += out->omegab_p[k]; printf("NVT %e \n", P[i].omegab_p[i]);}
-	for(int k=0; k<3; k++) {P[i].omegab_m[k] += out->omegab_m[k]; printf("NVT %e \n", P[i].omegab_m[i]);}
+	if (mode == 0)
+	{
+		for(int k=0; k<3; k++) {P[i].omegab_p[k] = out->omegab_p[k];}
+	    for(int k=0; k<3; k++) {P[i].omegab_m[k] = out->omegab_m[k];}
+	}
+	if (mode == 1)
+	{
+		for(int k=0; k<3; k++) {P[i].omegab_p[k] += out->omegab_p[k];}
+	    for(int k=0; k<3; k++) {P[i].omegab_m[k] += out->omegab_m[k];}
+	}
 }
 
 
@@ -385,6 +392,9 @@ int omegab_evaluate(int target, int mode, int *exportflag, int *exportnodecount,
     double h2_i = kernel.h_i*kernel.h_i;
 
     double V_i = local.Mass/local.Dens;
+	
+	for(k=0; k<3; k++) {out.omegab_p[k] = 0.;} 
+	for(k=0; k<3; k++) {out.omegab_m[k] = 0.;}
 		 
     /* Now start the weights computation for this particle */
     if(mode == 0)
@@ -402,10 +412,13 @@ int omegab_evaluate(int target, int mode, int *exportflag, int *exportnodecount,
         { 
 			//find neighbors that can -mutually- see one another, not just single-directional searching here
             numngb_inbox = ngb_treefind_pairs_threads(local.Pos, local.Hsml, target, &startnode, mode, exportflag, exportnodecount, exportindex, ngblist);
+			//printf("mode %d %d \n", mode, numngb_inbox);
             if(numngb_inbox < 0) return -1;
+			
             for(n = 0; n < numngb_inbox; n++)
             {
                 j = ngblist[n];
+				
                 if(P[j].Type != 0) continue; // require a gas particle //
                 if(P[j].Mass <= 0) continue; // require the particle has mass //
                 for(k=0; k<3; k++) {kernel.dp[k] = local.Pos[k] - P[j].Pos[k];}
@@ -486,10 +499,9 @@ int omegab_evaluate(int target, int mode, int *exportflag, int *exportnodecount,
 			    }
 				
 				double AtimeX = 0;				
-				for(k=0; k<3; k++) {AtimeX += (-Face_Area_Vec[k])*Xba_vers[k];}
+				for(k=0; k<3; k++) {AtimeX += (-Face_Area_Vec[k])*Xba_vers[k];} //effective area has to be perpendicular to Xab
                 
 				SphP[j].omega_b = 0.5*(1.-1./sqrt(1.+((AtimeX)/(PI_VAL*r2))));
-				//printf("AtimeX %e %e %e %e %e %e %e %e  \n", AtimeX,-Face_Area_Vec[0],-Face_Area_Vec[1],-Face_Area_Vec[2],Xba_vers[0],Xba_vers[1],Xba_vers[2],SphP[j].omega_b);
 				for(k=0; k<3; k++) {out.omegab_p[k] += SphP[j].omega_b * Xba_p[k];} //to calculate f+alpha
 				for(k=0; k<3; k++) {out.omegab_m[k] += SphP[j].omega_b * Xba_m[k];} //to calculate f-alpha
 				

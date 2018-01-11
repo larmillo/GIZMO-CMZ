@@ -112,7 +112,7 @@ void gas_to_star()
 							slug_construct_cluster(P[i].SlugOb, particle_mass);
 				  		  	size_t sizeSlug = slug_buffer_size(P[i].SlugOb);
 							P[i].SlugOb_size = sizeSlug;
-							P[i].SlugMass = slug_get_stoch_sn(P[i].SlugOb);
+							P[i].SlugMass = slug_get_stellar_mass(P[i].SlugOb);
 							
 
 							printf("size SF %ld %d \n", P[i].SlugOb_size, P[i].ID);

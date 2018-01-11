@@ -42,6 +42,7 @@ void SNproduction(void)
 		P[i].Nsn_timestep = 0;
 		Num_supernovae_tot = slug_get_stoch_sn(P[i].SlugOb);
 		P[i].Nsn_timestep = Num_supernovae_tot - P[i].Nsn_tot; //Nsn_tot(current_time) - Nsn_tot(current_time-dt)
+		if(P[i].Nsn_timestep > 0) printf("SN explosion %d \n", P[i].Nsn_timestep);
 		P[i].Nsn_tot = Num_supernovae_tot; //update of cumulative number of SNe
 	
 		//get mass of ejecta
@@ -50,15 +51,48 @@ void SNproduction(void)
 		Cur_stellar_mass /= (All.UnitMass_in_g / SOLAR_MASS); //solar masses
 		P[i].Mej = P[i].SlugMass - Cur_stellar_mass;
 		if (P[i].Mej < 0.0 && fabs(P[i].Mej) > Cur_stellar_mass*1e-4)
-			printf("Warning: Large fluctuation! relatTime = %e, |dm|/m = %e, prev_stellar_mass = %e, curr_stellar_mass = %e, Num = %d\n", time_cluster, fabs(P[i].Mej)/Cur_stellar_mass, P[i].Mass, Cur_stellar_mass, P[i].ID);
+			printf("Warning: Large fluctuation! relatTime = %e, |dm|/m = %e, prev_stellar_mass = %e, curr_stellar_mass = %e, Num = %d\n", time_cluster, fabs(P[i].Mej)/Cur_stellar_mass, P[i].SlugMass, Cur_stellar_mass, P[i].ID);
     	if (P[i].Mej < 0.0) P[i].Mej = 0.0;
 		P[i].SlugMass = Cur_stellar_mass;
-		
-		P[i].wb_tot = 0;
-		//for(int k=0; k<3; k++) {P[i].omegab_p[k] = 0;}
-		//for(int k=0; k<3; k++) {P[i].omegab_m[k] = 0;}
 	}	
-}	
+}
+
+void Check_conservation(void)
+{
+	int i;
+
+	
+	for(i = FirstActiveParticle; i >= 0; i = NextActiveParticle[i])
+	{
+		double Ej = 1.e51 * P[i].Nsn_timestep / All.UnitEnergy_in_cgs; // energy per event
+		double vj = sqrt(2*Ej*P[i].Mej);
+		
+        if(P[i].Type != 4) continue;
+        if(P[i].Mass <= 0) continue;
+	    if((P[i].Nsn_timestep<=0)||(P[i].DensAroundStar<=0)) continue;
+		
+		if (P[i].tocons[0]==0 || P[i].tocons[0]<0 || fabs(P[i].tocons[0]-P[i].Mej)>1e-8) 
+		{
+		printf("ERROR IN MASS CONSERVATION!!! %e %e %e\n", P[i].tocons[0], P[i].Mej, fabs(P[i].tocons[0]-P[i].Mej));
+		exit(0);
+		}
+		if (P[i].tocons[1]==0 || P[i].tocons[1]<0 || fabs(P[i].tocons[1]-vj)>1e-8) 
+		{
+		printf("ERROR IN MOMENTUM CONSERVATION!!! %e %e %e\n", P[i].tocons[1], vj, fabs(P[i].tocons[1]-vj));
+		exit(0);
+		}
+		if (fabs(P[i].tocons[2])/P[i].tocons[1] > 1e-8) 
+		{
+		printf("ERROR IN TOTAL MOMENTUM CONSERVATION!!! %e %e \n", P[i].tocons[2], fabs(P[i].tocons[2])/P[i].tocons[1]);
+		exit(0);
+		}
+		if (P[i].tocons[3]==0 || P[i].tocons[3]<0 || fabs(P[i].tocons[3]-Ej)>1e-8) 
+		{
+		printf("ERROR IN ENERGY CONSERVATION!!! %e %e %e\n", P[i].tocons[3], Ej, fabs(P[i].tocons[3]-Ej));
+		exit(0);
+		}
+	}	
+}		
 
 struct FBdata_in
 {
@@ -96,6 +130,9 @@ void particle2in_FB(struct FBdata_in *in, int i)
 struct FBdata_out
 {
     MyDouble M_coupled;
+	MyDouble p_coupled;
+	MyDouble pvec_coupled;
+	MyDouble E_coupled;
 }
 *FBDataResult, *FBDataOut;
 
@@ -103,12 +140,25 @@ void out2particle_FB(struct FBdata_out *out, int i, int mode);
 void out2particle_FB(struct FBdata_out *out, int i, int mode)
 {
     P[i].Mass -= out->M_coupled;
-	if (out->M_coupled != P[i].Mej) 
-	{
-		printf("ERROR IN WEIGHT CALCULATION!!! %e %e \n", out->M_coupled, P[i].Mej);
-		exit(0);
-	}	
+
     if((P[i].Mass<0)||(isnan(P[i].Mass))) {P[i].Mass=0;}
+	
+	//quantity to verify conservation in the star frame
+	if (mode == 0) 
+	{
+		P[i].tocons[0] = out->M_coupled; //mass of ejecta
+		P[i].tocons[1] = out->p_coupled; //momentum of ejecta
+		P[i].tocons[2] = out->pvec_coupled; //total momentum = 0
+		P[i].tocons[3] = out->E_coupled; //energy of ejecta
+	}	
+	
+	if (mode == 1) 
+	{
+		P[i].tocons[0] += out->M_coupled; //mass of ejecta
+		P[i].tocons[1] += out->p_coupled; //momentum of ejecta
+		P[i].tocons[2] += out->pvec_coupled; //total momentum = 0
+		P[i].tocons[3] += out->E_coupled; //energy of ejecta
+	}		
 }
 
 
@@ -411,7 +461,8 @@ int FB_evaluate(int target, int mode, int *exportflag, int *exportnodecount, int
     memset(&out, 0, sizeof(struct FBdata_out));
     //kernel_main(0.0,1.0,1.0,&kernel_zero,&wk,-1);
 	
-    
+    out.M_coupled = out.p_coupled = out.pvec_coupled = out.E_coupled = 0.;
+	
 	/* Load the data for the particle injecting feedback */
     if(mode == 0) {particle2in_FB(&local, target);} else {local = FBDataGet[target];}
     if(local.Nsn<=0) return 0; // no SNe for the master particle! nothing to do here //
@@ -462,7 +513,7 @@ int FB_evaluate(int target, int mode, int *exportflag, int *exportnodecount, int
 					wb_mod += SphP[j].wb[k] * SphP[j].wb[k];
 				}
 				
-				double dmass, dmom[3], mom_tot[3], dmom_mod = 0, dmomrf_mod = 0;
+				double dmass, dmom[3], mom_tot[3], dmom_tocons = 0, dmom_mod = 0, dmomrf_mod = 0;
 				double dtot_en, tot_en, v2 = 0.;
 				
 				for(k=0;k<3;k++) {mom_tot[k] = P[j].Vel[k]*P[j].Mass;}
@@ -486,13 +537,16 @@ int FB_evaluate(int target, int mode, int *exportflag, int *exportnodecount, int
 				dmass = local.Mej * sqrt(wb_mod);
 				SphP[j].Density *= (1 + dmass/P[j].Mass);
 				P[j].Mass += dmass; 
-				out.M_coupled -= local.Mej * sqrt(wb_mod); 
+				out.M_coupled += local.Mej * sqrt(wb_mod); 
 				//END OF INJECTION OF MASS//
 				
 				//INJECTION OF MOMENTUM//
 				for(k=0;k<3;k++)
 				{
 					dmom[k] = SphP[j].wb[k] * local.Vej * local.Mej;
+					//printf("Check segno %e %e \n",P[j].Pos[k]-local.Pos[k], dmom[k]); 
+					out.pvec_coupled += dmom[k];
+					dmom_tocons += dmom[k]*dmom[k]; //to check conservation
 					dmom[k] *= DMIN(sqrt(1+(P[j].Mass-dmass)/dmass), pt/(local.Vej * local.Mej)); //accounting for effect of not-solved Sedov-Taylor phase
 					dmomrf_mod += dmom[k]*dmom[k]; //rest frame
 					dmom[k] += dmass * local.Vel[k];
@@ -500,10 +554,12 @@ int FB_evaluate(int target, int mode, int *exportflag, int *exportnodecount, int
 					P[j].Vel[k] = mom_tot[k]/P[j].Mass;
 					dmom_mod +=  dmom[k]*dmom[k]; //for energy calculation
 				}
+				out.p_coupled += sqrt(dmom_tocons);
 				//END OF INJECTION OF MOMENTUM//
 				
 				//INJECTION OF ENERGY//
 				dtot_en = local.Eej * sqrt(wb_mod) + 0.5/dmass * (dmom_mod - dmomrf_mod);
+				out.E_coupled += local.Eej * sqrt(wb_mod);
 				tot_en += dtot_en;
 				v2 = 0;
 				for(k=0;k<3;k++) {v2 += P[j].Vel[k]*P[j].Vel[k];}

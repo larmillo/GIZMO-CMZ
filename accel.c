@@ -166,6 +166,7 @@ void compute_stellar_feedback(void)
 	wb_calc();
 	//MPI_Barrier(MPI_COMM_WORLD);
     sn_feedback_calc();	
+	Check_conservation();
 #endif
 			
 #ifdef GALSF_FB_LUPI

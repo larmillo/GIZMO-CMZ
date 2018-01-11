@@ -1624,6 +1624,7 @@ extern ALIGN(32) struct particle_data
 	MyDouble omegab_p[3];
 	MyDouble omegab_m[3];
 	MyDouble wb_tot;
+	MyDouble tocons[4];
 #endif		
 	
 }

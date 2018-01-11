@@ -46,8 +46,9 @@ void particle2in_wb(struct wb_data_in *in, int i)
     in->Hsml = PPP[i].Hsml;
 	in->Nsn = P[i].Nsn_timestep;
 	in->Mass = P[i].Mass;
-	for(k=0; k<3; k++) {in->omegab_p[k] = P[i].omegab_p[k]; printf("NVT %e \n", P[i].omegab_p[k]);}
-	for(k=0; k<3; k++) {in->omegab_m[k] = P[i].omegab_m[k]; printf("NVT %e \n", P[i].omegab_m[i]);}
+	for(k=0; k<3; k++) {in->omegab_p[k] = P[i].omegab_p[k];}
+	for(k=0; k<3; k++) {in->omegab_m[k] = P[i].omegab_m[k];}
+	
 }
 
 
@@ -61,8 +62,8 @@ struct wb_data_out
 void out2particle_wb(struct wb_data_out *out, int i, int mode);
 void out2particle_wb(struct wb_data_out *out, int i, int mode)
 {
-	P[i].wb_tot += sqrt(out->weightb_tot);
-
+	if (mode == 0) {P[i].wb_tot = (out->weightb_tot);}
+	if (mode == 1) {P[i].wb_tot += (out->weightb_tot);}
 }
 
 
@@ -364,7 +365,7 @@ int wb_evaluate(int target, int mode, int *exportflag, int *exportnodecount, int
     struct wb_data_out out;
     memset(&out, 0, sizeof(struct wb_data_out));
     //kernel_main(0.0,1.0,1.0,&kernel_zero,&wk,-1);
-	//out.weightb_tot = 0;
+	out.weightb_tot = 0;
     
 	/* Load the data for the particle injecting feedback */
     if(mode == 0) {particle2in_wb(&local, target);} else {local = wbDataGet[target];}
@@ -414,14 +415,18 @@ int wb_evaluate(int target, int mode, int *exportflag, int *exportnodecount, int
 				for(k=0; k<3; k++) {Xba_vers[k] = Xba[k]/sqrt(r2);}
 				for(k=0; k<3; k++) {Xba_p[k] = DMAX(0,Xba[k])/sqrt(r2);} //they are versors
 				for(k=0; k<3; k++) {Xba_m[k] = DMIN(0,Xba[k])/sqrt(r2);} //they are versors
+				double wbmod = 0.;
 				for(k=0; k<3; k++)
 				{
+					//printf("omegab_m, omegab_p %e %e \n", local.omegab_m[k],local.omegab_p[k]);
 					fp[k] = sqrt(0.5*(1+pow(local.omegab_m[k]/local.omegab_p[k],2)));
 					fm[k] = sqrt(0.5*(1+pow(local.omegab_p[k]/local.omegab_m[k],2)));	
 				    SphP[j].wb[k] = SphP[j].omega_b * (fp[k]*Xba_p[k] + fm[k]*Xba_m[k]);
+					wbmod += SphP[j].wb[k]*SphP[j].wb[k];	
+					
 			    }
 				
-				for(k=0; k<3; k++) {out.weightb_tot += SphP[j].wb[k] * SphP[j].wb[k];}
+				out.weightb_tot += sqrt(wbmod);
 				
             } // for(n = 0; n < numngb; n++)
         } // while(startnode >= 0)

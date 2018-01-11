@@ -433,6 +433,7 @@ void sn_feedback_calc(void);
 int FB_evaluate(int target, int mode, int *exportflag, int *exportnodecount, int *exportindex, int *ngblist);
 void *FB_evaluate_primary(void *p);
 void *FB_evaluate_secondary(void *p);
+void Check_conservation(void);
 #endif
 
 
