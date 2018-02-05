@@ -331,6 +331,10 @@ void begrun(void)
     All.Ti_nextoutput = find_next_outputtime(All.Ti_Current);
 
   All.TimeLastRestartFile = CPUThisRun;
+  
+#ifdef ANALYTIC_GRAVITY
+	allocate_acc(); 
+#endif	  
 
 #ifdef GENTRY_FB
   // to do - have this be read from my text files

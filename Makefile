@@ -779,7 +779,7 @@ FOBJS =
 OBJS	+= $(GRAVITY_OBJS) $(HYDRO_OBJS) $(SYSTEM_OBJS)
 OBJS	+= $(L3_OBJS)
 
-INCL    += allvars.h proto.h gravity/forcetree.h domain.h system/myqsort.h kernel.h eos/eos.h Makefile \
+INCL    += allvars.h proto.h gravity/forcetree.h gravity/analytic_gravity.h domain.h system/myqsort.h kernel.h eos/eos.h Makefile \
 
 
 ifeq (GALSF_SUBGRID_VARIABLEVELOCITY_DM_DISPERSION,$(findstring GALSF_SUBGRID_VARIABLEVELOCITY_DM_DISPERSION,$(CONFIGVARS)))
@@ -833,6 +833,10 @@ ifeq (SN_FEEDBACK,$(findstring SN_FEEDBACK,$(CONFIGVARS)))
 OBJS    += sf/snfeedback.o
 OBJS    += sf/omegab_weights.o
 OBJS    += sf/wb_weights.o
+endif
+
+ifeq (ANALYTIC_GRAVITY,$(findstring ANALYTIC_GRAVITY,$(CONFIGVARS)))
+OBJS    += alloc_accel.o
 endif
 
 ifeq (BLACK_HOLES,$(findstring BLACK_HOLES,$(CONFIGVARS)))

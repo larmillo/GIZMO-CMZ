@@ -303,9 +303,9 @@ void distribute_file(int nfiles, int firstfile, int firsttask, int lasttask, int
 
 
 #ifdef SLUG
-			 int get_values_per_blockelement(enum iofields blocknr, int type);
+    int get_values_per_blockelement(enum iofields blocknr, int type);
 #else
-			 int get_values_per_blockelement(enum iofields blocknr);
+    int get_values_per_blockelement(enum iofields blocknr);
 #endif
 
 int get_datatype_in_block(enum iofields blocknr);
@@ -436,7 +436,10 @@ void *FB_evaluate_secondary(void *p);
 void Check_conservation(void);
 #endif
 
-
+#ifdef ANALYTIC_GRAVITY
+void allocate_acc(void); 
+#endif
+	
 #if defined(TURB_DRIVING)
 void do_turb_driving_step_first_half(void);
 void do_turb_driving_step_second_half(void);

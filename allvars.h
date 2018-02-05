@@ -1480,6 +1480,18 @@ extern struct global_data_all_processes
 #endif
 
 #endif    
+	
+#ifdef ANALYTIC_GRAVITY
+	double xx0, deltax;
+	double yy0, deltay;
+	double zz0, deltaz;
+	double*** accx; 
+	double*** accy;
+	double*** accz;
+	double*** accx_bar; 
+	double*** accy_bar;
+	double*** accz_bar;	
+#endif		
 }
 All;
 

@@ -55,7 +55,9 @@ void read_ic(char *fname)
     
     NumPart = 0;
     N_gas = 0;
+#ifdef STAR_FORMATION	
 	N_stars = 0;
+#endif	
     All.TotNumPart = 0;
     
     num_files = find_files(fname);

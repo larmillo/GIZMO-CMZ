@@ -36,6 +36,7 @@ void add_analytic_gravitational_forces()
     //GravAccel_GrowingDiskPotential();   // time-dependent (adiabatically growing) disk
     //GravAccel_StaticNFW();              // spherical NFW profile
     //GravAccel_PaczynskyWiita();         // Paczynsky-Wiita pseudo-Newtonian potential
+	GravAccel_CMZ();                      // Milky-Way potential in the Central Molecular Zone
 #ifdef SHEARING_BOX
     GravAccel_ShearingSheet();            // adds coriolis and centrifugal terms for shearing-sheet approximation
 #endif
@@ -252,66 +253,140 @@ void GravAccel_KeplerianTestProblem()
         }
     }
 }
-
-
-/*void GravAccel_CMZ()
+#ifdef ANALYTIC_GRAVITY
+void GravAccel_CMZ()
 {
-	double dp[3], R, Rnew, interp1_x, interp2_x, interp1_y, interp2_y, interp1_z, interp2_z;
-	int x,y,z;
-	double = omega=40;//km s^-1 kpc^-1
+	double dp[3], interp1_x, interp2_x, interp3_x, interp4_x, interp1_y, interp2_y, interp1_z, interp2_z;
+	double abar_x, abar_y, abar_tot, theta, omega, vrot, R;
+	int x,y,z,i;
 	double t=All.Time;
+	
+	vrot = 40*(1e5/All.UnitVelocity_in_cm_per_s)*(All.UnitLength_in_cm/CM_PER_KPC); //from km s^-1 kpc^-1 to unit code
 	
     for(i = FirstActiveParticle; i >= 0; i = NextActiveParticle[i])
 	{
-		dp[2]=P[i].Pos[2];
+		//Static potential//
 		
-		R = sqrt(dp[0]*dp[0]+dp[1]*dp[1]);
-		v = omega*R*t;
-		Rnew = R - omega*R*t;
-		
-		dp[0]=P[i].Pos[0]*sin(omega*t)-P[i].Pos[1]*cos(omega*t); 
-		dp[1]=P[i].Pos[0]*sin(omega*t)-P[i].Pos[1]*cos(omega*t); 
+		dp[0]=fabs(P[i].Pos[0]);
+		dp[1]=fabs(P[i].Pos[0]);
+		dp[2]=fabs(P[i].Pos[0]);
 	
-   		x = (int) ((dp[0] - xx0) / deltax);
-    	x = MAX(x, 0);
+   		x = (int) ((dp[0] - All.xx0) / All.deltax);
+    	x = DMAX(x, 0);
     
-    	y = (int) ((dp[1] - yy0) / deltay);
-    	y = MAX(y, 0);
+    	y = (int) ((dp[1] - All.yy0) / All.deltay);
+    	y = DMAX(y, 0);
     
-		z = (int) ((dp[2] - zz0) / deltaz);
-    	z = MAX(z, 0);
+		z = (int) ((dp[2] - All.zz0) / All.deltaz);
+    	z = DMAX(z, 0);
 		
-	    interp1_x = accx[x][y][z] + (accx[x+1][y][z]-accx[x][y][z])/deltax * (dp[0] - xx0 - x * deltax) + 
-			(accx[x][y+1][z] - accx[x][y][z] + (accx[x+1][y+1][z]-accx[x][y+1][z])/deltax * (dp[0] - xx0 - x * deltax) 
-				- (accx[x+1][y][z]-accx[x][y][z])/deltax * (dp[0] - xx0 - i * deltax))/delta_y * (dp[1] - yy0 - y * deltay);
+		/*interp1_x = All.accx[x][y][z] + (All.accx[x+1][y][z]-All.accx[x][y][z])*(dp[0] - All.xx0 - x * All.deltax)/All.deltax;
+		interp2_x = All.accx[x][y+1][z] + (All.accx[x+1][y+1][z]-All.accx[x][y+1][z])*(dp[0] - All.xx0 - x * All.deltax)/All.deltax;
+		interp3_x = All.accx[x][y][z+1] + (All.accx[x+1][y][z+1]-All.accx[x][y][z+1])*(dp[0] - All.xx0 - x * All.deltax)/All.deltax;
+		interp4_x = All.accx[x][y+1][z+1] + (All.accx[x+1][y+1][z+1]-All.accx[x][y+1][z+1])*(dp[0] - All.xx0 - x * All.deltax)/All.deltax;
+		interp1_y = interp1_x + (interp2_x-interp1_x)*(dp[1] - All.yy0 - y * All.deltay)/All.deltay;
+		interp2_y = interp3_x + (interp4_x-interp3_x)*(dp[1] - All.yy0 - y * All.deltay)/All.deltay;*/
+				
+		
+	    interp1_x = All.accx[x][y][z] + (All.accx[x+1][y][z]-All.accx[x][y][z])/All.deltax * (dp[0] - All.xx0 - x * All.deltax) + 
+			(All.accx[x][y+1][z] - All.accx[x][y][z] + (All.accx[x+1][y+1][z]-All.accx[x][y+1][z])/All.deltax * (dp[0] - All.xx0 - x * All.deltax) 
+				- (All.accx[x+1][y][z]-All.accx[x][y][z])/All.deltax * (dp[0] - All.xx0 - x * All.deltax))/All.deltay * (dp[1] - All.yy0 - y * All.deltay);
 	
-		interp2_x = accx[x][y][z+1] + (accx[x+1][y][z+1]-accx[x][y][z+1])/deltax * (dp[0] - xx0 - x * deltax) + 
-			(accx[x][y+1][z+1] - accx[x][y][z+1] + (accx[x+1][y+1][z+1]-accx[x][y+1][z+1])/deltax * (dp[0] - xx0 - x * deltax) 
-				- (accx[x+1][y][z+1]-accx[x][y][z+1])/deltax * (dp[0] - xx0 - i * deltax))/delta_y * (dp[1] - yy0 - y * deltay);
+		interp2_x = All.accx[x][y][z+1] + (All.accx[x+1][y][z+1]-All.accx[x][y][z+1])/All.deltax * (dp[0] - All.xx0 - x * All.deltax) + 
+			(All.accx[x][y+1][z+1] - All.accx[x][y][z+1] + (All.accx[x+1][y+1][z+1]-All.accx[x][y+1][z+1])/All.deltax * (dp[0] - All.xx0 - x * All.deltax) 
+				- (All.accx[x+1][y][z+1]-All.accx[x][y][z+1])/All.deltax * (dp[0] - All.xx0 - x * All.deltax))/All.deltay * (dp[1] - All.yy0 - y * All.deltay);
 		
-	    interp1_y = accy[x][y][z] + (accy[x+1][y][z]-accy[x][y][z])/deltax * (dp[0] - xx0 - x * deltax) + 
-			(accy[x][y+1][z] - accy[x][y][z] + (accy[x+1][y+1][z]-accy[x][y+1][z])/deltax * (dp[0] - xx0 - x * deltax) 
-				- (accy[x+1][y][z]-accy[x][y][z])/deltax * (dp[0] - xx0 - i * deltax))/delta_y * (dp[1] - yy0 - y * deltay);
+	    interp1_y = All.accy[x][y][z] + (All.accy[x+1][y][z]-All.accy[x][y][z])/All.deltax * (dp[0] - All.xx0 - x * All.deltax) + 
+			(All.accy[x][y+1][z] - All.accy[x][y][z] + (All.accy[x+1][y+1][z]-All.accy[x][y+1][z])/All.deltax * (dp[0] - All.xx0 - x * All.deltax) 
+				- (All.accy[x+1][y][z]-All.accy[x][y][z])/All.deltax * (dp[0] - All.xx0 - x * All.deltax))/All.deltay * (dp[1] - All.yy0 - y * All.deltay);
 	
-		interp2_y = accy[x][y][z+1] + (accy[x+1][y][z+1]-accy[x][y][z+1])/deltax * (dp[0] - xx0 - x * deltax) + 
-			(accy[x][y+1][z+1] - accy[x][y][z+1] + (accy[x+1][y+1][z+1]-accy[x][y+1][z+1])/deltax * (dp[0] - xx0 - x * deltax) 
-				- (accy[x+1][y][z+1]-accy[x][y][z+1])/deltax * (dp[0] - xx0 - i * deltax))/delta_y * (dp[1] - yy0 - y * deltay);
+		interp2_y = All.accy[x][y][z+1] + (All.accy[x+1][y][z+1]-All.accy[x][y][z+1])/All.deltax * (dp[0] - All.xx0 - x * All.deltax) + 
+			(All.accy[x][y+1][z+1] - All.accy[x][y][z+1] + (All.accy[x+1][y+1][z+1]-All.accy[x][y+1][z+1])/All.deltax * (dp[0] - All.xx0 - x * All.deltax) 
+				- (All.accy[x+1][y][z+1]-All.accy[x][y][z+1])/All.deltax * (dp[0] - All.xx0 - x * All.deltax))/All.deltay * (dp[1] - All.yy0 - y * All.deltay);
 		
-	    interp1_z = accz[x][y][z] + (accz[x+1][y][z]-accz[x][y][z])/deltax * (dp[0] - xx0 - x * deltax) + 
-			(accz[x][y+1][z] - accz[x][y][z] + (accz[x+1][y+1][z]-accz[x][y+1][z])/deltax * (dp[0] - xx0 - x * deltax) 
-				- (accz[x+1][y][z]-accz[x][y][z])/deltax * (dp[0] - xx0 - i * deltax))/delta_y * (dp[1] - yy0 - y * deltay);
+	    interp1_z = All.accz[x][y][z] + (All.accz[x+1][y][z]-All.accz[x][y][z])/All.deltax * (dp[0] - All.xx0 - x * All.deltax) + 
+			(All.accz[x][y+1][z] - All.accz[x][y][z] + (All.accz[x+1][y+1][z]-All.accz[x][y+1][z])/All.deltax * (dp[0] - All.xx0 - x * All.deltax) 
+				- (All.accz[x+1][y][z]-All.accz[x][y][z])/All.deltax * (dp[0] - All.xx0 - x * All.deltax))/All.deltay * (dp[1] - All.yy0 - y * All.deltay);
 	
-		interp2_z = accz[x][y][z+1] + (accz[x+1][y][z+1]-accz[x][y][z+1])/deltax * (dp[0] - xx0 - x * deltax) + 
-			(accz[x][y+1][z+1] - accx[x][y][z+1] + (accz[x+1][y+1][z+1]-accz[x][y+1][z+1])/deltax * (dp[0] - xx0 - x * deltax) 
-				- (accz[x+1][y][z+1]-accz[x][y][z+1])/deltax * (dp[0] - xx0 - i * deltax))/delta_y * (dp[1] - yy0 - y * deltay);
+		interp2_z = All.accz[x][y][z+1] + (All.accz[x+1][y][z+1]-All.accz[x][y][z+1])/All.deltax * (dp[0] - All.xx0 - x * All.deltax) + 
+			(All.accz[x][y+1][z+1] - All.accx[x][y][z+1] + (All.accz[x+1][y+1][z+1]-All.accz[x][y+1][z+1])/All.deltax * (dp[0] - All.xx0 - x * All.deltax) 
+				- (All.accz[x+1][y][z+1]-All.accz[x][y][z+1])/All.deltax * (dp[0] - All.xx0 - x * All.deltax))/All.deltay * (dp[1] - All.yy0 - y * All.deltay);
 		
-		P[i].GravAccel[0] = interp1_x + (interp2_x - interp1_x)/deltaz * (dp[2] - zz0 - z * deltaz);
-		P[i].GravAccel[1] = interp1_y + (interp2_y - interp1_y)/deltaz * (dp[2] - zz0 - z * deltaz);
-		P[i].GravAccel[2] = interp1_z + (interp2_z - interp1_z)/deltaz * (dp[2] - zz0 - z * deltaz);
+		P[i].GravAccel[0] = interp1_x + (interp2_x - interp1_x)/All.deltaz * (dp[2] - All.zz0 - z * All.deltaz);
+		P[i].GravAccel[1] = interp1_y + (interp2_y - interp1_y)/All.deltaz * (dp[2] - All.zz0 - z * All.deltaz);
+		P[i].GravAccel[2] = interp1_z + (interp2_z - interp1_z)/All.deltaz * (dp[2] - All.zz0 - z * All.deltaz);
+		
+		if((P[i].Pos[0] - All.xx0) < 0) P[i].GravAccel[0] = - P[i].GravAccel[0];
+		if((P[i].Pos[1] - All.yy0) < 0) P[i].GravAccel[1] = - P[i].GravAccel[1];
+		if((P[i].Pos[2] - All.zz0) < 0) P[i].GravAccel[2] = - P[i].GravAccel[2];
+		
+		//if(fabs(P[i].GravAccel[0]) > 1e-4) printf("Accel: %e %e %e %e %e %e \n", P[i].Pos[0], P[i].Pos[1],P[i].Pos[2],P[i].GravAccel[0], P[i].GravAccel[1], P[i].GravAccel[2]);
+		//if(fabs(P[i].GravAccel[0]) > 1e-4) printf("Accel: %e %d %d %d %e %e %e %e \n", P[i].Pos[0], x, y, z,All.accx[x][y][z],All.accx[x+1][y][z],All.accx[x][y+1][z],All.accx[x][y][z+1]);
+		//if((dp[2] - All.zz0) < 0) P[i].GravAccel[2] = - P[i].GravAccel[2];
+		//printf("Sono qui");
+		//Bar potential//
+		
+		omega = vrot*t; //rotation angle
+		omega *= PI_VAL/180;//radiant	
+		dp[0]=fabs(P[i].Pos[0]*cos(omega)+P[i].Pos[1]*sin(omega)); 
+		dp[1]=fabs(P[i].Pos[1]*cos(omega)-P[i].Pos[0]*sin(omega)); 
+		
+   		x = (int) ((dp[0] - All.xx0) / All.deltax);
+    	x = DMAX(x, 0);
+    
+    	y = (int) ((dp[1] - All.yy0) / All.deltay);
+    	y = DMAX(y, 0);
+		
+	    interp1_x = All.accx_bar[x][y][z] + (All.accx_bar[x+1][y][z]-All.accx_bar[x][y][z])/All.deltax * (dp[0] - All.xx0 - x * All.deltax) + 
+			(All.accx_bar[x][y+1][z] - All.accx_bar[x][y][z] + (All.accx_bar[x+1][y+1][z]-All.accx_bar[x][y+1][z])/All.deltax * (dp[0] - All.xx0 - x * All.deltax) 
+				- (All.accx_bar[x+1][y][z]-All.accx_bar[x][y][z])/All.deltax * (dp[0] - All.xx0 - x * All.deltax))/All.deltay * (dp[1] - All.yy0 - y * All.deltay);
+	
+		interp2_x = All.accx_bar[x][y][z+1] + (All.accx_bar[x+1][y][z+1]-All.accx_bar[x][y][z+1])/All.deltax * (dp[0] - All.xx0 - x * All.deltax) + 
+			(All.accx_bar[x][y+1][z+1] - All.accx_bar[x][y][z+1] + (All.accx_bar[x+1][y+1][z+1]-All.accx_bar[x][y+1][z+1])/All.deltax * (dp[0] - All.xx0 - x * All.deltax) 
+				- (All.accx_bar[x+1][y][z+1]-All.accx_bar[x][y][z+1])/All.deltax * (dp[0] - All.xx0 - x * All.deltax))/All.deltay * (dp[1] - All.yy0 - y * All.deltay);
+		
+	    interp1_y = All.accy_bar[x][y][z] + (All.accy_bar[x+1][y][z]-All.accy_bar[x][y][z])/All.deltax * (dp[0] - All.xx0 - x * All.deltax) + 
+			(All.accy_bar[x][y+1][z] - All.accy_bar[x][y][z] + (All.accy_bar[x+1][y+1][z]-All.accy_bar[x][y+1][z])/All.deltax * (dp[0] - All.xx0 - x * All.deltax) 
+				- (All.accy_bar[x+1][y][z]-All.accy_bar[x][y][z])/All.deltax * (dp[0] - All.xx0 - x * All.deltax))/All.deltay * (dp[1] - All.yy0 - y * All.deltay);
+	
+		interp2_y = All.accy_bar[x][y][z+1] + (All.accy_bar[x+1][y][z+1]-All.accy_bar[x][y][z+1])/All.deltax * (dp[0] - All.xx0 - x * All.deltax) + 
+			(All.accy_bar[x][y+1][z+1] - All.accy_bar[x][y][z+1] + (All.accy_bar[x+1][y+1][z+1]-All.accy_bar[x][y+1][z+1])/All.deltax * (dp[0] - All.xx0 - x * All.deltax) 
+				- (All.accy_bar[x+1][y][z+1]-All.accy_bar[x][y][z+1])/All.deltax * (dp[0] - All.xx0 - x * All.deltax))/All.deltay * (dp[1] - All.yy0 - y * All.deltay);
+		
+	    interp1_z = All.accz_bar[x][y][z] + (All.accz_bar[x+1][y][z]-All.accz_bar[x][y][z])/All.deltax * (dp[0] - All.xx0 - x * All.deltax) + 
+			(All.accz_bar[x][y+1][z] - All.accz_bar[x][y][z] + (All.accz_bar[x+1][y+1][z]-All.accz_bar[x][y+1][z])/All.deltax * (dp[0] - All.xx0 - x * All.deltax) 
+				- (All.accz_bar[x+1][y][z]-All.accz_bar[x][y][z])/All.deltax * (dp[0] - All.xx0 - x * All.deltax))/All.deltay * (dp[1] - All.yy0 - y * All.deltay);
+	
+		interp2_z = All.accz_bar[x][y][z+1] + (All.accz_bar[x+1][y][z+1]-All.accz_bar[x][y][z+1])/All.deltax * (dp[0] - All.xx0 - x * All.deltax) + 
+			(All.accz_bar[x][y+1][z+1] - All.accx_bar[x][y][z+1] + (All.accz_bar[x+1][y+1][z+1]-All.accz_bar[x][y+1][z+1])/All.deltax * (dp[0] - All.xx0 - x * All.deltax) 
+				- (All.accz_bar[x+1][y][z+1]-All.accz_bar[x][y][z+1])/All.deltax * (dp[0] - All.xx0 - x * All.deltax))/All.deltay * (dp[1] - All.yy0 - y * All.deltay);
+		
+		abar_x = interp1_x + (interp2_x - interp1_x)/All.deltaz * (dp[2] - All.zz0 - z * All.deltaz);
+		abar_y = interp1_y + (interp2_y - interp1_y)/All.deltaz * (dp[2] - All.zz0 - z * All.deltaz);
+		
+		if((P[i].Pos[0]*cos(omega)+P[i].Pos[1]*sin(omega) - All.xx0) < 0) abar_x = - abar_x;
+		if((P[i].Pos[1]*cos(omega)-P[i].Pos[0]*sin(omega) - All.yy0) < 0) abar_y = - abar_y; 
+		
+		P[i].GravAccel[0] += abar_x*cos(omega) - abar_y*sin(omega);
+		P[i].GravAccel[1] += abar_x*sin(omega) - abar_y*cos(omega);
+		 
+		
+		/*abar_tot = sqrt(abar_x*abar_x+abar_y*abar_y);
+		theta = fabs(atan(abar_y/abar_x));		
+		
+		if((dp[0] - All.xx0) < 0) P[i].GravAccel[0] -= abar_tot * cos(omega+theta); 
+		if((dp[1] - All.yy0) < 0) P[i].GravAccel[1] -= abar_tot * sin(omega+theta);
+		
+		if((dp[0] - All.xx0) > 0) P[i].GravAccel[0] += abar_tot * cos(omega+theta); 
+		if((dp[1] - All.xx0) > 0) P[i].GravAccel[1] += abar_tot * sin(omega+theta);*/
+		
+		if((P[i].Pos[2] - All.xx0) > 0) P[i].GravAccel[2] += interp1_z + (interp2_z - interp1_z)/All.deltaz * (dp[2] - All.zz0 - z * All.deltaz);
+		if((P[i].Pos[2] - All.zz0) < 0) P[i].GravAccel[2] -= interp1_z + (interp2_z - interp1_z)/All.deltaz * (dp[2] - All.zz0 - z * All.deltaz);
+
 	}
 	
-}*/	
-
+}
+#endif
 
 /* static NFW potential */
 void GravAccel_StaticNFW()

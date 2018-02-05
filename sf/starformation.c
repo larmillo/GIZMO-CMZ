@@ -98,7 +98,7 @@ void gas_to_star()
 #ifdef SEPARATE_STELLARDOMAINDECOMP
 							N_stars += 1;
 #endif							
-							printf("STELLA!!!! %e %e \n",star_probability, Prandom);
+							printf("STELLA!!!! %e %e %e %e %d\n",star_probability, Prandom, SphP[i].Density * All.UnitDensity_in_cgs,P[i].Pos[0]*P[i].Pos[0]+P[i].Pos[1]*P[i].Pos[1],P[i].ID);
 							
 #ifdef DO_DENSITY_AROUND_STAR_PARTICLES
                 			P[i].DensAroundStar = SphP[i].Density;

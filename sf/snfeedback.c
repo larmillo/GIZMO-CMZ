@@ -42,7 +42,7 @@ void SNproduction(void)
 		P[i].Nsn_timestep = 0;
 		Num_supernovae_tot = slug_get_stoch_sn(P[i].SlugOb);
 		P[i].Nsn_timestep = Num_supernovae_tot - P[i].Nsn_tot; //Nsn_tot(current_time) - Nsn_tot(current_time-dt)
-		if(P[i].Nsn_timestep > 0) printf("SN explosion %d \n", P[i].Nsn_timestep);
+		if(P[i].Nsn_timestep > 0) printf("SN explosion %d %d %e %e \n", P[i].ID, P[i].Nsn_timestep, P[i].DensAroundStar* All.UnitDensity_in_cgs, P[i].Pos[0]*P[i].Pos[0]+P[i].Pos[1]*P[i].Pos[1]);
 		P[i].Nsn_tot = Num_supernovae_tot; //update of cumulative number of SNe
 	
 		//get mass of ejecta
@@ -54,6 +54,8 @@ void SNproduction(void)
 			printf("Warning: Large fluctuation! relatTime = %e, |dm|/m = %e, prev_stellar_mass = %e, curr_stellar_mass = %e, Num = %d\n", time_cluster, fabs(P[i].Mej)/Cur_stellar_mass, P[i].SlugMass, Cur_stellar_mass, P[i].ID);
     	if (P[i].Mej < 0.0) P[i].Mej = 0.0;
 		P[i].SlugMass = Cur_stellar_mass;
+		
+		//get number of photons per second
 	}	
 }
 
