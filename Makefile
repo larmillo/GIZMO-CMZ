@@ -105,10 +105,6 @@ OPTIMIZE = -Wall  -g   # optimization and warning flags (default)
 
 MPICHLIB = -lmpich
 
-#GRACKLEINCL = -I./grackle/local/include
-#GRACKLELIBS = -L./grackle/local/lib -lgrackle -lhdf5
-
-
 ifeq (NOTYPEPREFIX_FFTW,$(findstring NOTYPEPREFIX_FFTW,$(CONFIGVARS)))  # fftw installed without type prefix?
     FFTW_LIBNAMES =  #-lrfftw_mpi -lfftw_mpi -lrfftw -lfftw
 else
@@ -150,6 +146,34 @@ endif
 
 
 
+#----------------------------
+ifeq ($(SYSTYPE),"Marconi")
+CC	 =  mpiicc -std=c11
+CXX	 =  mpiicpc -std=c++11
+FC	 =  mpiifort -nofor_main
+OPTIMIZE += -O3 -funroll-loops
+OPTIMIZE += -g -Wall # compiler warnings
+ifeq (OPENMP,$(findstring OPENMP,$(CONFIGVARS)))
+OPTIMIZE += -openmp 
+endif
+GMP_INCL = #
+GMP_LIBS = #
+MKL_INCL = #
+MKL_LIBS = #
+GSL_INCL = -I/cineca/prod/opt/libraries/gsl/2.2.1/intel--pe-xe-2017--binary/include
+GSL_LIBS = -L/cineca/prod/opt/libraries/gsl/2.2.1/intel--pe-xe-2017--binary/lib
+FFTW_INCL= 
+FFTW_LIBS= 
+HDF5INCL = -I/cineca/prod/opt/libraries/hdf5/1.8.17/intelmpi--2017--binary/include -DH5_USE_16_API
+HDF5LIB  = -L/cineca/prod/opt/libraries/hdf5/1.8.17/intelmpi--2017--binary/lib -lhdf5 -lz
+GRACKLEINCL = -I./grackle/include
+GRACKLELIBS = -L./grackle/lib -lgrackle -lifcore 
+SLUGINCL = -I./slug2/src 
+SLUGLIB = -L./slug2/src -lslug -lboost_system-mt -lboost_filesystem-mt -lboost_regex-mt
+MPICHLIB = #
+OPT     += #
+CXXFLAGS = $(CFLAGS) 
+endif
 
 #----------------------------------------------------------------------------------------------
 ifeq ($(SYSTYPE),"Stampede")

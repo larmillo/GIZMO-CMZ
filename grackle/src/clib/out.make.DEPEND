@@ -1,8 +1,83 @@
 makedepend: warning:  cannot open "*.C"
-makedepend: warning:  initialize_UVbackground_data.c (reading /usr/local/include/H5public.h, line 143): cannot find include file "stdbool.h"
-	not in /usr/local/include/stdbool.h
-	not in ./stdbool.h
-	not in /usr/include/stdbool.h
+makedepend: warning:  calculate_cooling_time.c (reading /usr/include/stdlib.h, line 32): cannot find include file "stddef.h"
+	not in /cineca/prod/opt/libraries/hdf5/1.8.17/intelmpi--2017--binary/include/stddef.h
+	not in ./stddef.h
+	not in /usr/include/stddef.h
+makedepend: warning:  /usr/include/time.h includes /usr/include/bits/types.h more than once!
+Already have
+	/usr/include/bits/types.h
+makedepend: warning:  /usr/include/time.h includes /usr/include/bits/types.h more than once!
+Already have
+	/usr/include/bits/types.h
+makedepend: warning:  /usr/include/time.h includes /usr/include/bits/types.h more than once!
+Already have
+	/usr/include/bits/types.h
+makedepend: warning:  calculate_cooling_time.c (reading /usr/include/sys/types.h, line 146): cannot find include file "stddef.h"
+	not in /cineca/prod/opt/libraries/hdf5/1.8.17/intelmpi--2017--binary/include/stddef.h
+	not in ./stddef.h
+	not in /usr/include/stddef.h
+makedepend: warning:  calculate_cooling_time.c (reading /usr/include/alloca.h, line 24): cannot find include file "stddef.h"
+	not in /cineca/prod/opt/libraries/hdf5/1.8.17/intelmpi--2017--binary/include/stddef.h
+	not in ./stddef.h
+	not in /usr/include/stddef.h
+makedepend: warning:  calculate_cooling_time.c (reading /usr/include/stdio.h, line 33): cannot find include file "stddef.h"
+	not in /cineca/prod/opt/libraries/hdf5/1.8.17/intelmpi--2017--binary/include/stddef.h
+	not in ./stddef.h
+	not in /usr/include/stddef.h
+makedepend: warning:  calculate_cooling_time.c (reading /usr/include/_G_config.h, line 15): cannot find include file "stddef.h"
+	not in /cineca/prod/opt/libraries/hdf5/1.8.17/intelmpi--2017--binary/include/stddef.h
+	not in ./stddef.h
+	not in /usr/include/stddef.h
+makedepend: warning:  calculate_cooling_time.c (reading /usr/include/wchar.h, line 51): cannot find include file "stddef.h"
+	not in /cineca/prod/opt/libraries/hdf5/1.8.17/intelmpi--2017--binary/include/stddef.h
+	not in ./stddef.h
+	not in /usr/include/stddef.h
+makedepend: warning:  calculate_cooling_time.c (reading /usr/include/libio.h, line 50): cannot find include file "stdarg.h"
+	not in /cineca/prod/opt/libraries/hdf5/1.8.17/intelmpi--2017--binary/include/stdarg.h
+	not in ./stdarg.h
+	not in /usr/include/stdarg.h
+makedepend: warning:  /usr/include/math.h includes /usr/include/bits/mathcalls.h more than once!
+Already have
+	/usr/include/features.h
+	/usr/include/bits/huge_val.h
+	/usr/include/bits/huge_valf.h
+	/usr/include/bits/huge_vall.h
+	/usr/include/bits/inf.h
+	/usr/include/bits/nan.h
+	/usr/include/bits/mathdef.h
+	/usr/include/bits/mathcalls.h
+makedepend: warning:  /usr/include/math.h includes /usr/include/bits/mathcalls.h more than once!
+Already have
+	/usr/include/features.h
+	/usr/include/bits/huge_val.h
+	/usr/include/bits/huge_valf.h
+	/usr/include/bits/huge_vall.h
+	/usr/include/bits/inf.h
+	/usr/include/bits/nan.h
+	/usr/include/bits/mathdef.h
+	/usr/include/bits/mathcalls.h
+makedepend: warning:  initialize_chemistry_data.c (reading /usr/include/string.h, line 32): cannot find include file "stddef.h"
+	not in /cineca/prod/opt/libraries/hdf5/1.8.17/intelmpi--2017--binary/include/stddef.h
+	not in ./stddef.h
+	not in /usr/include/stddef.h
+makedepend: warning:  initialize_cloudy_data.c (reading /usr/include/limits.h, line 124): cannot find include file "limits.h"
+makedepend: warning:  initialize_cloudy_data.c (reading /usr/include/inttypes.h, line 37): cannot find include file "stddef.h"
+	not in /cineca/prod/opt/libraries/hdf5/1.8.17/intelmpi--2017--binary/include/stddef.h
+	not in ./stddef.h
+	not in /usr/include/stddef.h
+makedepend: warning:  initialize_cloudy_data.c (reading /cineca/prod/opt/libraries/hdf5/1.8.17/intelmpi--2017--binary/include/H5public.h, line 58): cannot find include file "stddef.h"
+	not in /cineca/prod/opt/libraries/hdf5/1.8.17/intelmpi--2017--binary/include/stddef.h
+	not in ./stddef.h
+	not in /usr/include/stddef.h
+makedepend: warning:  initialize_cloudy_data.c (reading /cineca/prod/opt/libraries/hdf5/1.8.17/intelmpi--2017--binary/include/H5public.h, line 61): cannot find include file "mpi.h"
+	not in /cineca/prod/opt/libraries/hdf5/1.8.17/intelmpi--2017--binary/include/mpi.h
+	not in ./mpi.h
+	not in /usr/include/mpi.h
+makedepend: warning:  initialize_cloudy_data.c (reading /cineca/prod/opt/libraries/hdf5/1.8.17/intelmpi--2017--binary/include/H5public.h, line 63): cannot find include file "mpio.h"
+	not in /cineca/prod/opt/libraries/hdf5/1.8.17/intelmpi--2017--binary/include/mpio.h
+	not in ./mpio.h
+	not in /usr/include/mpio.h
+makedepend: warning:  initialize_cloudy_data.c (reading /cineca/prod/opt/libraries/hdf5/1.8.17/intelmpi--2017--binary/include/H5public.h), line 177: #   error "nothing appropriate for hsize_t"
 makedepend: warning:  calc_tdust_1d_g.F includes grackle_fortran_types.def more than once!
 Already have
 	phys_const.def
@@ -54,10 +129,84 @@ Already have
 	phys_const.def
 	grackle_fortran_types.def
 makedepend: warning:  cannot open "*.C"
-makedepend: warning:  initialize_UVbackground_data.c (reading /usr/local/include/H5public.h, line 143): cannot find include file "stdbool.h"
-	not in /usr/local/include/stdbool.h
-	not in ./stdbool.h
-	not in /usr/include/stdbool.h
+makedepend: warning:  auto_show_config.c (reading /usr/include/stdio.h, line 33): cannot find include file "stddef.h"
+	not in /cineca/prod/opt/libraries/hdf5/1.8.17/intelmpi--2017--binary/include/stddef.h
+	not in ./stddef.h
+	not in /usr/include/stddef.h
+makedepend: warning:  auto_show_config.c (reading /usr/include/_G_config.h, line 15): cannot find include file "stddef.h"
+	not in /cineca/prod/opt/libraries/hdf5/1.8.17/intelmpi--2017--binary/include/stddef.h
+	not in ./stddef.h
+	not in /usr/include/stddef.h
+makedepend: warning:  auto_show_config.c (reading /usr/include/wchar.h, line 51): cannot find include file "stddef.h"
+	not in /cineca/prod/opt/libraries/hdf5/1.8.17/intelmpi--2017--binary/include/stddef.h
+	not in ./stddef.h
+	not in /usr/include/stddef.h
+makedepend: warning:  auto_show_config.c (reading /usr/include/libio.h, line 50): cannot find include file "stdarg.h"
+	not in /cineca/prod/opt/libraries/hdf5/1.8.17/intelmpi--2017--binary/include/stdarg.h
+	not in ./stdarg.h
+	not in /usr/include/stdarg.h
+makedepend: warning:  calculate_cooling_time.c (reading /usr/include/stdlib.h, line 32): cannot find include file "stddef.h"
+	not in /cineca/prod/opt/libraries/hdf5/1.8.17/intelmpi--2017--binary/include/stddef.h
+	not in ./stddef.h
+	not in /usr/include/stddef.h
+makedepend: warning:  /usr/include/time.h includes /usr/include/bits/types.h more than once!
+Already have
+	/usr/include/bits/types.h
+makedepend: warning:  /usr/include/time.h includes /usr/include/bits/types.h more than once!
+Already have
+	/usr/include/bits/types.h
+makedepend: warning:  /usr/include/time.h includes /usr/include/bits/types.h more than once!
+Already have
+	/usr/include/bits/types.h
+makedepend: warning:  calculate_cooling_time.c (reading /usr/include/sys/types.h, line 146): cannot find include file "stddef.h"
+	not in /cineca/prod/opt/libraries/hdf5/1.8.17/intelmpi--2017--binary/include/stddef.h
+	not in ./stddef.h
+	not in /usr/include/stddef.h
+makedepend: warning:  calculate_cooling_time.c (reading /usr/include/alloca.h, line 24): cannot find include file "stddef.h"
+	not in /cineca/prod/opt/libraries/hdf5/1.8.17/intelmpi--2017--binary/include/stddef.h
+	not in ./stddef.h
+	not in /usr/include/stddef.h
+makedepend: warning:  /usr/include/math.h includes /usr/include/bits/mathcalls.h more than once!
+Already have
+	/usr/include/features.h
+	/usr/include/bits/huge_val.h
+	/usr/include/bits/huge_valf.h
+	/usr/include/bits/huge_vall.h
+	/usr/include/bits/inf.h
+	/usr/include/bits/nan.h
+	/usr/include/bits/mathdef.h
+	/usr/include/bits/mathcalls.h
+makedepend: warning:  /usr/include/math.h includes /usr/include/bits/mathcalls.h more than once!
+Already have
+	/usr/include/features.h
+	/usr/include/bits/huge_val.h
+	/usr/include/bits/huge_valf.h
+	/usr/include/bits/huge_vall.h
+	/usr/include/bits/inf.h
+	/usr/include/bits/nan.h
+	/usr/include/bits/mathdef.h
+	/usr/include/bits/mathcalls.h
+makedepend: warning:  initialize_chemistry_data.c (reading /usr/include/string.h, line 32): cannot find include file "stddef.h"
+	not in /cineca/prod/opt/libraries/hdf5/1.8.17/intelmpi--2017--binary/include/stddef.h
+	not in ./stddef.h
+	not in /usr/include/stddef.h
+makedepend: warning:  initialize_cloudy_data.c (reading /usr/include/limits.h, line 124): cannot find include file "limits.h"
+makedepend: warning:  initialize_cloudy_data.c (reading /usr/include/inttypes.h, line 37): cannot find include file "stddef.h"
+	not in /cineca/prod/opt/libraries/hdf5/1.8.17/intelmpi--2017--binary/include/stddef.h
+	not in ./stddef.h
+	not in /usr/include/stddef.h
+makedepend: warning:  initialize_cloudy_data.c (reading /cineca/prod/opt/libraries/hdf5/1.8.17/intelmpi--2017--binary/include/H5public.h, line 58): cannot find include file "stddef.h"
+	not in /cineca/prod/opt/libraries/hdf5/1.8.17/intelmpi--2017--binary/include/stddef.h
+	not in ./stddef.h
+	not in /usr/include/stddef.h
+makedepend: warning:  initialize_cloudy_data.c (reading /cineca/prod/opt/libraries/hdf5/1.8.17/intelmpi--2017--binary/include/H5public.h, line 61): cannot find include file "mpi.h"
+	not in /cineca/prod/opt/libraries/hdf5/1.8.17/intelmpi--2017--binary/include/mpi.h
+	not in ./mpi.h
+	not in /usr/include/mpi.h
+makedepend: warning:  initialize_cloudy_data.c (reading /cineca/prod/opt/libraries/hdf5/1.8.17/intelmpi--2017--binary/include/H5public.h, line 63): cannot find include file "mpio.h"
+	not in /cineca/prod/opt/libraries/hdf5/1.8.17/intelmpi--2017--binary/include/mpio.h
+	not in ./mpio.h
+	not in /usr/include/mpio.h
 makedepend: warning:  calc_tdust_1d_g.F includes grackle_fortran_types.def more than once!
 Already have
 	phys_const.def
