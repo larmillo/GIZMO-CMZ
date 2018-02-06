@@ -1,0 +1,2050 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>cloudy_slug: An Automated Interface to cloudy &#8212; slug 2.0 documentation</title>
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '2.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="bayesphot: Bayesian Inference for Stochastic Stellar Populations" href="bayesphot.html" />
+    <link rel="prev" title="slugpy – The Python Helper Library" href="slugpy.html" />
+   
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9">
+
+  </head>
+  <body>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="cloudy-slug-an-automated-interface-to-cloudy">
+<span id="sec-cloudy-slug"></span><h1>cloudy_slug: An Automated Interface to cloudy<a class="headerlink" href="#cloudy-slug-an-automated-interface-to-cloudy" title="Permalink to this headline">¶</a></h1>
+<p>SLUG stochastically generates stellar spectra, and it includes an
+approximate computation of the nebular lines produced when those
+photons interact with the interstellar medium. However, this
+approximation ignores a number of potentially important effects, and
+does not properly account for the stochastic nature of the stellar
+spectra. To perform a much more accurate calculation, SLUG includes an
+automated interface to <a class="reference external" href="http://nublado.org/">cloudy</a> (<a class="reference external" href="http://adsabs.harvard.edu/abs/2013RMxAA..49..137F">Ferland et
+al., 2013, RMxAA, 49, 137</a>). This can be
+used to post-process the output of a SLUG run in order to compute
+nebular emission.</p>
+<div class="section" id="cloudy-slug-basics">
+<h2>cloudy_slug Basics<a class="headerlink" href="#cloudy-slug-basics" title="Permalink to this headline">¶</a></h2>
+<p>The basic steps (described in greater detail below) are as follows:</p>
+<ol class="arabic">
+<li><p class="first">Get cloudy installed and compiled, following the directions on the
+<a class="reference external" href="http://nublado.org/">cloudy website</a>.</p>
+</li>
+<li><p class="first">Set the environment variable <code class="docutils literal"><span class="pre">$CLOUDY_DIR</span></code> to the directory where
+the cloudy executable <code class="docutils literal"><span class="pre">cloudy.exe</span></code> is located.  If you are using
+a <code class="docutils literal"><span class="pre">bash</span></code>-like shell, the syntax for this is:</p>
+<div class="highlight-rest"><div class="highlight"><pre><span></span>export CLOUDY_DIR = /path/to/cloudy
+</pre></div>
+</div>
+<p>while for a <code class="docutils literal"><span class="pre">csh</span></code>-like shell, it is:</p>
+<div class="highlight-rest"><div class="highlight"><pre><span></span>setenv CLOUDY_DIR /path/to/cloudy
+</pre></div>
+</div>
+</li>
+<li><p class="first">If you desire, edit the cloudy input template
+<code class="docutils literal"><span class="pre">cloudy_slug/cloudy.in_template</span></code> and the line list
+<code class="docutils literal"><span class="pre">cloudy_slug/LineList_HII.dat</span></code>. These are the template input files
+that will be used for all the cloudy runs, and their syntax follows
+the standard cloudy syntax. They control things like the density and
+element abundances in the nebula – see <a class="reference internal" href="#ssec-cloudy-template"><span class="std std-ref">The cloudy_slug Input Template</span></a>
+for more details.</p>
+</li>
+<li><p class="first">Perform the desired SLUG simulation. The SLUG simulation outputs
+must include spectra and photometry, and one of the photometric
+bands output must be <code class="docutils literal"><span class="pre">QH0</span></code> (see
+<a class="reference internal" href="parameters.html#ssec-phot-keywords"><span class="std std-ref">Photometric Filter Keywords</span></a>). Depending on whether one is running in
+integrated or cluster mode (see
+<a class="reference internal" href="#sssec-cloudy-integrated-cluster"><span class="std std-ref">Integrated versus Cluster Spectra</span></a>), either integrated specta
+and photometry or cluster spectra and photometry are
+required.</p>
+</li>
+<li><p class="first">Invoke the cloudy_slug interface script via:</p>
+<div class="highlight-rest"><div class="highlight"><pre><span></span>python cloudy_slug/cloudy_slug.py SLUG_MODEL_NAME
+</pre></div>
+</div>
+<p>where <code class="docutils literal"><span class="pre">SLUG_MODEL_NAME</span></code> is the name of the SLUG run to be
+processed. See <a class="reference internal" href="#ssec-cloudy-model"><span class="std std-ref">The cloudy_slug Physical Model</span></a> for more information on
+the underlying physical model assumed in the calculation, and
+<a class="reference internal" href="#ssec-cloudy-slug-options"><span class="std std-ref">The cloudy_slug Interface Script</span></a> for more details on the python
+script and its options.</p>
+</li>
+<li><p class="first">The output will be stored as a series of additional output files of
+with names of the form SLUG_MODEL_NAME_*cloudy*.ext, where the
+extension is .txt, .bin, or .fits, depending on the format in which
+the orignal SLUG output was stored. These files can be processed
+automatically by the slugpy helper routines (see
+<a class="reference internal" href="slugpy.html#sec-slugpy"><span class="std std-ref">slugpy – The Python Helper Library</span></a>). See <a class="reference internal" href="#ssec-cloudy-output"><span class="std std-ref">Full Description of cloudy_slug Output</span></a> for a description
+of the outputs.</p>
+</li>
+</ol>
+<p>Note that some care is required in selecting the conditions passed to
+cloudy to ensure that the results are physically sensible. Users are
+strongly encouraged to read <a class="reference internal" href="#ssec-cloudy-model"><span class="std std-ref">The cloudy_slug Physical Model</span></a> to understand
+exactly what physical assumptions are being made, and to ensure that
+they are reasonable.</p>
+</div>
+<div class="section" id="the-cloudy-slug-physical-model">
+<span id="ssec-cloudy-model"></span><h2>The cloudy_slug Physical Model<a class="headerlink" href="#the-cloudy-slug-physical-model" title="Permalink to this headline">¶</a></h2>
+<p>The cloudy_slug code computes emission from a spherical HII region
+surrounding a stellar population. The stellar population comes from
+SLUG, and the emission calculation is performed with cloudy. Combining
+the two requires some physical assumptions and inputs, which are
+explained in this section.</p>
+<div class="section" id="integrated-versus-cluster-spectra">
+<span id="sssec-cloudy-integrated-cluster"></span><h3>Integrated versus Cluster Spectra<a class="headerlink" href="#integrated-versus-cluster-spectra" title="Permalink to this headline">¶</a></h3>
+<p>SLUG outputs both integrated spectra for all the stars in a galaxy,
+and spectra for individual clusters. Both the integrated spectra and
+the individual cluster spectra can be processed by cloudy. However, it
+is important to understand the implicit physical assumptions that one
+is making while doing so. If one has a galaxy where all stars are in
+clusters (i.e., cluster formation fraction is unity and there is no
+cluster disruption), then the integrated starlight spectrum is just
+the sum of the individual cluster spectra. For nebular emission,
+however, this is not the case: nebular emission does not, in general,
+add linearly.</p>
+<p>For this reason, if one processes the integrated spectrum through
+cloudy, the implicit physical assumption is that the entire galaxy is
+a single giant HII region being ionized by the starlight of all the
+clusters present. If one processes the individual cluster spectra
+instead, the implicit physical picture is that there is no overlap
+whatsoever between the HII regions surrounding different star
+clusters. Reality almost certainly lies somewhere between these two
+extremes, but it is important to understand physically what assumption
+one is making by adopting one or the other. We refer to processing the
+integrated spectrum as integrated mode, and to processing the
+individual cluster spectra as cluster mode. Note that cluster mode can
+be very computationally intensive if there are many clusters present,
+and that in cluster mode there is no processing of nebular emission
+produced by field stars.</p>
+<p>In either mode, the spectrum that is used to compute the nebular
+emission will be the <em>unextincted, non-redshifted</em> spectrum computed
+by SLUG.</p>
+</div>
+<div class="section" id="nebular-properties">
+<span id="sssec-cloudy-nebular-properties"></span><h3>Nebular Properties<a class="headerlink" href="#nebular-properties" title="Permalink to this headline">¶</a></h3>
+<p>Computing the nebular emission requires specifying the physical
+properties of the interstellar gas into which the
+photons propagate. Codes like cloudy require that the HII region be
+described by an inner radius <span class="math">\(r_0\)</span> and a number density
+<span class="math">\(n_{0}\)</span> of hydrogen nuclei at that radius. One option for
+cloudy_slug is that these parameters can be set in the cloudy inputs
+as they would be for a normal cloudy run. However, these parameters
+are not necessarily the most convenient or descriptive ones with which
+to characterize HII regions. For this reason, cloudy_slug allows users
+to specify HII region properties in a number of other more convenient
+ways.</p>
+<p>The basic assumptions made in cloudy_slug’s parameterization is
+that the HII region is isobaric and isothermal, at all points hydrogen
+is fully ionized and helium is singly ionized, and that radiation
+pressure is negligible. (Important note: these are the assumptions
+used in cloudy_slug’s way of writing out the parameters, and they are
+approximately true for most HII regions. However, they are <em>not</em>
+exactly true for the final cloudy calculation, where in general the
+temperature is not constant, the ionization states of hydrogen and
+helium vary through the nebula, and radiation pressure may or may not
+be important.) The HII region occupies a spherical shell bounded by an
+inner radius <span class="math">\(r_0\)</span> and an outer radius <span class="math">\(r_1\)</span>. The inner
+radius is set by the presence of a bubble of shocked stellar wind
+material at a temperature <span class="math">\(\sim 10^6\)</span> K, which is assumed to be
+optically thin to ionizing photons. The outer radius is set by the
+location where all the ionizing photons have been absorbed.</p>
+<p>Under these assumptions, the inner density <span class="math">\(n_0\)</span> is simply the
+(uniform) density <span class="math">\(n_{\mathrm{II}}\)</span> throughout the ionized
+region, and the ionizing photon luminosity passing through a shell of
+material at a distance <span class="math">\(r\)</span> from the stars is</p>
+<div class="math">
+\[Q(r) = Q(\mathrm{H}^0)
+\left[1 - \left(\frac{r}{r_S}\right)^3 +
+\left(\frac{r_0}{r_S}\right)^3\right],\]</div>
+<p>where <span class="math">\(Q(\mathrm{H}^0)\)</span> is the hydrogen-ionizing luminosity of
+the source and <span class="math">\(r_S\)</span> is the Stromgren radius, given by</p>
+<div class="math">
+\[r_S = \left(\frac{3 Q(\mathrm{H}^0)}{4\pi
+\alpha_B f_e n_{\mathrm{II}}^2}\right)^{1/3}.\]</div>
+<p>Here <span class="math">\(\alpha_B\)</span> is the case B recombination coefficient and
+<span class="math">\(f_e\)</span> is the abundance of electrons per H nucleus. For the
+purposes of cloudy_slug, we take these two quantities to have
+the fixed values <span class="math">\(\alpha_B = 2.59\times
+10^{-13}\;\mathrm{cm}^3\;\mathrm{s}^{-1}\)</span>, appropriate for a
+temperature of <span class="math">\(10^4\)</span> K, and <span class="math">\(f_e = 1.1\)</span>, appropriate for
+a region where He is singly ionized.</p>
+<p>From this setup one can define some useful dimensionless numbers. One
+is the wind parameter <span class="math">\(\Omega\)</span> introduced by <a class="reference external" href="http://adsabs.harvard.edu/abs/2012ApJ...757..108Y">Yeh &amp;
+Matnzer (2012, ApJ, 757, 108)</a>, which under the
+simple assumptions made in cloudy_slug is given by</p>
+<div class="math">
+\[\Omega = \frac{r_0^3}{r_1^3-r_0^3}\]</div>
+<p>i.e., it is just the ratio of the volume occupied by the wind gas to
+that occupied by the photoionized gas. The value of <span class="math">\(\Omega\)</span>
+determines whether winds are important (<span class="math">\(\Omega \gg 1\)</span>) or
+unimportant (<span class="math">\(\Omega \ll 1\)</span>) for the dynamics of the HII
+region. The second dimensionless parameter is the volume-averaged
+ionization parameter</p>
+<div class="math">
+\[\mathcal{U} = \frac{3}{4\pi (r_1^3-r_0^3)} \int_{r_0}^{r_1}
+\left(\frac{Q(r)}{4\pi r^2 c f_i n_{\mathrm{II}}}\right)
+4\pi r^2 \, dr.\]</div>
+<p>Here <span class="math">\(f_i\)</span> is the number of free ions per H nucleus, and is
+equal to <span class="math">\(f_i = 1.1\)</span> under the assumption that He is singly
+ionized. The quantity in parentheses is the ratio of the ionizing
+photon to ion number densities at radius <span class="math">\(r\)</span>. The value of
+<span class="math">\(\mathcal{U}\)</span> is, together with <span class="math">\(n_{\mathrm{II}}\)</span>, the
+most important factor in determining the output spectrum. A third
+useful dimensionless parameter is the ionization parameter at the
+inner radius,</p>
+<div class="math">
+\[\mathcal{U}_0 = \frac{Q(\mathrm{H}^0)}
+{4\pi r_0^2 f_i n_{\mathrm{II}} c}.\]</div>
+<p>The various quantities are not unrelated. It is straightforward to
+show that they are constrained by the following relationships:</p>
+<div class="math">
+\[ \begin{align}\begin{aligned}\begin{split}r_0 &amp; = \Omega^{1/3} r_S \\\end{split}\\\begin{split}r_1 &amp; = \left(1 + \Omega\right)^{1/3} r_S \\\end{split}\\\begin{split}\mathcal{U} &amp; = \left[\frac{81 \alpha_B^2 n_{\mathrm{II}}
+Q(\mathrm{H}^0)}{256 \pi c^3 f_e}\right]^{1/3}
+\left[\left(1 + \Omega\right)^{4/3}
+- \Omega^{1/3} \left(\frac{4}{3}+\Omega\right)\right] \\\end{split}\\\begin{split}&amp; = \left[\frac{81 \alpha_B Q(\mathrm{H}^0)}
+{64 \pi c^2 f_e r_S}\right]^{1/2}
+\left[\left(1 + \Omega\right)^{4/3}
+- \Omega^{1/3} \left(\frac{4}{3}+\Omega\right)\right] \\\end{split}\\\begin{split}\mathcal{U}_0 &amp;= \left[
+\frac{\alpha_B^2 n_{\mathrm{II}} Q(\mathrm{H}^0)}
+{36 \pi c^3 f_e}\right]^{1/3} \frac{1}{\Omega^{2/3}} \\\end{split}\\\begin{split}&amp;= \frac{4}{9}\Omega^{-2/3} \left[(1+\Omega)^{4/3} -
+\Omega^{1/3}\left(\frac{4}{3}+\Omega\right)\right]^{-1}
+\mathcal{U} \\\end{split}\end{aligned}\end{align} \]</div>
+<p>These relations may be used to compute any four of the quantities
+<span class="math">\(n_{\mathrm{II}}\)</span>, <span class="math">\(r_0\)</span>, <span class="math">\(r_1\)</span>, <span class="math">\(\mathcal{U}\)</span>,
+<span class="math">\(\mathcal{U}_0\)</span> and <span class="math">\(\Omega\)</span> given the other two.
+<a class="reference internal" href="slugpy.html#sec-slugpy"><span class="std std-ref">slugpy – The Python Helper Library</span></a> provides a class <code class="docutils literal"><span class="pre">hiiregparam</span></code> that can be used
+to perform such a computation.</p>
+<p>Given this background, cloudy_slug allows the user to specify the
+physical properties of the HII region by setting any two of the
+following six quantities:</p>
+<ol class="arabic simple">
+<li>The photoionized gas density <span class="math">\(n_{\mathrm{II}}\)</span>.</li>
+<li>The inner radius <span class="math">\(r_0\)</span>.</li>
+<li>The outer radius <span class="math">\(r_1\)</span>.</li>
+<li>The volume-averaged ionization parameter <span class="math">\(\mathcal{U}\)</span>.</li>
+<li>The inner radius ionization parameter <span class="math">\(\mathcal{U}_0\)</span>.</li>
+<li>The wind parameter <span class="math">\(\Omega\)</span>.</li>
+</ol>
+<p>The two quantities chosen can be specified exactly, or can be drawn
+from a specified PDF. One final option, which is only available in
+cluster mode, is to obtain the required quantities from a dynamical
+model – see <a class="reference internal" href="#sssec-cloudy-dynamical-cluster-mode"><span class="std std-ref">Dynamical Mode</span></a>.</p>
+<p>A few caveats are in order at this point.</p>
+<ol class="arabic simple">
+<li>Not all combinations of values are realizable. In addition to the
+obvious constraints (e.g., <span class="math">\(r_1 &gt; r_0\)</span>), there are some
+subtle ones. For example, for any given ionizing luminosity
+<span class="math">\(Q(\mathrm{H}^0)\)</span> and density <span class="math">\(n_{\mathrm{II}}\)</span>, the
+value of <span class="math">\(\mathcal{U}\)</span> is bounded from above. Increasing the
+wind parameter <span class="math">\(\Omega\)</span> can allow arbitrarily small values of
+<span class="math">\(\mathcal{U}\)</span>, but not arbitrarily large ones. If the user
+requests a physically impossible combination of parameters,
+cloudy_slug will note the problem and react as specified by the
+options given to the cloudy_slug script.</li>
+<li>Even for parameters that are not physically impossible, the results
+may not be sensible, and may cause cloudy to crash in extreme
+cases. For example, if one sets <span class="math">\(\Omega = 0\)</span> and
+<span class="math">\(\mathcal{U} = 10^{-4}\)</span>, then for an ionizing lumnosity of
+<span class="math">\(Q(\mathrm{H}^0) = 10^{50}\)</span> photons/s (typical for a cluster
+of <span class="math">\(\sim 10^4M_\odot\)</span>), the corresponding density is
+<span class="math">\(n_{\mathrm{II}} \approx 10^{-5}\mbox{ cm}^{-3}\)</span>! As this
+density the gas will be fully ionized by cosmic rays and the
+extragalactic background, and it makes no sense to think of it as
+an HII region. Caution is required.</li>
+<li>The parameter combinations <span class="math">\((r_0,\mathcal{U})\)</span> and
+<span class="math">\((r_1,\mathcal{U}_0)\)</span> are not allowed
+because they do not define a unique solution for the other
+parameters (the resulting equations have multiple physically-valid
+solutions).</li>
+<li>The relations given above are only valid if radiation pressure is
+not dynamically significant. If it is, then there are no known
+analytic relations between the various quantities. The cloudy_slug
+code will still run, and will use the relations above, but the
+actual HII region properties may be markedly different from those
+requested. In cases where radiation pressure is important, it is
+generally advisable to save the HII region physical conditions
+output by cloudy to compute quatities from them directly. The
+cloudy_slug script will issue a warning if radiation pressure is
+expected to be significant for the HII region being computed. As a rule
+of thumb, radiation pressure is significant if</li>
+</ol>
+<div class="math">
+\[\zeta \equiv \frac{r_{\mathrm{ch}}}{r_1} &gt; 1\]</div>
+<p>where <span class="math">\(r_{\mathrm{ch}}\)</span> is the
+characteristic radius defined by <a class="reference external" href="http://adsabs.harvard.edu/abs/2009ApJ...703.1352K">Krumholz &amp; Matzner (2009, ApJ,
+703, 1352)</a> as</p>
+<div class="math">
+\[\begin{split}r_{\mathrm{ch}} &amp; =
+\frac{\alpha_B}{12 \pi \phi}
+\left(\frac{\epsilon_0}{2 f_e k_B T_{\mathrm{II}}}\right)^2
+f_{\mathrm{trap}}^2 \frac{\psi^2 Q(\mathrm{H}^0)}{c^2}
+\\\end{split}\]</div>
+<p>Here  <span class="math">\(\phi = 0.73\)</span> is the fraction of ionizing photons absorbed
+by hydrogen atoms rather than dust, <span class="math">\(\epsilon_0 =
+13.6\;\mathrm{eV}\)</span> is the hydrogen ionization potential,
+<span class="math">\(T_{\mathrm{II}} = 10^4\;\mathrm{K}\)</span> is the temperature inside
+the HII region, <span class="math">\(f_{\mathrm{trap}} = 2\)</span> is the trapping factor
+that accounts for stellar wind and trapped infrared radiation
+pressure, and <span class="math">\(\psi = 3.2\)</span> is the mean photon energy in Rydberg for
+a fully sampled IMF at zero age.</p>
+</div>
+<div class="section" id="dynamical-mode">
+<span id="sssec-cloudy-dynamical-cluster-mode"></span><h3>Dynamical Mode<a class="headerlink" href="#dynamical-mode" title="Permalink to this headline">¶</a></h3>
+<p>In cluster mode, cloudy_slug allows an additional option to derive the
+physical properties of the HII region. They can be computed from a
+dynamical model of HII region expansion, taken from <a class="reference external" href="http://adsabs.harvard.edu/abs/2009ApJ...703.1352K">Krumholz &amp;
+Matzner (2009, ApJ, 703, 1352)</a>.  In this model,
+the radius of an HII region can be computed as a function of the
+ionizing luminosity <span class="math">\(Q(\mathrm{H}^0)\)</span>, ambient hydrogen number
+density <span class="math">\(n_{\mathrm{H}}\)</span>, and star cluster age <span class="math">\(t\)</span> as</p>
+<div class="math">
+\[ \begin{align}\begin{aligned}\begin{split}r_1 &amp; = r_{\mathrm{ch}}
+\left(x_{\mathrm{rad}}^{7/2} +
+x_{\mathrm{gas}}^{7/2}\right)^{2/7} \\\end{split}\\\begin{split}x_{\mathrm{rad}} &amp;= (2\tau^2)^{1/4} \\\end{split}\\\begin{split}x_{\mathrm{gas}} &amp;= (49\tau^2/36)^{2/7} \\\end{split}\\\begin{split}\tau &amp;= t/t_{\mathrm{ch}} \\\end{split}\\\begin{split}t_{\mathrm{ch}} &amp; = \left(\frac{4\pi \mu m_{\mathrm{H}}
+n_{\mathrm{H}} c r_{\mathrm{ch}}^4}{3 f_{\mathrm{trap}}
+Q(\mathrm{H}^0) \psi \epsilon_0}\right)^{1/2} \\\end{split}\end{aligned}\end{align} \]</div>
+<p>Definitions of various quantities appearing in these equations are
+given above. The quantity <span class="math">\(\mu = 1.4\)</span> is the mean
+mass per hydrogen nucleus for gas of the standard cosmic
+composition.</p>
+<p>We refer to this method of computing HII region properties as
+dynamical mode. In this mode, a user can specify the properties of the
+nebula in terms of an ambient density <span class="math">\(n_{\mathrm{H}}\)</span> and
+a wind parameter <span class="math">\(\Omega\)</span>. All other quantities are
+derived from these two and from the ionizing luminosity
+<span class="math">\(Q(\mathrm{H}^0)\)</span> and age <span class="math">\(t\)</span> of each cluster. Dynamical
+mode can only be used in combination with cluster mode, not integrated
+mode, because composite stellar populations do not have well-defined
+ages.</p>
+</div>
+</div>
+<div class="section" id="the-cloudy-slug-input-template">
+<span id="ssec-cloudy-template"></span><h2>The cloudy_slug Input Template<a class="headerlink" href="#the-cloudy-slug-input-template" title="Permalink to this headline">¶</a></h2>
+<p>The cloudy_slug interface operates by reading SLUG output spectra and
+using them as inputs to a cloudy calculation. However, cloudy
+obviously requires many input parameters beyond simply the spectrum of
+the input radiation field. These parameters are normally provided by
+an input file whose format is as described in the <a class="reference external" href="http://nublado.org">cloudy documentation</a>. The cloudy_slug interface works by reading a
+<em>template</em> input file that specifies all these parameter, and which
+will be used as a basis for the final cloudy input files that will
+contain the SLUG spectra.</p>
+<p>In general the template input file looks just like an ordinary cloudy
+input file, subject to the following restrictions:</p>
+<ol class="arabic simple">
+<li>The input file <em>must not</em> contain any commands that specify the
+luminosity, intensity, or the spectral shape. These will be
+inserted automatically by the cloudy_slug script.</li>
+<li>The input file <em>may</em> contain a radius command specifying the inner
+radius of the HII region. If it does not, then the user must
+specify the radius in another way, by setting 2 of the 6 inputs
+described in <a class="reference internal" href="#sssec-cloudy-nebular-properties"><span class="std std-ref">Nebular Properties</span></a> (for
+simulations not done in dynamic mode) or by setting an ambient
+density and wind parameters in
+<a class="reference internal" href="#sssec-cloudy-dynamical-cluster-mode"><span class="std std-ref">Dynamical Mode</span></a>. If the user does
+set these quantities, any radius command in the template file will be
+ignored, and a warning message will be issued if one is
+found. Finally, note that cloudy_slug will only compute derived
+parameters correctly from a radius in the template file if the
+radius is specified in cloudy’s default format, by giving a log of
+the radius in cm; the keywords “linear” and “parsecs” are not
+currently supported.</li>
+<li>The input file <em>may</em> contain a hydrogen density command specifying
+the starting hydrogen density. The rules for this are the same as
+for the radius command.</li>
+<li>Any outputs to be written (specified using the <code class="docutils literal"><span class="pre">save</span></code> or
+<code class="docutils literal"><span class="pre">punch</span></code> keywords) must give file names containing the string
+<code class="docutils literal"><span class="pre">$OUTPUT_FILENAME</span></code>. This string will be replaced by the
+cloudy_slug script to generate a unique file name for each cloudy
+run, and to read back these outputs for post-processing.</li>
+<li>The cloudy_slug output will contain output spectra only if the
+cloudy input file contains a <code class="docutils literal"><span class="pre">save</span> <span class="pre">last</span> <span class="pre">continuum</span></code> command. See
+<a class="reference internal" href="#ssec-cloudy-output"><span class="std std-ref">Full Description of cloudy_slug Output</span></a>.</li>
+<li>The cloudy_slug output will contain output line luminosities only
+if the cloudy input file contains a <code class="docutils literal"><span class="pre">save</span> <span class="pre">last</span> <span class="pre">line</span> <span class="pre">list</span> <span class="pre">emergent</span>
+<span class="pre">absolute</span> <span class="pre">column</span></code> command. See <a class="reference internal" href="#ssec-cloudy-output"><span class="std std-ref">Full Description of cloudy_slug Output</span></a>.</li>
+<li>The cloudy_slug output will contain output physical conditions and
+dimensionless values only if the cloudy input file contains a
+<code class="docutils literal"><span class="pre">save</span> <span class="pre">last</span> <span class="pre">hydrogen</span> <span class="pre">conditions</span></code> command. See
+<a class="reference internal" href="#ssec-cloudy-output"><span class="std std-ref">Full Description of cloudy_slug Output</span></a>.</li>
+<li>If any other outputs are produced by the input file, they will
+neither be processed nor moved, deleted, or otherwise changed by
+the cloudy_slug script.</li>
+<li>Running cloudy in grid mode is not currently supported.</li>
+</ol>
+<p>An example cloudy input file with reasonable parameter choices is
+provided as <code class="docutils literal"><span class="pre">cloudy_slug/cloudy_in.template</span></code> in the main directory
+of the SLUG repository.</p>
+<p>In addition to the input file, the default template makes use of a
+cloudy line list file to specify which line luminosities should be
+output (see the <a class="reference external" href="http://nublado.org">cloudy documentation</a> for
+details). The template points to the file
+<code class="docutils literal"><span class="pre">cloudy_slug/LineList_HII.data</span></code> (which is identical to cloudy’s
+default line list for HII regions), but any other valid cloudy line
+list file would work as well.</p>
+</div>
+<div class="section" id="the-cloudy-slug-interface-script">
+<span id="ssec-cloudy-slug-options"></span><h2>The cloudy_slug Interface Script<a class="headerlink" href="#the-cloudy-slug-interface-script" title="Permalink to this headline">¶</a></h2>
+<p>The <code class="docutils literal"><span class="pre">cloudy_slug.py</span></code> script provides the interface between SLUG and
+cloudy. Usage for this script is as follows:</p>
+<div class="highlight-rest"><div class="highlight"><pre><span></span>cloudy_slug.py [-h] [-a AGEMAX] [--cloudypath CLOUDYPATH]
+               [--cloudytemplate CLOUDYTEMPLATE] [-cm]
+               [-cf COVERINGFAC] [-d] [-hd HDEN] [-ip IONPARAM]
+               [-ip0 IONPARAM0] [-ipm IONPARAMMAX]
+               [--ionparammin IONPARAMMIN] [-nl NICELEVEL]
+               [-n NPROC] [-ps PARAMSAFETY] [-qm QH0MIN] [-r0 R0]
+               [-r1 R1] [-s] [--slugformat SLUGFORMAT]
+               [--slugpath SLUGPATH] [-t TMPDIR] [-v] [-wp WINDPARAM]
+               [-wr]
+               slug_model_name [start_spec] [end_spec]
+</pre></div>
+</div>
+<p>The positional arguments are as follows:</p>
+<ul class="simple">
+<li><code class="docutils literal"><span class="pre">slug_model_name</span></code>: this is the name of the SLUG output to be used
+as a basis for the cloudy calculation. This should be the same as
+the <code class="docutils literal"><span class="pre">model_name</span></code> parameter used in the SLUG simulation, with the
+optional addition of a path specification in front.</li>
+<li><code class="docutils literal"><span class="pre">start_spec</span></code>: default behavior is to run cloudy on all the
+integrated spectra or cluster spectra (see
+<a class="reference internal" href="#sssec-cloudy-integrated-cluster"><span class="std std-ref">Integrated versus Cluster Spectra</span></a>). If this
+argument is set, cloudy will only be run in spectra starting with
+the specified trial number or cluster number; numbers are
+0-offset, so the first trial/cluster is 0, the next is 1, etc.</li>
+<li><code class="docutils literal"><span class="pre">end_spec</span></code>: same as <code class="docutils literal"><span class="pre">start_spec</span></code>, but specifying the last
+cluster to be processed. Per standard python convention, the spectra
+processed will go up to but not include <code class="docutils literal"><span class="pre">end_spec</span></code>.</li>
+</ul>
+<p>The following optional arguments control paths and file locations:</p>
+<ul class="simple">
+<li><code class="docutils literal"><span class="pre">--cloudypath</span> <span class="pre">CLOUDYPATH</span></code>: path to the cloudy executable; default
+is <code class="docutils literal"><span class="pre">$CLOUDY_DIR/cloudy.exe</span></code></li>
+<li><code class="docutils literal"><span class="pre">--cloudytemplate</span> <span class="pre">CLOUDYTEMPLATE</span></code>: cloudy input file template (see
+<a class="reference internal" href="#ssec-cloudy-template"><span class="std std-ref">The cloudy_slug Input Template</span></a>); default is
+<code class="docutils literal"><span class="pre">$SLUG_DIR/cloudy_slug/cloudy.in_template</span></code></li>
+<li><code class="docutils literal"><span class="pre">--slugformat</span> <span class="pre">SLUGFORMAT</span></code>: the format of slug output data to use;
+valid values are <code class="docutils literal"><span class="pre">ascii</span></code>, <code class="docutils literal"><span class="pre">bin</span></code>, <code class="docutils literal"><span class="pre">binary</span></code>, and <code class="docutils literal"><span class="pre">fits</span></code>. By
+default <code class="docutils literal"><span class="pre">cloudy_slug</span></code> checks for any output whose name and path
+match the model name and search path, regardless of format.</li>
+<li><code class="docutils literal"><span class="pre">--slugpath</span> <span class="pre">SLUGPATH</span></code>: path to the SLUG output data. If not set,
+cloudy_slug searches for an appropriately-named set of output files
+first in the current working directory, and next in
+<code class="docutils literal"><span class="pre">$SLUG_DIR/output</span></code></li>
+<li><code class="docutils literal"><span class="pre">-t</span> <span class="pre">TMPDIR,</span> <span class="pre">--tmpdir</span> <span class="pre">TMPDIR</span></code>: location of the temporary directory
+where temporary files should be stored; defaults to
+<cite>./cloudy_tmp_MODEL_NAME</cite>.</li>
+</ul>
+<p>The following arguments control how HII regions are processed:</p>
+<ul class="simple">
+<li><code class="docutils literal"><span class="pre">-a</span> <span class="pre">AGEMAX,</span> <span class="pre">--agemax</span> <span class="pre">AGEMAX</span></code>: maximum cluster age in Myr for
+cloudy computation. Cloudy will not be run on clusters older than
+this value, and the predicted nebular emission for such clusters
+will be recorded as zero. Default value is 10 Myr. This argument only
+has an effect if running in cluster mode (see
+<a class="reference internal" href="#sssec-cloudy-integrated-cluster"><span class="std std-ref">Integrated versus Cluster Spectra</span></a>); otherwise it is ignored.</li>
+<li><code class="docutils literal"><span class="pre">-cf</span> <span class="pre">COVERINGFRAC,</span> <span class="pre">--coveringfrac</span> <span class="pre">COVERINGFRAC</span></code>: this sets the
+covering fraction of the HII region, i.e., the fraction of ionizing
+photons that are assumed to produce nebular emission; the output
+luminosity is decreased by a factor of the covering fraction</li>
+<li><code class="docutils literal"><span class="pre">-cm,</span> <span class="pre">--clustermode</span></code>: if this argument is set, then cloudy_slug
+will process cluster spectra; the default behavior is to process
+integrated spectra</li>
+<li><code class="docutils literal"><span class="pre">--ionparammax</span> <span class="pre">IONPARAMMAX</span></code>: maximum value for the inner radius
+ionization parameter <span class="math">\(\mathcal{U}_0\)</span>. If the value falls
+outside this range, the behavior is controlled by the setting of the
+<code class="docutils literal"><span class="pre">paramsafety</span></code> option (see below).</li>
+<li><code class="docutils literal"><span class="pre">--ionparammmin</span> <span class="pre">IONPARAMMIN</span></code>: same as <code class="docutils literal"><span class="pre">ionparammax</span></code>, but sets a
+minimum instead of a maximum.</li>
+<li><code class="docutils literal"><span class="pre">-qm</span> <span class="pre">QH0MIN,</span> <span class="pre">--qH0min</span> <span class="pre">QH0MIN</span></code>: minimum ionizing luminosity for
+which to run cloudy (default = 0). As with <code class="docutils literal"><span class="pre">--agemax</span></code>, for
+clusters / times where cloudy is not run, that case will still
+appear in the output, but the nebular spectra and nebular line
+luminosities will all be set to zero.</li>
+</ul>
+<p>The following parameters specify the physical properties of HII
+regions, as explained in <a class="reference internal" href="#sssec-cloudy-nebular-properties"><span class="std std-ref">Nebular Properties</span></a>. Parameters can be set to either fixed values, or to the
+names of PDF files. Any numerical value given is interpreted as a
+fixed constant, while non-numerical values are interpreted as the
+names of PDF files that specify a PDF from which the corresponding
+parameter is to be drawn. See <a class="reference internal" href="pdfs.html#sec-pdfs"><span class="std std-ref">Probability Distribution Functions</span></a> for details on PDF file
+formats.</p>
+<ul class="simple">
+<li><code class="docutils literal"><span class="pre">-hd</span> <span class="pre">HDEN,</span> <span class="pre">--hden</span> <span class="pre">HDEN</span></code>: hydrogen density in HII region,
+<span class="math">\(n_{\mathrm{II}}\)</span></li>
+<li><code class="docutils literal"><span class="pre">-ip</span> <span class="pre">IONPARAM,</span> <span class="pre">--ionparam</span> <span class="pre">IONPARAM</span></code>: volume-averaged ionization
+parameter, <span class="math">\(\mathcal{U}\)</span></li>
+<li><code class="docutils literal"><span class="pre">-ip0</span> <span class="pre">IONPARAM,</span> <span class="pre">--ionparam0</span> <span class="pre">IONPARAM0</span></code>: ionization parameter at
+HII region inner edge, <span class="math">\(\mathcal{U}_0\)</span></li>
+<li><code class="docutils literal"><span class="pre">-r0</span> <span class="pre">R0</span></code>: inner radius of the HII region</li>
+<li><code class="docutils literal"><span class="pre">-r1</span> <span class="pre">R1</span></code>: outer radius of the HII region</li>
+<li><code class="docutils literal"><span class="pre">-wp</span> <span class="pre">WINDPARAM,</span> <span class="pre">--windparam</span> <span class="pre">WINDPARAM</span></code>: wind parameter,
+<span class="math">\(\Omega\)</span></li>
+</ul>
+<p>The following arguments control general code behavior:</p>
+<ul class="simple">
+<li><code class="docutils literal"><span class="pre">-h,</span> <span class="pre">--help</span></code>: prints a help message and then exits</li>
+<li><code class="docutils literal"><span class="pre">-nl</span> <span class="pre">NICELEVEL,</span> <span class="pre">--nicelevel</span> <span class="pre">NICELEVEL</span></code>: if this is set, then the
+cloudy processes launched by the script will be run at this nice
+level. If it is not set, they will not be nice’d. Note that this
+option will only work correctly on platforms that support nice.</li>
+<li><code class="docutils literal"><span class="pre">-n</span> <span class="pre">NPROC,</span> <span class="pre">--nproc</span> <span class="pre">NPROC</span></code>: number of simultaneous cloudy processes
+to run; default is the number of cores available on the system</li>
+<li><code class="docutils literal"><span class="pre">--ps</span> <span class="pre">PARAMSAFETY,</span> <span class="pre">--paramsafety</span> <span class="pre">PARAMSAFETY</span></code>: specifies how to
+handle situations where the combination of input HII region
+parameters is not physically allowed, or falls outside the bounds
+set by <code class="docutils literal"><span class="pre">ionparammin</span></code> and <code class="docutils literal"><span class="pre">ionparammax</span></code>. Available options are:<ul>
+<li><code class="docutils literal"><span class="pre">warn</span></code>: one of the input parameters is adjusted to bring it
+to a physically-allowed value, and a warning is issued; the run
+continues. This is the default behaviour.</li>
+<li><code class="docutils literal"><span class="pre">skip</span></code>: runs with unphysical parameter choices are skipped; the
+parameters that were chosen are recorded in the output file, but
+the output spectrum, all line luminosities, and all other
+parameters are set to 0, and cloudy is not run.</li>
+<li><code class="docutils literal"><span class="pre">halt</span></code>: if a forbidden parameter combination is found, the
+entire cloudy_slug run is halted.</li>
+<li><code class="docutils literal"><span class="pre">redraw</span></code>: if a forbidden parameter combination is found, and
+one or more parameters are being drawn from a PDF, a new set of
+parameters will be drawn from the PDF. Redrawing will continue up
+to 100 times until a physically-allowed parameter combination is
+found. If no valid parameter combination is found after 100
+attempts, revert to <code class="docutils literal"><span class="pre">skip</span></code>.</li>
+</ul>
+</li>
+<li><code class="docutils literal"><span class="pre">-s,</span> <span class="pre">--save</span></code>: by default, cloudy_slug will extract line and
+spectral data from the cloudy outputs and store them as described in
+<a class="reference internal" href="#ssec-cloudy-output"><span class="std std-ref">Full Description of cloudy_slug Output</span></a>, then delete the cloudy output files. If
+this option is set, the cloudy output files will NOT be deleted, and
+will be left in place, in sub-directory of the working directory
+called <code class="docutils literal"><span class="pre">cloudy_tmp_MODEL_NAME</span></code> where <code class="docutils literal"><span class="pre">MODEL_NAME</span></code> is the SLUG model
+name. WARNING: cloudy’s outputs are written in ASCII and are quite
+voluminous, so choose this option only if you are running
+cloudy on a small number of SLUG spectra and/or you are prepared to
+store hundreds of GB or more. The data that <code class="docutils literal"><span class="pre">cloudy_slug</span></code> extract
+are much, much smaller, and (if you do not use ASCII format) are
+stored in a much more compact form.</li>
+<li><code class="docutils literal"><span class="pre">-v,</span> <span class="pre">--verbose</span></code>: if this option is set, cloudy_slug produces
+verbose output as it runs</li>
+<li><code class="docutils literal"><span class="pre">-wr,</span> <span class="pre">--writeparams</span></code>: if set, this option causes <code class="docutils literal"><span class="pre">cloudy_slug</span></code>
+to write out a file beginning with <code class="docutils literal"><span class="pre">cloudy_slug.param</span></code> for each
+cloudy run. This file is written in the same directory used by the
+save command, and it contains an ASCII printout of the various
+parameters. This option is only applied if <code class="docutils literal"><span class="pre">--save</span></code> is also set.</li>
+</ul>
+</div>
+<div class="section" id="full-description-of-cloudy-slug-output">
+<span id="ssec-cloudy-output"></span><h2>Full Description of cloudy_slug Output<a class="headerlink" href="#full-description-of-cloudy-slug-output" title="Permalink to this headline">¶</a></h2>
+<p>The cloudy_slug script will automatically process the cloudy output
+and produce a series of new output files, which will be written to the
+same directory where the input SLUG files are located, and using the
+same output mode (ASCII text, raw binary, or FITS – see
+<a class="reference internal" href="output.html#sec-output"><span class="std std-ref">Output Files and Format</span></a>). If cloudy_slug is called to process integrated
+spectra, the four output files will be
+<code class="docutils literal"><span class="pre">MODEL_NAME_integrated_cloudyparams.ext</span></code>,
+<code class="docutils literal"><span class="pre">MODEL_NAME_integrated_cloudylines.ext</span></code>,
+<code class="docutils literal"><span class="pre">MODEL_NAME_integrated_cloudyphot.ext</span></code>, and
+<code class="docutils literal"><span class="pre">MODEL_NAME_integrated_cloudyspec.ext</span></code>, where the extension <code class="docutils literal"><span class="pre">.ext</span></code>
+is one of <code class="docutils literal"><span class="pre">.txt</span></code>, <code class="docutils literal"><span class="pre">.bin</span></code>, or <code class="docutils literal"><span class="pre">.fits</span></code>, depending on the
+<code class="docutils literal"><span class="pre">output_mode</span></code>. If cloudy_slug is run on cluster spectra, the four
+output files will be
+<code class="docutils literal"><span class="pre">MODEL_NAME_cluster_cloudyparams.ext</span></code>,
+<code class="docutils literal"><span class="pre">MODEL_NAME_cluster_cloudylines.ext</span></code>,
+<code class="docutils literal"><span class="pre">MODEL_NAME_cluster_cloudyphot.ext</span></code>, and
+<code class="docutils literal"><span class="pre">MODEL_NAME_cluster_cloudyspec.ext</span></code>. All of these output files will
+be read and processed automatically if the outputs are read using
+<code class="docutils literal"><span class="pre">read_integrated</span></code> or <code class="docutils literal"><span class="pre">read_cluster</span></code> in the <a class="reference internal" href="slugpy.html#sec-slugpy"><span class="std std-ref">slugpy – The Python Helper Library</span></a>
+library.</p>
+<p>The format of these files is described below.</p>
+<div class="section" id="the-integrated-cloudyparams-file">
+<h3>The <code class="docutils literal"><span class="pre">integrated_cloudyparams</span></code> File<a class="headerlink" href="#the-integrated-cloudyparams-file" title="Permalink to this headline">¶</a></h3>
+<p>This file contains the input parameters for the cloudy runs, and
+quantities derived from them. All parameters are as defined in
+<a class="reference internal" href="#sssec-cloudy-nebular-properties"><span class="std std-ref">Nebular Properties</span></a>. The output file consists of a
+series of entries containin the following fields:</p>
+<ul class="simple">
+<li><code class="docutils literal"><span class="pre">Trial</span></code>: which trial these data are from</li>
+<li><code class="docutils literal"><span class="pre">Time</span></code>: evolution time at which the output is produced</li>
+<li><code class="docutils literal"><span class="pre">Hden</span></code>: number density of hydrogen nuclei at the inner edge of the
+HII region, in H/cm^3</li>
+<li><code class="docutils literal"><span class="pre">R0</span></code>: radius of the inner edge of the HII region, in cm</li>
+<li><code class="docutils literal"><span class="pre">R1</span></code>: radius of the outer edge of the HII region, in cm</li>
+<li><code class="docutils literal"><span class="pre">QH0</span></code>: ionizing luminosity input to cloudy, in photons/s</li>
+<li><code class="docutils literal"><span class="pre">CovFac</span></code>: covering factor used</li>
+<li><code class="docutils literal"><span class="pre">U</span></code>: volume-averaged ionization parameter <span class="math">\(\mathcal{U}\)</span></li>
+<li><code class="docutils literal"><span class="pre">U0</span></code>: inner edge ionization parameter <span class="math">\(\mathcal{U}_0\)</span></li>
+<li><code class="docutils literal"><span class="pre">Omega</span></code>: wind parameter <span class="math">\(\Omega\)</span></li>
+<li><code class="docutils literal"><span class="pre">zeta</span></code>: radiation pressure parameter <span class="math">\(\zeta\)</span></li>
+</ul>
+<p>It will also contain the following fields if the cloudy template file
+includes a <code class="docutils literal"><span class="pre">save</span> <span class="pre">last</span> <span class="pre">hydrogen</span> <span class="pre">conditions</span></code> command:</p>
+<ul class="simple">
+<li><code class="docutils literal"><span class="pre">Hden_out</span></code>: mean H number density for the HII region structure
+computed by cloudy, in H/cm^3; the average is weighted by the
+ionized volume, i.e., it is weighted by <span class="math">\(x\, dV\)</span>, where
+<span class="math">\(x\)</span> is the hydrogen ionization fraction.</li>
+<li><code class="docutils literal"><span class="pre">R1_out</span></code>: HII region outer radius returned by cloudy</li>
+<li><code class="docutils literal"><span class="pre">Omega_out</span></code>: wind parameter <span class="math">\(\Omega\)</span>, computed using
+<code class="docutils literal"><span class="pre">R1_out</span></code> instead of <code class="docutils literal"><span class="pre">R1</span></code></li>
+<li><code class="docutils literal"><span class="pre">zeta_out</span></code>: radiation pressure parameter <span class="math">\(\zeta\)</span>, computing
+using <code class="docutils literal"><span class="pre">R1_out</span></code> instead of <code class="docutils literal"><span class="pre">R1</span></code></li>
+</ul>
+<p>If the SLUG data input to cloudy_slug were written in <code class="docutils literal"><span class="pre">ascii</span></code> mode,
+these data are output as a text file containing a series of columns,
+with different trials separated by lines of dashes.</p>
+<p>If the SLUG data input to cloudy_slug were written in <code class="docutils literal"><span class="pre">fits</span></code> mode,
+the data are written in a FITS file containing a binary table
+extension. The table contains one column whose name corresponds to the
+list of fields above.</p>
+<p>If the SLUG data input to cloudy_slug were writtin in <code class="docutils literal"><span class="pre">binary</span></code> mode,
+these data are written in a raw binary file that is formatted as
+follows. First, there are four bytes specifying if the optional fields
+are included:</p>
+<ul class="simple">
+<li><code class="docutils literal"><span class="pre">Hden_out_set</span></code> (byte): 0 if the data do not include <code class="docutils literal"><span class="pre">Hden_out</span></code>, 1 if
+they do include it</li>
+<li><code class="docutils literal"><span class="pre">R1_out_set</span></code> (byte): 0 if the data do not include <code class="docutils literal"><span class="pre">R1_out</span></code>, 1 if
+they do include it</li>
+<li><code class="docutils literal"><span class="pre">Omega_out_set</span></code> (byte): 0 if the data do not include <code class="docutils literal"><span class="pre">Omega_out</span></code>, 1 if
+they do include it</li>
+<li><code class="docutils literal"><span class="pre">zeta_out_set</span></code> (byte): 0 if the data do not include <code class="docutils literal"><span class="pre">zeta_out</span></code>, 1 if
+they do include it</li>
+</ul>
+<p>This is followed by a series of records containing the following fields:</p>
+<ul class="simple">
+<li><code class="docutils literal"><span class="pre">Trial</span></code> (numpy <code class="docutils literal"><span class="pre">uint64</span></code>)</li>
+<li><code class="docutils literal"><span class="pre">Time</span></code> (numpy <code class="docutils literal"><span class="pre">float64</span></code>)</li>
+<li><code class="docutils literal"><span class="pre">Hden</span></code> (numpy <code class="docutils literal"><span class="pre">float64</span></code>)</li>
+<li><code class="docutils literal"><span class="pre">R0</span></code> (numpy <code class="docutils literal"><span class="pre">float64</span></code>)</li>
+<li><code class="docutils literal"><span class="pre">R1</span></code> (numpy <code class="docutils literal"><span class="pre">float64</span></code>)</li>
+<li><code class="docutils literal"><span class="pre">QH0</span></code> (numpy <code class="docutils literal"><span class="pre">float64</span></code>)</li>
+<li><code class="docutils literal"><span class="pre">covFac</span></code> (numpy <code class="docutils literal"><span class="pre">float64</span></code>)</li>
+<li><code class="docutils literal"><span class="pre">U</span></code> (numpy <code class="docutils literal"><span class="pre">float64</span></code>)</li>
+<li><code class="docutils literal"><span class="pre">U0</span></code> (numpy <code class="docutils literal"><span class="pre">float64</span></code>)</li>
+<li><code class="docutils literal"><span class="pre">Omega</span></code> (numpy <code class="docutils literal"><span class="pre">float64</span></code>)</li>
+<li><code class="docutils literal"><span class="pre">zeta</span></code> (numpy <code class="docutils literal"><span class="pre">float64</span></code>)</li>
+<li><code class="docutils literal"><span class="pre">Hden_out</span></code> (numpy <code class="docutils literal"><span class="pre">float64</span></code>; optional, only if the relevant byte
+in the header is set to )</li>
+<li><code class="docutils literal"><span class="pre">R1_out</span></code> (numpy <code class="docutils literal"><span class="pre">float64</span></code>; optional, only if the relevant byte
+in the header is set to )</li>
+<li><code class="docutils literal"><span class="pre">Omega_out</span></code> (numpy <code class="docutils literal"><span class="pre">float64</span></code>; optional, only if the relevant byte
+in the header is set to )</li>
+<li><code class="docutils literal"><span class="pre">zeta_out</span></code> (numpy <code class="docutils literal"><span class="pre">float64</span></code>; optional, only if the relevant byte
+in the header is set to 1)</li>
+</ul>
+<p>There is one such record for each output time, with different trials
+ordered sequentially, so that all the times for one trial are output
+before the first time for the next trial.</p>
+</div>
+<div class="section" id="the-integrated-cloudylines-file">
+<h3>The <code class="docutils literal"><span class="pre">integrated_cloudylines</span></code> File<a class="headerlink" href="#the-integrated-cloudylines-file" title="Permalink to this headline">¶</a></h3>
+<p>This file contains data on the nebular line emission produced by the
+interaction of the stellar radiation field with the ISM. It consists
+of a series of entries containing the following fields:</p>
+<ul class="simple">
+<li><code class="docutils literal"><span class="pre">Time</span></code>: evolution time at which the output is produced</li>
+<li><code class="docutils literal"><span class="pre">LineLabel</span></code>: four letter code labeling each line. These codes
+are the codes used by cloudy (see the <a class="reference external" href="http://nublado.org">cloudy documentation</a>)</li>
+<li><code class="docutils literal"><span class="pre">Wavelength</span></code>: wavelength of the line, in Angstrom. Note that
+default cloudy behavior is to round wavelengths to the nearest
+Angstrom.</li>
+<li><code class="docutils literal"><span class="pre">Luminosity</span></code>: line luminosity, in erg/s</li>
+</ul>
+<p>If the SLUG data input to cloudy_slug were written in <code class="docutils literal"><span class="pre">ascii</span></code> mode,
+these data are output as a text file containing a series of columns,
+with different trials separated by lines of dashes.</p>
+<p>If the SLUG data input to cloudy_slug were written in <code class="docutils literal"><span class="pre">fits</span></code> mode,
+the data are written in a FITS file containing two binary table
+extensions. The first extension contains two fields, <code class="docutils literal"><span class="pre">Line_label</span></code> and
+<code class="docutils literal"><span class="pre">Wavelength</span></code>, giving the four-letter cloudy line codes and central
+wavelengths. The second extension contains three columns, giving the
+trial number, time, and line luminosity for each line at each time in
+each trial.</p>
+<p>If the SLUG data input to cloudy_slug were written in <code class="docutils literal"><span class="pre">binary</span></code> mode,
+the data are written in a raw binary file. The file starts with a
+header consisting of</p>
+<ul class="simple">
+<li><code class="docutils literal"><span class="pre">NLine</span></code> (python <code class="docutils literal"><span class="pre">int</span></code>, equivalent to C <code class="docutils literal"><span class="pre">long</span></code>): number of lines</li>
+<li><code class="docutils literal"><span class="pre">LineLabel</span></code> (<code class="docutils literal"><span class="pre">NLine</span></code> entries stored as <code class="docutils literal"><span class="pre">ASCII</span> <span class="pre">text</span></code>): line
+labels listed in ASCII, one label per line</li>
+</ul>
+<p>This is followed by a series of entries of the form</p>
+<ul class="simple">
+<li><code class="docutils literal"><span class="pre">Trial</span></code> (numpy <code class="docutils literal"><span class="pre">uint64</span></code>)</li>
+<li><code class="docutils literal"><span class="pre">Time</span></code> (numpy <code class="docutils literal"><span class="pre">float64</span></code>)</li>
+<li><code class="docutils literal"><span class="pre">LineLum</span></code> (<code class="docutils literal"><span class="pre">NLine</span></code> entries of type numpy <code class="docutils literal"><span class="pre">float64</span></code>)</li>
+</ul>
+<p>There is one such record for each output time, with different trials
+ordered sequentially, so that all the times for one trial are output
+before the first time for the next trial.</p>
+</div>
+<div class="section" id="the-integrated-cloudyspec-file">
+<span id="sssec-int-cloudyspec-file"></span><h3>The <code class="docutils literal"><span class="pre">integrated_cloudyspec</span></code> File<a class="headerlink" href="#the-integrated-cloudyspec-file" title="Permalink to this headline">¶</a></h3>
+<p>This file contains data on the spectrum produced by interaction
+between the stellar radiation field and the nebula. Each entry in the
+output file contains the folling fields:</p>
+<ul class="simple">
+<li><code class="docutils literal"><span class="pre">Trial</span></code>: which trial these data are from</li>
+<li><code class="docutils literal"><span class="pre">Time</span></code>: evolution time at which the output is produced</li>
+<li><code class="docutils literal"><span class="pre">Wavelength</span></code>: the wavelength at which the spectrum is evaluated,
+in Angstrom</li>
+<li><code class="docutils literal"><span class="pre">Incident</span></code>: specific luminosity in erg/s/Angstrom at the specified
+wavelength. In cloudy’s terminology, this is the <em>incident</em>
+spectrum, i.e., the stellar radiation field entering the nebula. It
+should be the same as the spectrum contained in the SLUG
+<code class="docutils literal"><span class="pre">integrated_spec</span></code> file for the corresponding time and trial,
+except interpolated onto the wavelength grid used by cloudy.</li>
+<li><code class="docutils literal"><span class="pre">Transmitted</span></code>:  specific luminosity in erg/s/Angstrom at the specified
+wavelength. In cloudy’s terminology, this is the <em>transmitted</em>
+spectrum, i.e., the stellar spectrum exiting the HII region, not
+including any emission produced within the nebula. This is what
+would be detected by an observing aperture that included only the
+stars, and none of the nebula.</li>
+<li><code class="docutils literal"><span class="pre">Emitted</span></code>:  specific luminosity in erg/s/Angstrom at the specified
+wavelength. In cloudy’s terminology, this is the <em>emitted</em>
+spectrum, i.e., the spectrum emitted by the diffuse gas in the HII
+region, excluding any light from the stars themselves. This is what
+would be seen by an observer whose aperture covered the nebula, but
+masked the stars.</li>
+<li><code class="docutils literal"><span class="pre">Transmitted_plus_emitted</span></code>: this is just the sum of
+<code class="docutils literal"><span class="pre">Transmitted</span></code> and <code class="docutils literal"><span class="pre">Emitted</span></code>. It represents what would be
+observed in an aperture including both the stars and the HII
+region.</li>
+</ul>
+<p>If the SLUG data input to cloudy_slug were written in <code class="docutils literal"><span class="pre">ascii</span></code> mode,
+these data are output as a text file containing a series of columns,
+with different trials separated by lines of dashes.</p>
+<p>If the SLUG data input to cloudy_slug were written in <code class="docutils literal"><span class="pre">fits</span></code> mode,
+these data are written in a FITS file containing two binary table
+extensions. The first extension contains one field, <code class="docutils literal"><span class="pre">Wavelength</span></code>,
+which gives the wavelengths of the spectra in Angstrom. The second
+extension contains six fields: <code class="docutils literal"><span class="pre">Trial</span></code>, <code class="docutils literal"><span class="pre">Time</span></code>,
+<code class="docutils literal"><span class="pre">Incident_spectrum</span></code>, <code class="docutils literal"><span class="pre">Transmitted_spectrum</span></code>, <code class="docutils literal"><span class="pre">Emitted_spectrum</span></code>,
+and <code class="docutils literal"><span class="pre">Transmitted_plus_emitted_spectrum</span></code>. The first two of these give
+the trial number and time, and the remaining four give the incident,
+transmitted, emitted, and transmitted plus emitted spectra for the
+corresponding time and trial.</p>
+<p>If the SLUG data input to cloudy_slug were written in <code class="docutils literal"><span class="pre">binary</span></code> mode,
+these data are written in a raw binary file that is formatted as
+follows. The file begins with a header consisting of</p>
+<ul class="simple">
+<li><code class="docutils literal"><span class="pre">NWavelength</span></code> (numpy <code class="docutils literal"><span class="pre">int64</span></code>): number of wavelengths</li>
+<li><code class="docutils literal"><span class="pre">Wavelength</span></code> (<code class="docutils literal"><span class="pre">NWavelength</span></code> entries of numpy <code class="docutils literal"><span class="pre">float64</span></code>)</li>
+</ul>
+<p>and then contains a series of records of the form</p>
+<ul class="simple">
+<li><code class="docutils literal"><span class="pre">Trial</span></code> (numpy <code class="docutils literal"><span class="pre">uint64</span></code>)</li>
+<li><code class="docutils literal"><span class="pre">Time</span></code> (numpy <code class="docutils literal"><span class="pre">float64</span></code>)</li>
+<li><code class="docutils literal"><span class="pre">Incident</span></code> (<code class="docutils literal"><span class="pre">NWavelength</span></code> entries of numpy <code class="docutils literal"><span class="pre">float64</span></code>)</li>
+<li><code class="docutils literal"><span class="pre">Transmitted</span></code> (<code class="docutils literal"><span class="pre">NWavelength</span></code> entries of numpy <code class="docutils literal"><span class="pre">float64</span></code>)</li>
+<li><code class="docutils literal"><span class="pre">Emitted</span></code> (<code class="docutils literal"><span class="pre">NWavelength</span></code> entries of numpy <code class="docutils literal"><span class="pre">float64</span></code>)</li>
+<li><code class="docutils literal"><span class="pre">Transmitted_plus_emitted</span></code> (<code class="docutils literal"><span class="pre">NWavelength</span></code> entries of numpy
+<code class="docutils literal"><span class="pre">float64</span></code>)</li>
+</ul>
+<p>There is one such record for each output time, with different trials
+ordered sequentially, so that all the times for one trial are output
+before the first time for the next trial.</p>
+</div>
+<div class="section" id="the-integrated-cloudyphot-file">
+<h3>The <code class="docutils literal"><span class="pre">integrated_cloudyphot</span></code> File<a class="headerlink" href="#the-integrated-cloudyphot-file" title="Permalink to this headline">¶</a></h3>
+<p>This file contains photometric data computed for the spectra produced
+by the interaction between the stellar radiation field and the HII
+region. The file consists of a series of entries containing the
+following fields:</p>
+<ul class="simple">
+<li><code class="docutils literal"><span class="pre">Trial</span></code>: which trial these data are from</li>
+<li><code class="docutils literal"><span class="pre">Time</span></code>: evolution time at which the output is computed</li>
+<li><code class="docutils literal"><span class="pre">PhotFilter1_trans</span></code>: photometric value for the <em>Transmitted</em>
+radiation field through filter 1, where filter 1 here is the same as
+filter 1 in <a class="reference internal" href="output.html#ssec-int-phot-file"><span class="std std-ref">The integrated_phot File</span></a>; units are also the same as
+in that file.</li>
+<li><code class="docutils literal"><span class="pre">PhotFilter1_emit</span></code>: photometric value for the <em>Emitted</em>
+radiation field through filter 1</li>
+<li><code class="docutils literal"><span class="pre">PhotFilter1_trans_emit</span></code>: photometric value for the
+<em>Transmitted_plus_emitted</em> radiation field through filter 1</li>
+<li><code class="docutils literal"><span class="pre">PhotFilter2_trans</span></code></li>
+<li><code class="docutils literal"><span class="pre">PhotFilter2_emit</span></code></li>
+<li><code class="docutils literal"><span class="pre">PhotFilter2_trans_emit</span></code></li>
+<li><code class="docutils literal"><span class="pre">...</span></code></li>
+</ul>
+<p>For distinctions between the <em>Transmitted</em>, <em>Emitted</em>, and
+<em>Transmitted_plus_emitted</em> radiation fields, see
+<a class="reference internal" href="#sssec-int-cloudyspec-file"><span class="std std-ref">The integrated_cloudyspec File</span></a>, or the <a class="reference external" href="http://nublado.org">cloudy documentaiton</a>. Note that we do not record photometry for the
+incident spectrum, since that would be, up to the accuracy of the
+numerical integration, identical to the photometry already recorded in
+the <a class="reference internal" href="output.html#ssec-int-phot-file"><span class="std std-ref">The integrated_phot File</span></a>.</p>
+<p>If the SLUG data input to cloudy_slug were written in <code class="docutils literal"><span class="pre">ascii</span></code> mode,
+these data are output as a text file containing a series of columns,
+with different trials separated by lines of dashes.</p>
+<p>If the SLUG data input to cloudy_slug were written in <code class="docutils literal"><span class="pre">fits</span></code> mode,
+these data are written in a FITS file containing one binary table
+extension, consisting of a series of columns. The columns are
+<code class="docutils literal"><span class="pre">Trial</span></code>, <code class="docutils literal"><span class="pre">Time</span></code>, <code class="docutils literal"><span class="pre">Filter1_Transmitted</span></code>, <code class="docutils literal"><span class="pre">Filter1_Emitted</span></code>,
+<code class="docutils literal"><span class="pre">Filter1_Transmitted_plus_emitted</span></code>, <code class="docutils literal"><span class="pre">...</span></code>. The first two columns
+give the trial number and the time, and the remainder give the
+photometric values for the transmitted, emitted, and transmitted plus
+emitted spectra in each filter.</p>
+<p>If the SLUG data input to cloudy_slug were written in <code class="docutils literal"><span class="pre">binary</span></code> mode,
+these data are written to a raw binary file that is formatted as
+follows. The file starts with an ASCII header consisting of the
+following, each on a separate line:</p>
+<ul class="simple">
+<li><code class="docutils literal"><span class="pre">NFilter</span></code> (stored as <code class="docutils literal"><span class="pre">ASCII</span> <span class="pre">text</span></code>): number of filters used</li>
+<li><code class="docutils literal"><span class="pre">FilterName</span></code> <code class="docutils literal"><span class="pre">FilterUnit</span></code> (<code class="docutils literal"><span class="pre">NFilter</span></code> entries stored as <code class="docutils literal"><span class="pre">ASCII</span>
+<span class="pre">text</span></code>): the name and units for each filter are listed in ASCII, one
+filter-unit pair per line</li>
+</ul>
+<p>This is followed by a series of entries of the form:</p>
+<ul class="simple">
+<li><code class="docutils literal"><span class="pre">PhotFilter_Transmitted</span></code> (<code class="docutils literal"><span class="pre">NFilter</span></code> entries of numpy
+<code class="docutils literal"><span class="pre">float64</span></code>), giving the transmitted photometry in each filter</li>
+<li><code class="docutils literal"><span class="pre">PhotFilter_Emitted</span></code> (<code class="docutils literal"><span class="pre">NFilter</span></code> entries of numpy
+<code class="docutils literal"><span class="pre">float64</span></code>), giving the emitted photometry in each filter</li>
+<li><code class="docutils literal"><span class="pre">PhotFilter_Transmitted_plus_emitted</span></code> (<code class="docutils literal"><span class="pre">NFilter</span></code> entries of numpy
+<code class="docutils literal"><span class="pre">float64</span></code>), giving the transmitted plus emitted photometry in each
+filter</li>
+</ul>
+<p>There is one such record for each output time, with different trials
+ordered sequentially, so that all the times for one trial are output
+before the first time for the next trial.</p>
+</div>
+<div class="section" id="the-cluster-cloudyparams-file">
+<h3>The <code class="docutils literal"><span class="pre">cluster_cloudyparams</span></code> File<a class="headerlink" href="#the-cluster-cloudyparams-file" title="Permalink to this headline">¶</a></h3>
+<p>This file contains the input parameters for the cloudy runs, and
+quantities derived from them. It consists of a series of entries
+containin the following fields:</p>
+<ul class="simple">
+<li><code class="docutils literal"><span class="pre">UniqueID</span></code>: a unique identifier number for each cluster that is
+preserved across times and output files</li>
+<li><code class="docutils literal"><span class="pre">Time</span></code>: evolution time at which the output is produced</li>
+<li><code class="docutils literal"><span class="pre">Hden</span></code>: number density of hydrogen nuclei at the inner edge of the
+HII region whose structure cloudy computes, in H/cm^3</li>
+<li><code class="docutils literal"><span class="pre">R0</span></code>: radius of the inner edge of the HII region, in cm</li>
+<li><code class="docutils literal"><span class="pre">R1</span></code>: radius of the outer edge of the HII region, cm</li>
+<li><code class="docutils literal"><span class="pre">QH0</span></code>: ionizing luminosity input to cloudy, in photons/s</li>
+<li><code class="docutils literal"><span class="pre">CovFac</span></code>: covering factor used</li>
+<li><code class="docutils literal"><span class="pre">U</span></code>: volume-averaged ionization parameter <span class="math">\(\mathcal{U}\)</span></li>
+<li><code class="docutils literal"><span class="pre">U0</span></code>: inner edge ionization parameter <span class="math">\(\mathcal{U}_0\)</span></li>
+<li><code class="docutils literal"><span class="pre">Omega</span></code>: wind parameter <span class="math">\(\Omega\)</span></li>
+<li><code class="docutils literal"><span class="pre">zeta</span></code>: radiation pressure parameter <span class="math">\(\zeta\)</span></li>
+</ul>
+<p>It will also contain the following fields if the cloudy template file
+includes a <code class="docutils literal"><span class="pre">save</span> <span class="pre">last</span> <span class="pre">hydrogen</span> <span class="pre">conditions</span></code> command:</p>
+<ul class="simple">
+<li><code class="docutils literal"><span class="pre">Hden_out</span></code>: mean H number density for the HII region structure
+computed by cloudy, in H/cm^3; the average is weighted by the
+ionized volume, i.e., it is weighted by <span class="math">\(x\, dV\)</span>, where
+<span class="math">\(x\)</span> is the hydrogen ionization fraction.</li>
+<li><code class="docutils literal"><span class="pre">R1_out</span></code>: HII region outer radius returned by cloudy</li>
+<li><code class="docutils literal"><span class="pre">Omega_out</span></code>: wind parameter <span class="math">\(\Omega\)</span>, computed using
+<code class="docutils literal"><span class="pre">R1_out</span></code> instead of <code class="docutils literal"><span class="pre">R1</span></code></li>
+<li><code class="docutils literal"><span class="pre">zeta_out</span></code>: radiation pressure parameter <span class="math">\(\zeta\)</span>, computing
+using <code class="docutils literal"><span class="pre">R1_out</span></code> instead of <code class="docutils literal"><span class="pre">R1</span></code></li>
+</ul>
+<p>If the SLUG data input to cloudy_slug were written in <code class="docutils literal"><span class="pre">ascii</span></code> mode,
+these data are output as a text file containing a series of columns,
+with different trials separated by lines of dashes.</p>
+<p>If the SLUG data input to cloudy_slug were written in <code class="docutils literal"><span class="pre">fits</span></code> mode,
+the data are written in a FITS file containing a binary table
+extension. The table contains one column whose name corresponds to the
+list of fields above.</p>
+<p>If the SLUG data input to cloudy_slug were writtin in <code class="docutils literal"><span class="pre">binary</span></code> mode,
+these data are written in a raw binary file that is formatted as
+follows. First, there are four bytes specifying if the optional fields
+are included:</p>
+<ul class="simple">
+<li><code class="docutils literal"><span class="pre">Hden_out_set</span></code> (byte): 0 if the data do not include <code class="docutils literal"><span class="pre">Hden_out</span></code>, 1 if
+they do include it</li>
+<li><code class="docutils literal"><span class="pre">R1_out_set</span></code> (byte): 0 if the data do not include <code class="docutils literal"><span class="pre">R1_out</span></code>, 1 if
+they do include it</li>
+<li><code class="docutils literal"><span class="pre">Omega_out_set</span></code> (byte): 0 if the data do not include <code class="docutils literal"><span class="pre">Omega_out</span></code>, 1 if
+they do include it</li>
+<li><code class="docutils literal"><span class="pre">zeta_out_set</span></code> (byte): 0 if the data do not include <code class="docutils literal"><span class="pre">zeta_out</span></code>, 1 if
+they do include it</li>
+</ul>
+<p>Next there are a series of records, one for each output time, with
+different trials ordered sequentially, so that all the times for one
+trial are output before the first time for the next trial. Each record
+consists of a header containing</p>
+<ul class="simple">
+<li><code class="docutils literal"><span class="pre">Time</span></code> (<code class="docutils literal"><span class="pre">double</span></code>)</li>
+<li><code class="docutils literal"><span class="pre">NCluster</span></code> (<code class="docutils literal"><span class="pre">std::vector&lt;double&gt;::size_type</span></code>, usually <code class="docutils literal"><span class="pre">unsigned</span> <span class="pre">long</span> <span class="pre">long</span></code>): number of non-disrupted clusters present at this time</li>
+</ul>
+<p>This is followed by <code class="docutils literal"><span class="pre">NCluster</span></code> entries of the following form:</p>
+<ul class="simple">
+<li><code class="docutils literal"><span class="pre">UniqueID</span></code> (numpy <code class="docutils literal"><span class="pre">uint64</span></code>)</li>
+<li><code class="docutils literal"><span class="pre">Time</span></code> (numpy <code class="docutils literal"><span class="pre">float64</span></code>)</li>
+<li><code class="docutils literal"><span class="pre">Hden</span></code> (numpy <code class="docutils literal"><span class="pre">float64</span></code>)</li>
+<li><code class="docutils literal"><span class="pre">R0</span></code> (numpy <code class="docutils literal"><span class="pre">float64</span></code>)</li>
+<li><code class="docutils literal"><span class="pre">R1</span></code> (numpy <code class="docutils literal"><span class="pre">float64</span></code>)</li>
+<li><code class="docutils literal"><span class="pre">QH0</span></code> (numpy <code class="docutils literal"><span class="pre">float64</span></code>)</li>
+<li><code class="docutils literal"><span class="pre">covFac</span></code> (numpy <code class="docutils literal"><span class="pre">float64</span></code>)</li>
+<li><code class="docutils literal"><span class="pre">U</span></code> (numpy <code class="docutils literal"><span class="pre">float64</span></code>)</li>
+<li><code class="docutils literal"><span class="pre">U0</span></code> (numpy <code class="docutils literal"><span class="pre">float64</span></code>)</li>
+<li><code class="docutils literal"><span class="pre">Omega</span></code> (numpy <code class="docutils literal"><span class="pre">float64</span></code>)</li>
+<li><code class="docutils literal"><span class="pre">zeta</span></code> (numpy <code class="docutils literal"><span class="pre">float64</span></code>)</li>
+<li><code class="docutils literal"><span class="pre">Hden_out</span></code> (numpy <code class="docutils literal"><span class="pre">float64</span></code>; optional, only if the relevant byte
+in the header is set to 1)</li>
+<li><code class="docutils literal"><span class="pre">R1_out</span></code> (numpy <code class="docutils literal"><span class="pre">float64</span></code>; optional, only if the relevant byte
+in the header is set to 1)</li>
+<li><code class="docutils literal"><span class="pre">Omega_out</span></code> (numpy <code class="docutils literal"><span class="pre">float64</span></code>; optional, only if the relevant byte
+in the header is set to 1)</li>
+<li><code class="docutils literal"><span class="pre">zeta_out</span></code> (numpy <code class="docutils literal"><span class="pre">float64</span></code>; optional, only if the relevant byte
+in the header is set to 1)</li>
+</ul>
+</div>
+<div class="section" id="the-cluster-cloudylines-file">
+<h3>The <code class="docutils literal"><span class="pre">cluster_cloudylines</span></code> File<a class="headerlink" href="#the-cluster-cloudylines-file" title="Permalink to this headline">¶</a></h3>
+<p>This file contains data on the nebular line emission produced by the
+interaction of the stellar radiation field with the ISM around each
+cluster. It consists of a series of entries containing the following
+fields:</p>
+<ul class="simple">
+<li><code class="docutils literal"><span class="pre">UniqueID</span></code>: a unique identifier number for each cluster that is
+preserved across times and output files</li>
+<li><code class="docutils literal"><span class="pre">Time</span></code>: evolution time at which the output is produced</li>
+<li><code class="docutils literal"><span class="pre">LineLabel</span></code>: four letter code labeling each line. These codes
+are the codes used by cloudy (see the <a class="reference external" href="http://nublado.org">cloudy documentation</a>)</li>
+<li>`` Wavelength``: wavelength of the line, in Angstrom. Note that
+default cloudy behavior is to round wavelengths to the nearest
+Angstrom.</li>
+<li><code class="docutils literal"><span class="pre">Luminosity</span></code>: line luminosity, in erg/s</li>
+</ul>
+<p>If the SLUG data input to cloudy_slug were written in <code class="docutils literal"><span class="pre">ascii</span></code> mode,
+these data are output as a text file containing a series of columns,
+with different trials separated by lines of dashes.</p>
+<p>If the SLUG data input to cloudy_slug were written in <code class="docutils literal"><span class="pre">fits</span></code> mode,
+the data are written in a FITS file containing two binary table
+extensions. The first extension contains two fields, <code class="docutils literal"><span class="pre">Line_label</span></code> and
+<code class="docutils literal"><span class="pre">Wavelength</span></code>, giving the four-letter cloudy line codes and central
+wavelengths. The second extension contains four columns, giving the
+unique ID, trial number, time, and line luminosity for each line at
+each time in each trial.</p>
+<p>If the SLUG data input to cloudy_slug were written in <code class="docutils literal"><span class="pre">binary</span></code> mode,
+the data are written in a raw binary file. The file starts with a
+header consisting of</p>
+<ul class="simple">
+<li><code class="docutils literal"><span class="pre">NLine</span></code> (python <code class="docutils literal"><span class="pre">int</span></code>, equivalent to C <code class="docutils literal"><span class="pre">long</span></code>): number of lines</li>
+<li><code class="docutils literal"><span class="pre">LineLabel</span></code> (<code class="docutils literal"><span class="pre">NLine</span></code> entries stored as <code class="docutils literal"><span class="pre">ASCII</span> <span class="pre">text</span></code>): line
+labels listed in ASCII, one label per line</li>
+</ul>
+<p>This is followed by a series of records, one for each output time,
+with different trials ordered sequentially, so that all the times for
+one trial are output before the first time for the next trial. Each
+record consists of a header containing</p>
+<ul class="simple">
+<li><code class="docutils literal"><span class="pre">Time</span></code> (<code class="docutils literal"><span class="pre">double</span></code>)</li>
+<li><code class="docutils literal"><span class="pre">NCluster</span></code> (<code class="docutils literal"><span class="pre">std::vector&lt;double&gt;::size_type</span></code>, usually <code class="docutils literal"><span class="pre">unsigned</span> <span class="pre">long</span> <span class="pre">long</span></code>): number of non-disrupted clusters present at this time</li>
+</ul>
+<p>This is followed by <code class="docutils literal"><span class="pre">NCluster</span></code> entries of the following form:</p>
+<ul class="simple">
+<li><code class="docutils literal"><span class="pre">UniqueID</span></code> (numpy <code class="docutils literal"><span class="pre">uint64</span></code>)</li>
+<li><code class="docutils literal"><span class="pre">LineLum</span></code> (<code class="docutils literal"><span class="pre">NLine</span></code> entries of numpy <code class="docutils literal"><span class="pre">float64</span></code>)</li>
+</ul>
+</div>
+<div class="section" id="the-cluster-cloudyspec-file">
+<h3>The <code class="docutils literal"><span class="pre">cluster_cloudyspec</span></code> File<a class="headerlink" href="#the-cluster-cloudyspec-file" title="Permalink to this headline">¶</a></h3>
+<p>This file contains data on the spectra produced by the interaction of
+the stellar radiation field with the ISM around each cluster. It
+consists of a series of entries containing the following fields:</p>
+<ul class="simple">
+<li><code class="docutils literal"><span class="pre">UniqueID</span></code>: a unique identifier number for each cluster that is
+preserved across times and output files</li>
+<li><code class="docutils literal"><span class="pre">Time</span></code>: evolution time at which the output is produced</li>
+<li><code class="docutils literal"><span class="pre">Wavelength</span></code>: observed frame wavelength at which the spectrum is evaluated</li>
+<li><code class="docutils literal"><span class="pre">Incident</span></code>: specific luminosity in erg/s/Angstrom at the specified
+wavelength for the <em>incident</em> radiation field</li>
+<li><code class="docutils literal"><span class="pre">Transmitted</span></code>: specific luminosity in erg/s/Angstrom at the specified
+wavelength for the <em>transmitted</em> radiation field</li>
+<li><code class="docutils literal"><span class="pre">Emitted</span></code>: specific luminosity in erg/s/Angstrom at the specified
+wavelength for the <em>emitted</em> radiation field</li>
+<li><code class="docutils literal"><span class="pre">Transmitted_plus_emitted</span></code>: specific luminosity in erg/s/Angstrom
+at the specified wavelength for the <em>transmitted plus emitted</em>
+radiation field</li>
+</ul>
+<p>For explanations of the distinction between the incident, transmitted,
+emitted, and transmitted plus emitted radiation fields, see
+<a class="reference internal" href="#sssec-int-cloudyspec-file"><span class="std std-ref">The integrated_cloudyspec File</span></a>.</p>
+<p>If the SLUG data input to cloudy_slug were written in <code class="docutils literal"><span class="pre">ascii</span></code> mode,
+these data are output as a text file containing a series of columns,
+with different trials separated by lines of dashes.</p>
+<p>If the SLUG data input to cloudy_slug were written in <code class="docutils literal"><span class="pre">fits</span></code> mode,
+these data are written in a FITS file containing two binary table
+extensions. The first table contains a column <code class="docutils literal"><span class="pre">Wavelength</span></code> listing
+the wavelengths at which the spectra are given. The second table
+consists of seven columns: <code class="docutils literal"><span class="pre">Trial</span></code>, <code class="docutils literal"><span class="pre">UniqueID</span></code>, <code class="docutils literal"><span class="pre">Time</span></code>,
+<code class="docutils literal"><span class="pre">Incident_spectrum</span></code>, <code class="docutils literal"><span class="pre">Transmitted_spectrum</span></code>, <code class="docutils literal"><span class="pre">Emitted_spectrum</span></code>,
+and <code class="docutils literal"><span class="pre">Transmitted_plus_emitted_spectrum</span></code>. The first three of these
+give the trial number, unique ID of the cluster, and the time. The
+remaining four give the incident, transmitted, emitted, and
+transmitted plus emitted spectra for the corresponding cluster.</p>
+<p>If the SLUG data input to cloudy_slug were written in <code class="docutils literal"><span class="pre">binary</span></code> mode,
+these data are written to a raw binary file formatted as follows. The
+file starts with</p>
+<ul class="simple">
+<li><code class="docutils literal"><span class="pre">NWavelength</span></code> (numpy <code class="docutils literal"><span class="pre">int64</span></code>): the number of wavelength entries in the spectra</li>
+<li><code class="docutils literal"><span class="pre">Wavelength</span></code> (<code class="docutils literal"><span class="pre">NWavelength</span></code> entries of type <code class="docutils literal"><span class="pre">double</span></code>)</li>
+</ul>
+<p>and then contains a series of records, one for each output time, with
+different trials ordered sequentially, so that all the times for one
+trial are output before the first time for the next trial. Each record
+consists of a header containing</p>
+<ul class="simple">
+<li><code class="docutils literal"><span class="pre">Time</span></code> (<code class="docutils literal"><span class="pre">double</span></code>)</li>
+<li><code class="docutils literal"><span class="pre">NCluster</span></code> (python <code class="docutils literal"><span class="pre">int</span></code>): number of non-disrupted clusters present at this time</li>
+</ul>
+<p>This is followed by <code class="docutils literal"><span class="pre">NCluster</span></code> entries of the following form:</p>
+<ul class="simple">
+<li><code class="docutils literal"><span class="pre">UniqueID</span></code> (<code class="docutils literal"><span class="pre">unsigned</span> <span class="pre">long</span></code>)</li>
+<li><code class="docutils literal"><span class="pre">Incident</span></code> (<code class="docutils literal"><span class="pre">NWavelength</span></code> entries of numpy <code class="docutils literal"><span class="pre">float64</span></code>)</li>
+<li><code class="docutils literal"><span class="pre">Transmitted</span></code> (<code class="docutils literal"><span class="pre">NWavelength</span></code> entries of numpy <code class="docutils literal"><span class="pre">float64</span></code>)</li>
+<li><code class="docutils literal"><span class="pre">Emitted</span></code> (<code class="docutils literal"><span class="pre">NWavelength</span></code> entries of numpy <code class="docutils literal"><span class="pre">float64</span></code>)</li>
+<li><code class="docutils literal"><span class="pre">Transmitted_plus_emitted</span></code> (<code class="docutils literal"><span class="pre">NWavelength</span></code> entries of numpy
+<code class="docutils literal"><span class="pre">float64</span></code>)</li>
+</ul>
+</div>
+<div class="section" id="the-cluster-cloudyphot-file">
+<h3>The <code class="docutils literal"><span class="pre">cluster_cloudyphot</span></code> File<a class="headerlink" href="#the-cluster-cloudyphot-file" title="Permalink to this headline">¶</a></h3>
+<p>This file contains data on the photometry of the spectra produced by
+the interaction of the stellar radiation field with the ISM around
+each cluster. It consists of a series of entries containing the
+following fields:</p>
+<ul class="simple">
+<li><code class="docutils literal"><span class="pre">UniqueID</span></code>: a unique identifier number for each cluster that is
+preserved across times and output files</li>
+<li><code class="docutils literal"><span class="pre">Time</span></code>: evolution time at which the output is produced</li>
+<li><code class="docutils literal"><span class="pre">PhotFilter1_trans</span></code>: photometric value for the <em>Transmitted</em>
+radiation field through filter 1, where filter 1 here is the same as
+filter 1 in <a class="reference internal" href="output.html#ssec-int-phot-file"><span class="std std-ref">The integrated_phot File</span></a>; units are also the same as
+in that file.</li>
+<li><code class="docutils literal"><span class="pre">PhotFilter1_emit</span></code>: photometric value for the <em>Emitted</em>
+radiation field through filter 1</li>
+<li><code class="docutils literal"><span class="pre">PhotFilter1_trans_emit</span></code>: photometric value for the
+<em>Transmitted_plus_emitted</em> radiation field through filter 1</li>
+<li><code class="docutils literal"><span class="pre">PhotFilter2_trans</span></code></li>
+<li><code class="docutils literal"><span class="pre">PhotFilter2_emit</span></code></li>
+<li><code class="docutils literal"><span class="pre">PhotFilter2_trans_emit</span></code></li>
+<li><code class="docutils literal"><span class="pre">...</span></code></li>
+</ul>
+<p>For distinctions between the <em>Transmitted</em>, <em>Emitted</em>, and
+<em>Transmitted_plus_emitted</em> radiation fields, see
+<a class="reference internal" href="#sssec-int-cloudyspec-file"><span class="std std-ref">The integrated_cloudyspec File</span></a>, or the <a class="reference external" href="http://nublado.org">cloudy documentation</a>. Note that we do not record photometry for the
+incident spectrum, since that would be, up to the accuracy of the
+numerical integration, identical to the photometry already recorded in
+the <a class="reference internal" href="output.html#ssec-cluster-phot-file"><span class="std std-ref">The cluster_phot File</span></a>.</p>
+<p>If the SLUG data input to cloudy_slug were written in <code class="docutils literal"><span class="pre">ascii</span></code> mode,
+these data are output as a text file containing a series of columns,
+with different trials separated by lines of dashes.</p>
+<p>If the SLUG data input to cloudy_slug were written in <code class="docutils literal"><span class="pre">fits</span></code> mode,
+these data are written in a FITS file containing one binary table
+extension. The columns in this FITS file are <code class="docutils literal"><span class="pre">Trial</span></code>, <code class="docutils literal"><span class="pre">UniqueID</span></code>,
+<code class="docutils literal"><span class="pre">Time</span></code>, <code class="docutils literal"><span class="pre">Filter1_Transmitted</span></code>, <code class="docutils literal"><span class="pre">Filter1_Emitted</span></code>,
+<code class="docutils literal"><span class="pre">Filter1_Transmitted_plus_emitted</span></code>, <code class="docutils literal"><span class="pre">...</span></code>. The first three columns
+give the trial number, cluster unique ID, and the time, and the
+remainder give the photometric values for the transmitted, emitted,
+and transmitted plus emitted spectra in each filter.</p>
+<p>If the SLUG data input to cloudy_slug were written in <code class="docutils literal"><span class="pre">binary</span></code> mode,
+these data are written in a raw binary file that is formatted as
+follows. The file starts with an ASCII text header consisting of the
+following, each on a separate line:</p>
+<ul class="simple">
+<li><code class="docutils literal"><span class="pre">NFilter</span></code> (stored as <code class="docutils literal"><span class="pre">ASCII</span> <span class="pre">text</span></code>): number of filters used</li>
+<li><code class="docutils literal"><span class="pre">FilterName</span></code> <code class="docutils literal"><span class="pre">FilterUnit</span></code> (<code class="docutils literal"><span class="pre">NFilter</span></code> entries stored as <code class="docutils literal"><span class="pre">ASCII</span>
+<span class="pre">text</span></code>): the name and units for each filter are listed in ASCII, one
+filter-unit pair per line</li>
+</ul>
+<p>This is followed by a series of entries of that each begin with a
+header</p>
+<ul class="simple">
+<li><code class="docutils literal"><span class="pre">Time</span></code> (<code class="docutils literal"><span class="pre">double</span></code>)</li>
+<li><code class="docutils literal"><span class="pre">NCluster</span></code> (<code class="docutils literal"><span class="pre">std::vector&lt;double&gt;::size_type</span></code>, usually <code class="docutils literal"><span class="pre">unsigned</span> <span class="pre">long</span> <span class="pre">long</span></code>): number of non-disrupted clusters present at this time</li>
+</ul>
+<p>This is followed by <code class="docutils literal"><span class="pre">NCluster</span></code> entries of the following form:</p>
+<ul class="simple">
+<li><code class="docutils literal"><span class="pre">UniqueID</span></code> (<code class="docutils literal"><span class="pre">unsigned</span> <span class="pre">long</span></code>)</li>
+<li><code class="docutils literal"><span class="pre">PhotFilter_Transmitted</span></code> (<code class="docutils literal"><span class="pre">NFilter</span></code> entries of numpy
+<code class="docutils literal"><span class="pre">float64</span></code>), giving the transmitted photometry in each filter</li>
+<li><code class="docutils literal"><span class="pre">PhotFilter_Emitted</span></code> (<code class="docutils literal"><span class="pre">NFilter</span></code> entries of numpy
+<code class="docutils literal"><span class="pre">float64</span></code>), giving the emitted photometry in each filter</li>
+<li><code class="docutils literal"><span class="pre">PhotFilter_Transmitted_plus_emitted</span></code> (<code class="docutils literal"><span class="pre">NFilter</span></code> entries of numpy
+<code class="docutils literal"><span class="pre">float64</span></code>), giving the transmitted plus emitted photometry in each
+filter</li>
+</ul>
+</div>
+</div>
+<div class="section" id="module-slugpy.cloudy">
+<span id="full-documentation-of-slugpy-cloudy"></span><h2>Full Documentation of slugpy.cloudy<a class="headerlink" href="#module-slugpy.cloudy" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="slugpy.cloudy.read_cloudy_continuum">
+<code class="descclassname">slugpy.cloudy.</code><code class="descname">read_cloudy_continuum</code><span class="sig-paren">(</span><em>filename</em>, <em>r0=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/slugpy/cloudy/read_cloudy_continuum.html#read_cloudy_continuum"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#slugpy.cloudy.read_cloudy_continuum" title="Permalink to this definition">¶</a></dt>
+<dd><p>Reads a cloudy continuum output, produced by save last continuum</p>
+<dl class="docutils">
+<dt>Parameters</dt>
+<dd><dl class="first last docutils">
+<dt>filename <span class="classifier-delimiter">:</span> <span class="classifier">string</span></dt>
+<dd>name of the file to be read</dd>
+<dt>r0 <span class="classifier-delimiter">:</span> <span class="classifier">float</span></dt>
+<dd>inner radius, in cm; if included, the quantities returned will
+be total energies instead of energy emission rates instead of
+rates per unit area</dd>
+</dl>
+</dd>
+<dt>Returns</dt>
+<dd><p class="first">A namedtuple containing the following fields:</p>
+<dl class="last docutils">
+<dt>wl <span class="classifier-delimiter">:</span> <span class="classifier">array</span></dt>
+<dd>wavelengths in Angstrom</dd>
+<dt>incident <span class="classifier-delimiter">:</span> <span class="classifier">array</span></dt>
+<dd>incident radiation field intensity</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="slugpy.cloudy.read_cloudy_hcon">
+<code class="descclassname">slugpy.cloudy.</code><code class="descname">read_cloudy_hcon</code><span class="sig-paren">(</span><em>hcon_file</em>, <em>r0=0.0</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/slugpy/cloudy/read_cloudy_hcon.html#read_cloudy_hcon"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#slugpy.cloudy.read_cloudy_hcon" title="Permalink to this definition">¶</a></dt>
+<dd><p>Reads cloudy outputs produce by the ‘save last hydrogen
+conditions’ and ‘save last hydrogen ionization’ file, and uses
+these to return various HII region diagnostic parameters.</p>
+<dl class="docutils">
+<dt>Parameters</dt>
+<dd><dl class="first last docutils">
+<dt>hcon_file <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
+<dd>Name of hydrogen conditions file to be read</dd>
+<dt>r0 <span class="classifier-delimiter">:</span> <span class="classifier">float</span></dt>
+<dd>Inner radius for the calculation</dd>
+</dl>
+</dd>
+<dt>Returns</dt>
+<dd><dl class="first last docutils">
+<dt>r1 <span class="classifier-delimiter">:</span> <span class="classifier">float</span></dt>
+<dd>outer radius, in cm</dd>
+<dt>nII <span class="classifier-delimiter">:</span> <span class="classifier">float</span></dt>
+<dd>average number density of H nuclei</dd>
+<dt>Omega <span class="classifier-delimiter">:</span> <span class="classifier">float</span></dt>
+<dd>wind parameter, defined as r0^3 / (r1^3 - r0^3)</dd>
+</dl>
+</dd>
+<dt>Notes</dt>
+<dd>All averages are averages over the ionized volume, i.e., the
+average is taken with a weighting factor 4 pi r^2 (n_H+/n_H) dV.</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="slugpy.cloudy.read_cloudy_linelist">
+<code class="descclassname">slugpy.cloudy.</code><code class="descname">read_cloudy_linelist</code><span class="sig-paren">(</span><em>filename</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/slugpy/cloudy/read_cloudy_linelist.html#read_cloudy_linelist"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#slugpy.cloudy.read_cloudy_linelist" title="Permalink to this definition">¶</a></dt>
+<dd><p>Reads a cloudy line list output, produced by save last line list</p>
+<dl class="docutils">
+<dt>Parameters</dt>
+<dd><dl class="first last docutils">
+<dt>filename <span class="classifier-delimiter">:</span> <span class="classifier">string</span></dt>
+<dd>name of the file to be read</dd>
+</dl>
+</dd>
+<dt>Returns</dt>
+<dd><p class="first">A namedtuple containing the following fields:</p>
+<dl class="last docutils">
+<dt>labels <span class="classifier-delimiter">:</span> <span class="classifier">array, dtype ‘S4’</span></dt>
+<dd>list of line labels</dd>
+<dt>wl <span class="classifier-delimiter">:</span> <span class="classifier">array</span></dt>
+<dd>array of line wavelengths, in Angstrom</dd>
+<dt>lum <span class="classifier-delimiter">:</span> <span class="classifier">array</span></dt>
+<dd>array of line luminosities; this will be in whatever units the
+cloudy output is in</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="slugpy.cloudy.read_cluster_cloudyparams">
+<code class="descclassname">slugpy.cloudy.</code><code class="descname">read_cluster_cloudyparams</code><span class="sig-paren">(</span><em>model_name</em>, <em>output_dir=None</em>, <em>fmt=None</em>, <em>verbose=False</em>, <em>read_info=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/slugpy/cloudy/read_cluster_cloudyparams.html#read_cluster_cloudyparams"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#slugpy.cloudy.read_cluster_cloudyparams" title="Permalink to this definition">¶</a></dt>
+<dd><p>Function to read a SLUG2 cluster_cloudyparams file.</p>
+<dl class="docutils">
+<dt>Parameters</dt>
+<dd><dl class="first last docutils">
+<dt>model_name <span class="classifier-delimiter">:</span> <span class="classifier">string</span></dt>
+<dd>The name of the model to be read</dd>
+<dt>output_dir <span class="classifier-delimiter">:</span> <span class="classifier">string</span></dt>
+<dd>The directory where the output is located; if set to None,
+the current directory is searched, followed by the SLUG_DIR
+directory if that environment variable is set</dd>
+<dt>fmt <span class="classifier-delimiter">:</span> <span class="classifier">‘txt’ | ‘ascii’ | ‘bin’ | ‘binary’ | ‘fits’ | ‘fits2’</span></dt>
+<dd>Format for the file to be read. If one of these is set, the
+function will only attempt to open ASCII-(‘txt’ or ‘ascii’), 
+binary (‘bin’ or ‘binary’), or FITS (‘fits’ or ‘fits2’)
+formatted output, ending in .txt., .bin, or .fits,
+respectively. If set to None, the code will try to open
+ASCII files first, then if it fails try binary files, and if
+it fails again try FITS files.</dd>
+<dt>verbose <span class="classifier-delimiter">:</span> <span class="classifier">bool</span></dt>
+<dd>If True, verbose output is printed as code runs</dd>
+<dt>read_info <span class="classifier-delimiter">:</span> <span class="classifier">dict</span></dt>
+<dd>On return, this dict will contain the keys ‘fname’ and
+‘format’, giving the name of the file read and the format it
+was in; ‘format’ will be one of ‘ascii’, ‘binary’, or ‘fits’</dd>
+</dl>
+</dd>
+<dt>Returns</dt>
+<dd><p class="first">A namedtuple containing the following fields:</p>
+<dl class="docutils">
+<dt>id <span class="classifier-delimiter">:</span> <span class="classifier">array, dtype uint</span></dt>
+<dd>unique ID of cluster</dd>
+<dt>trial: array, dtype uint</dt>
+<dd>which trial was this cluster part of</dd>
+<dt>time <span class="classifier-delimiter">:</span> <span class="classifier">array</span></dt>
+<dd>time at which cluster’s properties are being evaluated</dd>
+<dt>cloudy_hden <span class="classifier-delimiter">:</span> <span class="classifier">array</span></dt>
+<dd>number density of H nuclei at the inner edge of the ionized
+region simulated by cloudy</dd>
+<dt>cloudy_r0 <span class="classifier-delimiter">:</span> <span class="classifier">array</span></dt>
+<dd>inner radius of the ionized region simulated by cloudy</dd>
+<dt>cloudy_r1 <span class="classifier-delimiter">:</span> <span class="classifier">array</span></dt>
+<dd>outer radius of the ionized region simulated by cloudy (approximate!)</dd>
+<dt>cloudy_QH0 <span class="classifier-delimiter">:</span> <span class="classifier">array</span></dt>
+<dd>ionizing luminosity used in the cloudy computation</dd>
+<dt>cloudy_covFac <span class="classifier-delimiter">:</span> <span class="classifier">array</span></dt>
+<dd>covering factor assumed in the cloudy computation; only a
+fraction covFac of the ionizing photons are assumed to
+produce emission within the HII region, while the remainder
+are assumed to escape</dd>
+<dt>cloudy_U <span class="classifier-delimiter">:</span> <span class="classifier">array</span></dt>
+<dd>volume-averaged ionization parameter of the HII region
+simulated by cloudy</dd>
+<dt>cloudy_U0 <span class="classifier-delimiter">:</span> <span class="classifier">array</span></dt>
+<dd>ionization parameter of the HII reegion at its inner edge</dd>
+<dt>cloudy_Omega <span class="classifier-delimiter">:</span> <span class="classifier">array</span></dt>
+<dd>Yeh &amp; Matzner (2012) wind parameter for the HII region
+simulated by cloudy</dd>
+<dt>cloudy_zeta <span class="classifier-delimiter">:</span> <span class="classifier">array</span></dt>
+<dd>Krumholz &amp; Matzner (2009) radiation pressure parameter for
+the HII region, again approximate; values of zeta &gt;~1
+indicate that radiation pressure is dynamically important</dd>
+</dl>
+<p>The following fields may or may not be present, depending on
+what is found in the output file:</p>
+<dl class="last docutils">
+<dt>cloudy_hden_out <span class="classifier-delimiter">:</span> <span class="classifier">array</span></dt>
+<dd>volume-averaged number density produced by the cloudy
+calculation</dd>
+<dt>cloudy_r1_out <span class="classifier-delimiter">:</span> <span class="classifier">array</span></dt>
+<dd>HII region outer radius produced by cloudy</dd>
+<dt>cloudy_Omega_out <span class="classifier-delimiter">:</span> <span class="classifier">array</span></dt>
+<dd>value of Omega computed using cloudy_r1_out</dd>
+<dt>cloudy_zeta_out <span class="classifier-delimiter">:</span> <span class="classifier">array</span></dt>
+<dd>value of zeta computed using cloudy_r1_out</dd>
+</dl>
+</dd>
+</dl>
+<p>Notes</p>
+<blockquote>
+<div>The relationships between U, U0, Omega, r0, r1, hden, and
+QH0 used in deriving various parameters are valid only in
+the limit of negligible radiation pressure. They may be
+significantly off if radiation pressure is significant,
+i.e., if zeta &gt;~ 1.</div></blockquote>
+</dd></dl>
+
+<dl class="function">
+<dt id="slugpy.cloudy.read_cluster_cloudyphot">
+<code class="descclassname">slugpy.cloudy.</code><code class="descname">read_cluster_cloudyphot</code><span class="sig-paren">(</span><em>model_name</em>, <em>output_dir=None</em>, <em>fmt=None</em>, <em>nofilterdata=False</em>, <em>photsystem=None</em>, <em>verbose=False</em>, <em>read_info=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/slugpy/cloudy/read_cluster_cloudyphot.html#read_cluster_cloudyphot"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#slugpy.cloudy.read_cluster_cloudyphot" title="Permalink to this definition">¶</a></dt>
+<dd><p>Function to read a SLUG2 cluster_cloudyphot file.</p>
+<dl class="docutils">
+<dt>Parameters</dt>
+<dd><dl class="first last docutils">
+<dt>model_name <span class="classifier-delimiter">:</span> <span class="classifier">string</span></dt>
+<dd>The name of the model to be read</dd>
+<dt>output_dir <span class="classifier-delimiter">:</span> <span class="classifier">string</span></dt>
+<dd>The directory where the SLUG2 output is located; if set to None,
+the current directory is searched, followed by the SLUG_DIR
+directory if that environment variable is set</dd>
+<dt>fmt <span class="classifier-delimiter">:</span> <span class="classifier">string</span></dt>
+<dd>Format for the file to be read. Allowed values are ‘ascii’,
+‘bin’ or ‘binary, and ‘fits’. If one of these is set, the code
+will only attempt to open ASCII-, binary-, or FITS-formatted
+output, ending in .txt., .bin, or .fits, respectively. If set
+to None, the code will try to open ASCII files first, then if
+it fails try binary files, and if it fails again try FITS
+files.</dd>
+<dt>nofilterdata <span class="classifier-delimiter">:</span> <span class="classifier">bool</span></dt>
+<dd>If True, the routine does not attempt to read the filter
+response data from the standard location</dd>
+<dt>photsystem <span class="classifier-delimiter">:</span> <span class="classifier">None or string</span></dt>
+<dd>If photsystem is None, the data will be returned in the same
+photometric system in which they were read. Alternately, if it
+is a string, the data will be converted to the specified
+photometric system. Allowable values are ‘L_nu’, ‘L_lambda’,
+‘AB’, ‘STMAG’, and ‘Vega’, corresponding to the options defined
+in the SLUG code. If this is set and the conversion requested
+involves a conversion from a wavelength-based system to a
+frequency-based one, nofilterdata must be False so that the
+central wavelength of the photometric filters is available.</dd>
+<dt>verbose <span class="classifier-delimiter">:</span> <span class="classifier">bool</span></dt>
+<dd>If True, verbose output is printed as code runs</dd>
+<dt>read_info <span class="classifier-delimiter">:</span> <span class="classifier">dict</span></dt>
+<dd>On return, this dict will contain the keys ‘fname’ and
+‘format’, giving the name of the file read and the format it
+was in; ‘format’ will be one of ‘ascii’, ‘binary’, or ‘fits’</dd>
+</dl>
+</dd>
+<dt>Returns</dt>
+<dd><p class="first">A namedtuple containing the following fields:</p>
+<dl class="last docutils">
+<dt>id <span class="classifier-delimiter">:</span> <span class="classifier">array, dtype uint</span></dt>
+<dd>unique ID of cluster</dd>
+<dt>trial: array, dtype uint</dt>
+<dd>which trial was this cluster part of</dd>
+<dt>time <span class="classifier-delimiter">:</span> <span class="classifier">array</span></dt>
+<dd>times at which cluster spectra are output, in yr</dd>
+<dt>cloudy_filter_names <span class="classifier-delimiter">:</span> <span class="classifier">list of string</span></dt>
+<dd>a list giving the name for each filter</dd>
+<dt>cloudy_filter_units <span class="classifier-delimiter">:</span> <span class="classifier">list of string</span></dt>
+<dd>a list giving the units for each filter</dd>
+<dt>cloudy_filter_wl_eff <span class="classifier-delimiter">:</span> <span class="classifier">list</span></dt>
+<dd>effective wavelength of each filter; this is set to None for the
+filters Lbol, QH0, QHe0, and QHe1; omitted if nofilterdata is
+True</dd>
+<dt>cloudy_filter_wl <span class="classifier-delimiter">:</span> <span class="classifier">list of arrays</span></dt>
+<dd>a list giving the wavelength table for each filter; this is
+None for the filters Lbol, QH0, QHe0, and QHe1; omitted if
+nofilterdata is True</dd>
+<dt>cloudy_filter_response <span class="classifier-delimiter">:</span> <span class="classifier">list of arrays</span></dt>
+<dd>a list giving the photon response function for each filter;
+this is None for the filters Lbol, QH0, QHe0, and QHe1; omitted
+if nofilterdata is True</dd>
+<dt>cloudy_filter_beta <span class="classifier-delimiter">:</span> <span class="classifier">list</span></dt>
+<dd>powerlaw index beta for each filter; used to normalize the
+photometry</dd>
+<dt>cloudy_filter_wl_c <span class="classifier-delimiter">:</span> <span class="classifier">list</span></dt>
+<dd>pivot wavelength for each filter; used to normalize the photometry</dd>
+<dt>cloudy_phot_trans <span class="classifier-delimiter">:</span> <span class="classifier">array, shape (N_cluster, N_filter)</span></dt>
+<dd>photometric value for each cluster in each filter for the
+transmitted light (i.e., the starlight remaining after it has
+passed through the HII region); units are as indicated in
+the units field</dd>
+<dt>cloudy_phot_emit <span class="classifier-delimiter">:</span> <span class="classifier">array, shape (N_cluster, N_filter)</span></dt>
+<dd>photometric value for each cluster in each filter for the
+emitted light (i.e., the diffuse light emitted by the HII
+region); units are as indicated in the units field</dd>
+<dt>cloudy_phot_trans_emit <span class="classifier-delimiter">:</span> <span class="classifier">array, shape (N_cluster, N_filter)</span></dt>
+<dd>photometric value in each filter for each cluster for the
+transmitted plus emitted light (i.e., the light coming
+directly from the stars after absorption by the HII region,
+plus the diffuse light emitted by the HII region); units are as
+indicated in the units field</dd>
+</dl>
+</dd>
+<dt>Raises</dt>
+<dd>IOError, if no photometry file can be opened;
+ValueError, if photsystem is set to an unknown value</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="slugpy.cloudy.read_cluster_cloudylines">
+<code class="descclassname">slugpy.cloudy.</code><code class="descname">read_cluster_cloudylines</code><span class="sig-paren">(</span><em>model_name</em>, <em>output_dir=None</em>, <em>fmt=None</em>, <em>verbose=False</em>, <em>read_info=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/slugpy/cloudy/read_cluster_cloudylines.html#read_cluster_cloudylines"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#slugpy.cloudy.read_cluster_cloudylines" title="Permalink to this definition">¶</a></dt>
+<dd><p>Function to read a SLUG2 cluster_cloudylines file.</p>
+<dl class="docutils">
+<dt>Parameters</dt>
+<dd><dl class="first last docutils">
+<dt>model_name <span class="classifier-delimiter">:</span> <span class="classifier">string</span></dt>
+<dd>The name of the model to be read</dd>
+<dt>output_dir <span class="classifier-delimiter">:</span> <span class="classifier">string</span></dt>
+<dd>The directory where the SLUG2 output is located; if set to None,
+the current directory is searched, followed by the SLUG_DIR
+directory if that environment variable is set</dd>
+<dt>fmt <span class="classifier-delimiter">:</span> <span class="classifier">string</span></dt>
+<dd>Format for the file to be read. Allowed values are ‘ascii’,
+‘bin’ or ‘binary, and ‘fits’. If one of these is set, the code
+will only attempt to open ASCII-, binary-, or FITS-formatted
+output, ending in .txt., .bin, or .fits, respectively. If set
+to None, the code will try to open ASCII files first, then if
+it fails try binary files, and if it fails again try FITS
+files.</dd>
+<dt>verbose <span class="classifier-delimiter">:</span> <span class="classifier">bool</span></dt>
+<dd>If True, verbose output is printed as code runs</dd>
+<dt>read_info <span class="classifier-delimiter">:</span> <span class="classifier">dict</span></dt>
+<dd>On return, this dict will contain the keys ‘fname’ and
+‘format’, giving the name of the file read and the format it
+was in; ‘format’ will be one of ‘ascii’, ‘binary’, or ‘fits’</dd>
+</dl>
+</dd>
+<dt>Returns</dt>
+<dd><p class="first">A namedtuple containing the following fields:</p>
+<dl class="last docutils">
+<dt>id <span class="classifier-delimiter">:</span> <span class="classifier">array, dtype uint</span></dt>
+<dd>unique ID of cluster</dd>
+<dt>trial: array, dtype uint</dt>
+<dd>which trial was this cluster part of</dd>
+<dt>time <span class="classifier-delimiter">:</span> <span class="classifier">array</span></dt>
+<dd>times at which cluster spectra are output, in yr</dd>
+<dt>cloudy_linelabel <span class="classifier-delimiter">:</span> <span class="classifier">array, dtype=’S4’, shape (N_lines)</span></dt>
+<dd>labels for the lines, following cloudy’s 4 character line label
+notation</dd>
+<dt>cloudy_linewl <span class="classifier-delimiter">:</span> <span class="classifier">array, shape (N_lines)</span></dt>
+<dd>rest wavelength for each line, in Angstrom</dd>
+<dt>cloudy_linelum <span class="classifier-delimiter">:</span> <span class="classifier">array, shape (N_cluster, N_lines)</span></dt>
+<dd>luminosity of each line at each time for each trial, in erg/s</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="slugpy.cloudy.read_cluster_cloudyspec">
+<code class="descclassname">slugpy.cloudy.</code><code class="descname">read_cluster_cloudyspec</code><span class="sig-paren">(</span><em>model_name</em>, <em>output_dir=None</em>, <em>fmt=None</em>, <em>verbose=False</em>, <em>read_info=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/slugpy/cloudy/read_cluster_cloudyspec.html#read_cluster_cloudyspec"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#slugpy.cloudy.read_cluster_cloudyspec" title="Permalink to this definition">¶</a></dt>
+<dd><p>Function to read a SLUG2 cluster_cloudyspec file.</p>
+<dl class="docutils">
+<dt>Parameters</dt>
+<dd><dl class="first last docutils">
+<dt>model_name <span class="classifier-delimiter">:</span> <span class="classifier">string</span></dt>
+<dd>The name of the model to be read</dd>
+<dt>output_dir <span class="classifier-delimiter">:</span> <span class="classifier">string</span></dt>
+<dd>The directory where the SLUG2 output is located; if set to None,
+the current directory is searched, followed by the SLUG_DIR
+directory if that environment variable is set</dd>
+<dt>fmt <span class="classifier-delimiter">:</span> <span class="classifier">string</span></dt>
+<dd>Format for the file to be read. Allowed values are ‘ascii’,
+‘bin’ or ‘binary, and ‘fits’. If one of these is set, the code
+will only attempt to open ASCII-, binary-, or FITS-formatted
+output, ending in .txt., .bin, or .fits, respectively. If set
+to None, the code will try to open ASCII files first, then if
+it fails try binary files, and if it fails again try FITS
+files.</dd>
+<dt>verbose <span class="classifier-delimiter">:</span> <span class="classifier">bool</span></dt>
+<dd>If True, verbose output is printed as code runs</dd>
+<dt>read_info <span class="classifier-delimiter">:</span> <span class="classifier">dict</span></dt>
+<dd>On return, this dict will contain the keys ‘fname’ and
+‘format’, giving the name of the file read and the format it
+was in; ‘format’ will be one of ‘ascii’, ‘binary’, or ‘fits’</dd>
+</dl>
+</dd>
+<dt>Returns</dt>
+<dd><p class="first">A namedtuple containing the following fields:</p>
+<dl class="last docutils">
+<dt>id <span class="classifier-delimiter">:</span> <span class="classifier">array, dtype uint</span></dt>
+<dd>unique ID of cluster</dd>
+<dt>trial: array, dtype uint</dt>
+<dd>which trial was this cluster part of</dd>
+<dt>time <span class="classifier-delimiter">:</span> <span class="classifier">array</span></dt>
+<dd>times at which cluster spectra are output, in yr</dd>
+<dt>cloudy_wl <span class="classifier-delimiter">:</span> <span class="classifier">array</span></dt>
+<dd>wavelength, in Angstrom</dd>
+<dt>cloudy_inc <span class="classifier-delimiter">:</span> <span class="classifier">array, shape (N_cluster, N_wavelength)</span></dt>
+<dd>specific luminosity of the cluster’s stellar radiation field at
+each wavelength, in erg/s/A</dd>
+<dt>cloudy_trans <span class="classifier-delimiter">:</span> <span class="classifier">array, shape (N_cluster, N_wavelength)</span></dt>
+<dd>specific luminosity of the stellar radiation field after it has
+passed through the HII region, at each wavelength, in erg/s/A</dd>
+<dt>cloudy_emit <span class="classifier-delimiter">:</span> <span class="classifier">array, shape (N_cluster, N_wavelength)</span></dt>
+<dd>specific luminosity of the radiation field emitted by the HII
+region, at each wavelength, in erg/s/A</dd>
+<dt>cloudy_trans_emit <span class="classifier-delimiter">:</span> <span class="classifier">array, shape (N_cluster, N_wavelength)</span></dt>
+<dd>the sum of the emitted and transmitted fields; this is what
+would be seen by an observer looking at both the star cluster
+and its nebula</dd>
+</dl>
+</dd>
+<dt>Raises</dt>
+<dd>IOError, if no spectrum file can be opened</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="slugpy.cloudy.read_integrated_cloudylines">
+<code class="descclassname">slugpy.cloudy.</code><code class="descname">read_integrated_cloudylines</code><span class="sig-paren">(</span><em>model_name</em>, <em>output_dir=None</em>, <em>fmt=None</em>, <em>verbose=False</em>, <em>read_info=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/slugpy/cloudy/read_integrated_cloudylines.html#read_integrated_cloudylines"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#slugpy.cloudy.read_integrated_cloudylines" title="Permalink to this definition">¶</a></dt>
+<dd><p>Function to read a SLUG2 integrated_cloudylines file.</p>
+<dl class="docutils">
+<dt>Parameters</dt>
+<dd><dl class="first last docutils">
+<dt>model_name <span class="classifier-delimiter">:</span> <span class="classifier">string</span></dt>
+<dd>The name of the model to be read</dd>
+<dt>output_dir <span class="classifier-delimiter">:</span> <span class="classifier">string</span></dt>
+<dd>The directory where the SLUG2 output is located; if set to None,
+the current directory is searched, followed by the SLUG_DIR
+directory if that environment variable is set</dd>
+<dt>fmt <span class="classifier-delimiter">:</span> <span class="classifier">string</span></dt>
+<dd>Format for the file to be read. Allowed values are ‘ascii’,
+‘bin’ or ‘binary, and ‘fits’. If one of these is set, the code
+will only attempt to open ASCII-, binary-, or FITS-formatted
+output, ending in .txt., .bin, or .fits, respectively. If set
+to None, the code will try to open ASCII files first, then if
+it fails try binary files, and if it fails again try FITS
+files.</dd>
+<dt>verbose <span class="classifier-delimiter">:</span> <span class="classifier">bool</span></dt>
+<dd>If True, verbose output is printed as code runs</dd>
+<dt>read_info <span class="classifier-delimiter">:</span> <span class="classifier">dict</span></dt>
+<dd>On return, this dict will contain the keys ‘fname’ and
+‘format’, giving the name of the file read and the format it
+was in; ‘format’ will be one of ‘ascii’, ‘binary’, or ‘fits’</dd>
+</dl>
+</dd>
+<dt>Returns</dt>
+<dd><p class="first">A namedtuple containing the following fields:</p>
+<dl class="last docutils">
+<dt>time <span class="classifier-delimiter">:</span> <span class="classifier">array, shape (N_times) or shape (N_trials)</span></dt>
+<dd>Times at which data are output; shape is either N_times (if
+the run was done with fixed output times) or N_trials (if
+the run was done with random output times)</dd>
+<dt>cloudy_linelabel <span class="classifier-delimiter">:</span> <span class="classifier">array, dtype=’S4’, shape (N_lines)</span></dt>
+<dd>labels for the lines, following cloudy’s 4 character line label
+notation</dd>
+<dt>cloudy_linewl <span class="classifier-delimiter">:</span> <span class="classifier">array, shape (N_lines)</span></dt>
+<dd>rest wavelength for each line, in Angstrom</dd>
+<dt>cloudy_linelum <span class="classifier-delimiter">:</span> <span class="classifier">array, shape (N_lines, N_times, N_trials)</span></dt>
+<dd>luminosity of each line at each time for each trial, in erg/s</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="slugpy.cloudy.read_integrated_cloudyparams">
+<code class="descclassname">slugpy.cloudy.</code><code class="descname">read_integrated_cloudyparams</code><span class="sig-paren">(</span><em>model_name</em>, <em>output_dir=None</em>, <em>fmt=None</em>, <em>verbose=False</em>, <em>read_info=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/slugpy/cloudy/read_integrated_cloudyparams.html#read_integrated_cloudyparams"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#slugpy.cloudy.read_integrated_cloudyparams" title="Permalink to this definition">¶</a></dt>
+<dd><p>Function to read a SLUG2 integrated_cloudyparams file.</p>
+<dl class="docutils">
+<dt>Parameters</dt>
+<dd><dl class="first last docutils">
+<dt>model_name <span class="classifier-delimiter">:</span> <span class="classifier">string</span></dt>
+<dd>The name of the model to be read</dd>
+<dt>output_dir <span class="classifier-delimiter">:</span> <span class="classifier">string</span></dt>
+<dd>The directory where the SLUG2 output is located; if set to None,
+the current directory is searched, followed by the SLUG_DIR
+directory if that environment variable is set</dd>
+<dt>fmt <span class="classifier-delimiter">:</span> <span class="classifier">string</span></dt>
+<dd>Format for the file to be read. Allowed values are ‘ascii’,
+‘bin’ or ‘binary, and ‘fits’. If one of these is set, the code
+will only attempt to open ASCII-, binary-, or FITS-formatted
+output, ending in .txt., .bin, or .fits, respectively. If set
+to None, the code will try to open ASCII files first, then if
+it fails try binary files, and if it fails again try FITS
+files.</dd>
+<dt>verbose <span class="classifier-delimiter">:</span> <span class="classifier">bool</span></dt>
+<dd>If True, verbose output is printed as code runs</dd>
+<dt>read_info <span class="classifier-delimiter">:</span> <span class="classifier">dict</span></dt>
+<dd>On return, this dict will contain the keys ‘fname’ and
+‘format’, giving the name of the file read and the format it
+was in; ‘format’ will be one of ‘ascii’, ‘binary’, or ‘fits’</dd>
+</dl>
+</dd>
+<dt>Returns</dt>
+<dd><p class="first">A namedtuple containing the following fields:</p>
+<dl class="docutils">
+<dt>time <span class="classifier-delimiter">:</span> <span class="classifier">array, shape (N_times) or shape (N_trials)</span></dt>
+<dd>Times at which data are output; shape is either N_times (if
+the run was done with fixed output times) or N_trials (if
+the run was done with random output times)</dd>
+<dt>cloudy_hden <span class="classifier-delimiter">:</span> <span class="classifier">array</span></dt>
+<dd>number density of H nuclei at the inner edge of the ionized
+region simulated by cloudy</dd>
+<dt>cloudy_r0 <span class="classifier-delimiter">:</span> <span class="classifier">array</span></dt>
+<dd>inner radius of the ionized region simulated by cloudy</dd>
+<dt>cloudy_r1 <span class="classifier-delimiter">:</span> <span class="classifier">array</span></dt>
+<dd>outer radius of the ionized region simulated by cloudy (approximate!)</dd>
+<dt>cloudy_QH0 <span class="classifier-delimiter">:</span> <span class="classifier">array</span></dt>
+<dd>ionizing luminosity used in the cloudy computation</dd>
+<dt>cloudy_covFac <span class="classifier-delimiter">:</span> <span class="classifier">array</span></dt>
+<dd>covering factor assumed in the cloudy computation; only a
+fraction covFac of the ionizing photons are assumed to
+produce emission within the HII region, while the remainder
+are assumed to escape</dd>
+<dt>cloudy_U <span class="classifier-delimiter">:</span> <span class="classifier">array</span></dt>
+<dd>volume-averaged ionization parameter of the HII region
+simulated by cloudy</dd>
+<dt>cloudy_U0 <span class="classifier-delimiter">:</span> <span class="classifier">array</span></dt>
+<dd>ionization parameter of the HII reegion at its inner edge</dd>
+<dt>cloudy_Omega <span class="classifier-delimiter">:</span> <span class="classifier">array</span></dt>
+<dd>Yeh &amp; Matzner (2012) wind parameter for the HII region
+simulated by cloudy</dd>
+<dt>cloudy_zeta <span class="classifier-delimiter">:</span> <span class="classifier">array</span></dt>
+<dd>Krumholz &amp; Matzner (2009) radiation pressure parameter for
+the HII region, again approximate; values of zeta &gt;~1
+indicate that radiation pressure is dynamically important</dd>
+</dl>
+<p>The following fields may or may not be present, depending on
+what is found in the output file:</p>
+<dl class="last docutils">
+<dt>cloudy_hden_out <span class="classifier-delimiter">:</span> <span class="classifier">array</span></dt>
+<dd>volume-averaged number density produced by the cloudy
+calculation</dd>
+<dt>cloudy_r1_out <span class="classifier-delimiter">:</span> <span class="classifier">array</span></dt>
+<dd>HII region outer radius produced by cloudy</dd>
+<dt>cloudy_Omega_out <span class="classifier-delimiter">:</span> <span class="classifier">array</span></dt>
+<dd>value of Omega computed using cloudy_r1_out</dd>
+<dt>cloudy_zeta_out <span class="classifier-delimiter">:</span> <span class="classifier">array</span></dt>
+<dd>value of zeta computed using cloudy_r1_out</dd>
+</dl>
+</dd>
+</dl>
+<p>Notes</p>
+<blockquote>
+<div>The relationships between U, U0, Omega, r0, r1, hden, and
+QH0 used in deriving various parameters are valid only in
+the limit of negligible radiation pressure. They may be
+significantly off if radiation pressure is significant,
+i.e., if zeta &gt;~ 1.</div></blockquote>
+</dd></dl>
+
+<dl class="function">
+<dt id="slugpy.cloudy.read_integrated_cloudyphot">
+<code class="descclassname">slugpy.cloudy.</code><code class="descname">read_integrated_cloudyphot</code><span class="sig-paren">(</span><em>model_name</em>, <em>output_dir=None</em>, <em>fmt=None</em>, <em>nofilterdata=False</em>, <em>photsystem=None</em>, <em>verbose=False</em>, <em>read_info=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/slugpy/cloudy/read_integrated_cloudyphot.html#read_integrated_cloudyphot"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#slugpy.cloudy.read_integrated_cloudyphot" title="Permalink to this definition">¶</a></dt>
+<dd><p>Function to read a SLUG2 integrated_cloudyphot file.</p>
+<dl class="docutils">
+<dt>Parameters</dt>
+<dd><dl class="first last docutils">
+<dt>model_name <span class="classifier-delimiter">:</span> <span class="classifier">string</span></dt>
+<dd>The name of the model to be read</dd>
+<dt>output_dir <span class="classifier-delimiter">:</span> <span class="classifier">string</span></dt>
+<dd>The directory where the SLUG2 output is located; if set to None,
+the current directory is searched, followed by the SLUG_DIR
+directory if that environment variable is set</dd>
+<dt>fmt <span class="classifier-delimiter">:</span> <span class="classifier">string</span></dt>
+<dd>Format for the file to be read. Allowed values are ‘ascii’,
+‘bin’ or ‘binary, and ‘fits’. If one of these is set, the code
+will only attempt to open ASCII-, binary-, or FITS-formatted
+output, ending in .txt., .bin, or .fits, respectively. If set
+to None, the code will try to open ASCII files first, then if
+it fails try binary files, and if it fails again try FITS
+files.</dd>
+<dt>nofilterdata <span class="classifier-delimiter">:</span> <span class="classifier">bool</span></dt>
+<dd>If True, the routine does not attempt to read the filter
+response data from the standard location</dd>
+<dt>photsystem <span class="classifier-delimiter">:</span> <span class="classifier">None or string</span></dt>
+<dd>If photsystem is None, the data will be returned in the same
+photometric system in which they were read. Alternately, if it
+is a string, the data will be converted to the specified
+photometric system. Allowable values are ‘L_nu’, ‘L_lambda’,
+‘AB’, ‘STMAG’, and ‘Vega’, corresponding to the options defined
+in the SLUG code. If this is set and the conversion requested
+involves a conversion from a wavelength-based system to a
+frequency-based one, nofilterdata must be False so that the
+central wavelength of the photometric filters is available.</dd>
+<dt>verbose <span class="classifier-delimiter">:</span> <span class="classifier">bool</span></dt>
+<dd>If True, verbose output is printed as code runs</dd>
+<dt>read_info <span class="classifier-delimiter">:</span> <span class="classifier">dict</span></dt>
+<dd>On return, this dict will contain the keys ‘fname’ and
+‘format’, giving the name of the file read and the format it
+was in; ‘format’ will be one of ‘ascii’, ‘binary’, or ‘fits’</dd>
+</dl>
+</dd>
+<dt>Returns</dt>
+<dd><p class="first">A namedtuple containing the following fields:</p>
+<dl class="last docutils">
+<dt>time <span class="classifier-delimiter">:</span> <span class="classifier">array, shape (N_times) or shape (N_trials)</span></dt>
+<dd>Times at which data are output; shape is either N_times (if
+the run was done with fixed output times) or N_trials (if
+the run was done with random output times)</dd>
+<dt>cloudy_filter_names <span class="classifier-delimiter">:</span> <span class="classifier">list of string</span></dt>
+<dd>a list giving the name for each filter</dd>
+<dt>cloudy_filter_units <span class="classifier-delimiter">:</span> <span class="classifier">list of string</span></dt>
+<dd>a list giving the units for each filter</dd>
+<dt>cloudy_filter_wl_eff <span class="classifier-delimiter">:</span> <span class="classifier">list</span></dt>
+<dd>effective wavelength of each filter; this is set to None for the
+filters Lbol, QH0, QHe0, and QHe1; omitted if nofilterdata is
+True</dd>
+<dt>cloudy_filter_wl <span class="classifier-delimiter">:</span> <span class="classifier">list of arrays</span></dt>
+<dd>a list giving the wavelength table for each filter; this is
+None for the filters Lbol, QH0, QHe0, and QHe1; omitted if
+nofilterdata is True</dd>
+<dt>cloudy_filter_response <span class="classifier-delimiter">:</span> <span class="classifier">list of arrays</span></dt>
+<dd>a list giving the photon response function for each filter;
+this is None for the filters Lbol, QH0, QHe0, and QHe1; omitted
+if nofilterdata is True</dd>
+<dt>cloudy_filter_beta <span class="classifier-delimiter">:</span> <span class="classifier">list</span></dt>
+<dd>powerlaw index beta for each filter; used to normalize the
+photometry</dd>
+<dt>cloudy_filter_wl_c <span class="classifier-delimiter">:</span> <span class="classifier">list</span></dt>
+<dd>pivot wavelength for each filter; used to normalize the photometry</dd>
+<dt>cloudy_phot_trans <span class="classifier-delimiter">:</span> <span class="classifier">array, shape (N_filter, N_times, N_trials)</span></dt>
+<dd>photometric value in each filter at each time in each trial for
+the transmitted light (i.e., the starlight remaining after it
+has passed through the HII region); units are as indicated in
+the units field</dd>
+<dt>cloudy_phot_emit <span class="classifier-delimiter">:</span> <span class="classifier">array, shape (N_filter, N_times, N_trials)</span></dt>
+<dd>photometric value in each filter at each time in each trial for
+the emitted light (i.e., the diffuse light emitted by the HII
+region); units are as indicated in the units field</dd>
+<dt>cloudy_phot_trans_emit <span class="classifier-delimiter">:</span> <span class="classifier">array, shape (N_filter, N_times, N_trials)</span></dt>
+<dd>photometric value in each filter at each time in each trial for
+the transmitted plus emitted light (i.e., the light coming
+directly from the stars after absorption by the HII region,
+plus the diffuse light emitted by the HII region); units are as
+indicated in the units field</dd>
+</dl>
+</dd>
+<dt>Raises</dt>
+<dd>IOError, if no photometry file can be opened;
+ValueError, if photsystem is set to an unknown value</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="slugpy.cloudy.read_integrated_cloudyspec">
+<code class="descclassname">slugpy.cloudy.</code><code class="descname">read_integrated_cloudyspec</code><span class="sig-paren">(</span><em>model_name</em>, <em>output_dir=None</em>, <em>fmt=None</em>, <em>verbose=False</em>, <em>read_info=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/slugpy/cloudy/read_integrated_cloudyspec.html#read_integrated_cloudyspec"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#slugpy.cloudy.read_integrated_cloudyspec" title="Permalink to this definition">¶</a></dt>
+<dd><p>Function to read a SLUG2 integrated_cloudyspec file.</p>
+<dl class="docutils">
+<dt>Parameters</dt>
+<dd><dl class="first last docutils">
+<dt>model_name <span class="classifier-delimiter">:</span> <span class="classifier">string</span></dt>
+<dd>The name of the model to be read</dd>
+<dt>output_dir <span class="classifier-delimiter">:</span> <span class="classifier">string</span></dt>
+<dd>The directory where the SLUG2 output is located; if set to None,
+the current directory is searched, followed by the SLUG_DIR
+directory if that environment variable is set</dd>
+<dt>fmt <span class="classifier-delimiter">:</span> <span class="classifier">string</span></dt>
+<dd>Format for the file to be read. Allowed values are ‘ascii’,
+‘bin’ or ‘binary, and ‘fits’. If one of these is set, the code
+will only attempt to open ASCII-, binary-, or FITS-formatted
+output, ending in .txt., .bin, or .fits, respectively. If set
+to None, the code will try to open ASCII files first, then if
+it fails try binary files, and if it fails again try FITS
+files.</dd>
+<dt>verbose <span class="classifier-delimiter">:</span> <span class="classifier">bool</span></dt>
+<dd>If True, verbose output is printed as code runs</dd>
+<dt>read_info <span class="classifier-delimiter">:</span> <span class="classifier">dict</span></dt>
+<dd>On return, this dict will contain the keys ‘fname’ and
+‘format’, giving the name of the file read and the format it
+was in; ‘format’ will be one of ‘ascii’, ‘binary’, or ‘fits’</dd>
+</dl>
+</dd>
+<dt>Returns</dt>
+<dd><p class="first">A namedtuple containing the following fields:</p>
+<dl class="last docutils">
+<dt>time <span class="classifier-delimiter">:</span> <span class="classifier">array, shape (N_times) or shape (N_trials)</span></dt>
+<dd>Times at which data are output; shape is either N_times (if
+the run was done with fixed output times) or N_trials (if
+the run was done with random output times)</dd>
+<dt>cloudy_wl <span class="classifier-delimiter">:</span> <span class="classifier">array</span></dt>
+<dd>wavelength, in Angstrom</dd>
+<dt>cloudy_inc <span class="classifier-delimiter">:</span> <span class="classifier">array, shape (N_wavelength, N_times, N_trials)</span></dt>
+<dd>specific luminosity of the stellar radiation field at each
+wavelength and each time for each trial, in erg/s/A</dd>
+<dt>cloudy_trans <span class="classifier-delimiter">:</span> <span class="classifier">array, shape (N_wavelength, N_times, N_trials)</span></dt>
+<dd>specific luminosity of the stellar radiation field after it has
+passed through the HII region, at each wavelength and each time
+for each trial, in erg/s/A</dd>
+<dt>cloudy_emit <span class="classifier-delimiter">:</span> <span class="classifier">array, shape (N_wavelength, N_times, N_trials)</span></dt>
+<dd>specific luminosity of the radiation field emitted by the HII
+region, at each wavelength and each time for each trial, in
+erg/s/A</dd>
+<dt>cloudy_trans_emit <span class="classifier-delimiter">:</span> <span class="classifier">array, shape (N_wavelength, N_times, N_trials)</span></dt>
+<dd>the sum of emitted and transmitted; this is what would be seen
+by an observer looking at both the star cluster and its nebula</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="slugpy.cloudy.write_cluster_cloudyparams">
+<code class="descclassname">slugpy.cloudy.</code><code class="descname">write_cluster_cloudyparams</code><span class="sig-paren">(</span><em>data</em>, <em>model_name</em>, <em>fmt</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/slugpy/cloudy/write_cluster_cloudyparams.html#write_cluster_cloudyparams"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#slugpy.cloudy.write_cluster_cloudyparams" title="Permalink to this definition">¶</a></dt>
+<dd><p>Write out photometry for nebular emission computed by cloudy on a
+slug spectrum for a series of clusters</p>
+<dl class="docutils">
+<dt>Parameters</dt>
+<dd><dl class="first last docutils">
+<dt>data <span class="classifier-delimiter">:</span> <span class="classifier">namedtuple</span></dt>
+<dd>Cluster cloudy parameter data; a namedtuple containing the
+fields id, trial, time, cloudy_hden, cloudy_r0, 
+cloudy_r1, cloudy_QH0, cloudy_covFac, cloudy_U, cloudy_U0,
+cloudy_Omega, and cloudy_zeta; may also optionally contain
+the fields cloudy_r1_out, cloudy_hden_out, cloudy_Omega_out,
+and cloudy_zeta_out</dd>
+<dt>model_name <span class="classifier-delimiter">:</span> <span class="classifier">string</span></dt>
+<dd>Base file name to give the model to be written. Can include a
+directory specification if desired.</dd>
+<dt>fmt <span class="classifier-delimiter">:</span> <span class="classifier">string</span></dt>
+<dd>Format for the output file. Allowed values are ‘ascii’, ‘bin’
+or ‘binary, and ‘fits’.</dd>
+</dl>
+</dd>
+<dt>Returns</dt>
+<dd>Nothing</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="slugpy.cloudy.write_cluster_cloudyphot">
+<code class="descclassname">slugpy.cloudy.</code><code class="descname">write_cluster_cloudyphot</code><span class="sig-paren">(</span><em>data</em>, <em>model_name</em>, <em>fmt</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/slugpy/cloudy/write_cluster_cloudyphot.html#write_cluster_cloudyphot"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#slugpy.cloudy.write_cluster_cloudyphot" title="Permalink to this definition">¶</a></dt>
+<dd><p>Write out photometry for nebular emission computed by cloudy on a
+slug spectrum for a series of clusters</p>
+<dl class="docutils">
+<dt>Parameters</dt>
+<dd><dl class="first last docutils">
+<dt>data <span class="classifier-delimiter">:</span> <span class="classifier">namedtuple</span></dt>
+<dd>Cluster cloudy photometry data to be written; a namedtuple
+containing the fields id, time, cloudy_filter_names, 
+cloudy_filter_units, cloudy_phot_trans, cloudy_phot_emit,
+and cloudy_phot_trans_emit</dd>
+<dt>model_name <span class="classifier-delimiter">:</span> <span class="classifier">string</span></dt>
+<dd>Base file name to give the model to be written. Can include a
+directory specification if desired.</dd>
+<dt>fmt <span class="classifier-delimiter">:</span> <span class="classifier">string</span></dt>
+<dd>Format for the output file. Allowed values are ‘ascii’, ‘bin’
+or ‘binary, and ‘fits’.</dd>
+</dl>
+</dd>
+<dt>Returns</dt>
+<dd>Nothing</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="slugpy.cloudy.write_cluster_cloudylines">
+<code class="descclassname">slugpy.cloudy.</code><code class="descname">write_cluster_cloudylines</code><span class="sig-paren">(</span><em>data</em>, <em>model_name</em>, <em>fmt</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/slugpy/cloudy/write_cluster_cloudylines.html#write_cluster_cloudylines"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#slugpy.cloudy.write_cluster_cloudylines" title="Permalink to this definition">¶</a></dt>
+<dd><p>Write out data computed by cloudy on a slug spectrum</p>
+<dl class="docutils">
+<dt>Parameters</dt>
+<dd><dl class="first last docutils">
+<dt>data <span class="classifier-delimiter">:</span> <span class="classifier">namedtuple</span></dt>
+<dd>Cloudy spectral data for clusters to be written; a namedtuple
+containing the fields time, cloudy_linelist, cloudy_linewl, 
+cloudy_linelum</dd>
+<dt>model_name <span class="classifier-delimiter">:</span> <span class="classifier">string</span></dt>
+<dd>Base file name to give the model to be written. Can include a
+directory specification if desired.</dd>
+<dt>fmt <span class="classifier-delimiter">:</span> <span class="classifier">string</span></dt>
+<dd>Format for the output file. Allowed values are ‘ascii’, ‘bin’
+or ‘binary, and ‘fits’.</dd>
+</dl>
+</dd>
+<dt>Returns</dt>
+<dd>Nothing</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="slugpy.cloudy.write_cluster_cloudyspec">
+<code class="descclassname">slugpy.cloudy.</code><code class="descname">write_cluster_cloudyspec</code><span class="sig-paren">(</span><em>data</em>, <em>model_name</em>, <em>fmt</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/slugpy/cloudy/write_cluster_cloudyspec.html#write_cluster_cloudyspec"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#slugpy.cloudy.write_cluster_cloudyspec" title="Permalink to this definition">¶</a></dt>
+<dd><p>Write out data computed by cloudy on a slug spectrum</p>
+<dl class="docutils">
+<dt>Parameters</dt>
+<dd><dl class="first last docutils">
+<dt>data <span class="classifier-delimiter">:</span> <span class="classifier">namedtuple</span></dt>
+<dd>Cloudy spectral data for clusters to be written; a namedtuple
+containing the fields id, time, cloudy_wl, cloudy_inc, cloudy_trans,
+cloudy_emit, and cloudy_trans_emit</dd>
+<dt>model_name <span class="classifier-delimiter">:</span> <span class="classifier">string</span></dt>
+<dd>Base file name to give the model to be written. Can include a
+directory specification if desired.</dd>
+<dt>fmt <span class="classifier-delimiter">:</span> <span class="classifier">string</span></dt>
+<dd>Format for the output file. Allowed values are ‘ascii’, ‘bin’
+or ‘binary, and ‘fits’.</dd>
+</dl>
+</dd>
+<dt>Returns</dt>
+<dd>Nothing</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="slugpy.cloudy.write_integrated_cloudyparams">
+<code class="descclassname">slugpy.cloudy.</code><code class="descname">write_integrated_cloudyparams</code><span class="sig-paren">(</span><em>data</em>, <em>model_name</em>, <em>fmt</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/slugpy/cloudy/write_integrated_cloudyparams.html#write_integrated_cloudyparams"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#slugpy.cloudy.write_integrated_cloudyparams" title="Permalink to this definition">¶</a></dt>
+<dd><p>Write out photometry for nebular emission computed by cloudy on a
+slug spectrum for a series of clusters</p>
+<dl class="docutils">
+<dt>Parameters</dt>
+<dd><dl class="first last docutils">
+<dt>data <span class="classifier-delimiter">:</span> <span class="classifier">namedtuple</span></dt>
+<dd>Cluster cloudy parameter data; a namedtuple containing the
+fields time, cloudy_hden, cloudy_r0, cloudy_r1, 
+cloudy_QH0, cloudy_covFac, cloudy_U, cloudy_U0, cloudy_Omega, and
+cloudy_zeta; may also optionally contain the fields
+cloudy_r1_out, cloudy_hden_out, cloudy_Omega_out, and
+cloudy_zeta_out</dd>
+<dt>model_name <span class="classifier-delimiter">:</span> <span class="classifier">string</span></dt>
+<dd>Base file name to give the model to be written. Can include a
+directory specification if desired.</dd>
+<dt>fmt <span class="classifier-delimiter">:</span> <span class="classifier">string</span></dt>
+<dd>Format for the output file. Allowed values are ‘ascii’, ‘bin’
+or ‘binary, and ‘fits’.</dd>
+</dl>
+</dd>
+<dt>Returns</dt>
+<dd>Nothing</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="slugpy.cloudy.write_integrated_cloudylines">
+<code class="descclassname">slugpy.cloudy.</code><code class="descname">write_integrated_cloudylines</code><span class="sig-paren">(</span><em>data</em>, <em>model_name</em>, <em>fmt</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/slugpy/cloudy/write_integrated_cloudylines.html#write_integrated_cloudylines"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#slugpy.cloudy.write_integrated_cloudylines" title="Permalink to this definition">¶</a></dt>
+<dd><p>Write out line luminosities computed by cloudy on a slug spectrum</p>
+<dl class="docutils">
+<dt>Parameters</dt>
+<dd><dl class="first last docutils">
+<dt>data <span class="classifier-delimiter">:</span> <span class="classifier">namedtuple</span></dt>
+<dd>Integrated cloudy line data to be written; a namedtuple
+containing the fields time, cloudy_linelist, cloudy_linewl, 
+cloudy_linelum</dd>
+<dt>model_name <span class="classifier-delimiter">:</span> <span class="classifier">string</span></dt>
+<dd>Base file name to give the model to be written. Can include a
+directory specification if desired.</dd>
+<dt>fmt <span class="classifier-delimiter">:</span> <span class="classifier">string</span></dt>
+<dd>Format for the output file. Allowed values are ‘ascii’, ‘bin’
+or ‘binary, and ‘fits’.</dd>
+</dl>
+</dd>
+<dt>Returns</dt>
+<dd>Nothing</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="slugpy.cloudy.write_integrated_cloudyphot">
+<code class="descclassname">slugpy.cloudy.</code><code class="descname">write_integrated_cloudyphot</code><span class="sig-paren">(</span><em>data</em>, <em>model_name</em>, <em>fmt</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/slugpy/cloudy/write_integrated_cloudyphot.html#write_integrated_cloudyphot"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#slugpy.cloudy.write_integrated_cloudyphot" title="Permalink to this definition">¶</a></dt>
+<dd><p>Write out photometry for nebular emission computed by cloudy on a
+slug spectrum</p>
+<dl class="docutils">
+<dt>Parameters</dt>
+<dd><dl class="first last docutils">
+<dt>data <span class="classifier-delimiter">:</span> <span class="classifier">namedtuple</span></dt>
+<dd>Integrated cloudy photometry data to be written; a namedtuple
+containing the fields time, cloudy_filter_names, 
+cloudy_filter_units, cloudy_phot_trans, cloudy_phot_emit,
+and cloudy_phot_trans_emit</dd>
+<dt>model_name <span class="classifier-delimiter">:</span> <span class="classifier">string</span></dt>
+<dd>Base file name to give the model to be written. Can include a
+directory specification if desired.</dd>
+<dt>fmt <span class="classifier-delimiter">:</span> <span class="classifier">string</span></dt>
+<dd>Format for the output file. Allowed values are ‘ascii’, ‘bin’
+or ‘binary, and ‘fits’.</dd>
+</dl>
+</dd>
+<dt>Returns</dt>
+<dd>Nothing</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="slugpy.cloudy.write_integrated_cloudyspec">
+<code class="descclassname">slugpy.cloudy.</code><code class="descname">write_integrated_cloudyspec</code><span class="sig-paren">(</span><em>data</em>, <em>model_name</em>, <em>fmt</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/slugpy/cloudy/write_integrated_cloudyspec.html#write_integrated_cloudyspec"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#slugpy.cloudy.write_integrated_cloudyspec" title="Permalink to this definition">¶</a></dt>
+<dd><p>Write out data computed by cloudy on a slug spectrum</p>
+<dl class="docutils">
+<dt>Parameters</dt>
+<dd><dl class="first last docutils">
+<dt>data <span class="classifier-delimiter">:</span> <span class="classifier">namedtuple</span></dt>
+<dd>Integrated cloudy spectral data to be written; a namedtuple
+containing the field time, cloudy_wl, cloudy_inc, cloudy_trans,
+cloudy_emit, and cloudy_trans_emit</dd>
+<dt>model_name <span class="classifier-delimiter">:</span> <span class="classifier">string</span></dt>
+<dd>Base file name to give the model to be written. Can include a
+directory specification if desired.</dd>
+<dt>fmt <span class="classifier-delimiter">:</span> <span class="classifier">string</span></dt>
+<dd>Format for the output file. Allowed values are ‘ascii’, ‘bin’
+or ‘binary, and ‘fits’.</dd>
+</dl>
+</dd>
+<dt>Returns</dt>
+<dd>Nothing</dd>
+</dl>
+</dd></dl>
+
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">cloudy_slug: An Automated Interface to cloudy</a><ul>
+<li><a class="reference internal" href="#cloudy-slug-basics">cloudy_slug Basics</a></li>
+<li><a class="reference internal" href="#the-cloudy-slug-physical-model">The cloudy_slug Physical Model</a><ul>
+<li><a class="reference internal" href="#integrated-versus-cluster-spectra">Integrated versus Cluster Spectra</a></li>
+<li><a class="reference internal" href="#nebular-properties">Nebular Properties</a></li>
+<li><a class="reference internal" href="#dynamical-mode">Dynamical Mode</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#the-cloudy-slug-input-template">The cloudy_slug Input Template</a></li>
+<li><a class="reference internal" href="#the-cloudy-slug-interface-script">The cloudy_slug Interface Script</a></li>
+<li><a class="reference internal" href="#full-description-of-cloudy-slug-output">Full Description of cloudy_slug Output</a><ul>
+<li><a class="reference internal" href="#the-integrated-cloudyparams-file">The <code class="docutils literal"><span class="pre">integrated_cloudyparams</span></code> File</a></li>
+<li><a class="reference internal" href="#the-integrated-cloudylines-file">The <code class="docutils literal"><span class="pre">integrated_cloudylines</span></code> File</a></li>
+<li><a class="reference internal" href="#the-integrated-cloudyspec-file">The <code class="docutils literal"><span class="pre">integrated_cloudyspec</span></code> File</a></li>
+<li><a class="reference internal" href="#the-integrated-cloudyphot-file">The <code class="docutils literal"><span class="pre">integrated_cloudyphot</span></code> File</a></li>
+<li><a class="reference internal" href="#the-cluster-cloudyparams-file">The <code class="docutils literal"><span class="pre">cluster_cloudyparams</span></code> File</a></li>
+<li><a class="reference internal" href="#the-cluster-cloudylines-file">The <code class="docutils literal"><span class="pre">cluster_cloudylines</span></code> File</a></li>
+<li><a class="reference internal" href="#the-cluster-cloudyspec-file">The <code class="docutils literal"><span class="pre">cluster_cloudyspec</span></code> File</a></li>
+<li><a class="reference internal" href="#the-cluster-cloudyphot-file">The <code class="docutils literal"><span class="pre">cluster_cloudyphot</span></code> File</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#module-slugpy.cloudy">Full Documentation of slugpy.cloudy</a></li>
+</ul>
+</li>
+</ul>
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="slugpy.html" title="previous chapter">slugpy – The Python Helper Library</a></li>
+      <li>Next: <a href="bayesphot.html" title="next chapter">bayesphot: Bayesian Inference for Stochastic Stellar Populations</a></li>
+  </ul></li>
+</ul>
+</div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/cloudy.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2014, Mark Krumholz, Michele Fumagalli, et al..
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.6.3</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.6</a>
+      
+      |
+      <a href="_sources/cloudy.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

@@ -1,0 +1,157 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Running a SLUG simulation &#8212; slug 2.0 documentation</title>
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '2.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Parameter Specification" href="parameters.html" />
+    <link rel="prev" title="Compiling and Installing SLUG" href="compiling.html" />
+   
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9">
+
+  </head>
+  <body>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="running-a-slug-simulation">
+<h1>Running a SLUG simulation<a class="headerlink" href="#running-a-slug-simulation" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="basic-serial-runs">
+<h2>Basic Serial Runs<a class="headerlink" href="#basic-serial-runs" title="Permalink to this headline">¶</a></h2>
+<p>Once SLUG is compiled, running a simulation is extremely simple. The first step, which is not required but makes life a lot simpler, is to set the environment variable <code class="docutils literal"><span class="pre">SLUG_DIR</span></code> to the directory where you have installed SLUG. If you are using a <code class="docutils literal"><span class="pre">bash</span></code>-like shell, the syntax for this is:</p>
+<div class="highlight-rest"><div class="highlight"><pre><span></span>export SLUG_DIR = /path/to/slug
+</pre></div>
+</div>
+<p>while for a <code class="docutils literal"><span class="pre">csh</span></code>-like shell, it is:</p>
+<div class="highlight-rest"><div class="highlight"><pre><span></span>setenv SLUG_DIR /path/to/slug
+</pre></div>
+</div>
+<p>This is helpful because SLUG needs a lot of input data, and if you don’t set this variable, you will have to manually specify where to find it.</p>
+<p>Next, to run on a single processor, just do:</p>
+<div class="highlight-rest"><div class="highlight"><pre><span></span>./bin/slug param/filename.param
+</pre></div>
+</div>
+<p>where <code class="docutils literal"><span class="pre">filename.param</span></code> is the name of a parameter file, formatted as specified in <a class="reference internal" href="parameters.html#sec-parameters"><span class="std std-ref">Parameter Specification</span></a>. The code will write a series of output files as described in <a class="reference internal" href="output.html#sec-output"><span class="std std-ref">Output Files and Format</span></a>.</p>
+</div>
+<div class="section" id="thread-based-parallelism">
+<h2>Thread-Based Parallelism<a class="headerlink" href="#thread-based-parallelism" title="Permalink to this headline">¶</a></h2>
+<p>If you have more than one core at your disposal, you can also run SLUG in parallel using threads, via the command line:</p>
+<div class="highlight-rest"><div class="highlight"><pre><span></span>python ./bin/slug.py param/filename.param
+</pre></div>
+</div>
+<p>This called a python script that automatically divides up the Monte Carlo trials you have requested between the available processors, then consolidates the output so that it looks the same as if you had run a single-processor job. The python script allows fairly fine-grained control of the parallelism. It accepts the following command line arguments (not an exhaustive list – do <code class="docutils literal"><span class="pre">python</span> <span class="pre">./bin/slug.py</span> <span class="pre">--help</span></code> for the full list):</p>
+<ul class="simple">
+<li><code class="docutils literal"><span class="pre">-n</span> <span class="pre">NPROC,</span> <span class="pre">--nproc</span> <span class="pre">NPROC</span></code>: this parameter specifies the number of simultaneous SLUG processes to run. It defaults to the number of cores present on the machine where the code is running.</li>
+<li><code class="docutils literal"><span class="pre">-b</span> <span class="pre">BATCHSIZE,</span> <span class="pre">--batchsize</span> <span class="pre">BATCHSIZE</span></code>: this specifies how to many trials to do per SLUG process. It defaults to the total number of trials requested divided by the total number of processes, rounded up, so that only one SLUG process is run per processor. <em>Rationale</em>: The default behavior is optimal from the standpoint of minimizing the overhead associated with reading data from disk, etc. However, if you are doing a very large number of runs that are going to require hours, days, or weeks to complete, and you probably want the code to checkpoint along the way. In that case it is probably wise to set this to a value smaller than the default in order to force output to be dumped periodically.</li>
+<li><code class="docutils literal"><span class="pre">-nc,</span> <span class="pre">--noconsolidate</span></code>: by default the <code class="docutils literal"><span class="pre">slug.py</span></code> script will take all the outputs produced by the parallel runs and consolidate them into single output files, matching what would have been produced had the code been run in serial mode. If set, this flag suppresses that behavior, and instead leaves the output as a series of files whose root names match the model name given in the parameter file, plus the extension <code class="docutils literal"><span class="pre">_pPPPPP_nNNNNN</span></code>, where the digits <code class="docutils literal"><span class="pre">PPPPP</span></code> give the number of the processor that produces that file, and the digits <code class="docutils literal"><span class="pre">NNNNN</span></code> give the run number on that processor. <em>Rationale</em>: normally consolidation is convenient. However, if the output is very large, this may produce undesirably bulky files. Furthermore, if one is doing a very large number of simulations over an extended period, and the <code class="docutils literal"><span class="pre">slug.py</span></code> script is going to be run multiple times (e.g., due to wall clock limits on a cluster), it may be preferable to leave the files unconsolidated until all runs have been completed.</li>
+</ul>
+</div>
+<div class="section" id="mpi-based-parallelism">
+<h2>MPI-Based Parallelism<a class="headerlink" href="#mpi-based-parallelism" title="Permalink to this headline">¶</a></h2>
+<p>SLUG can also run in parallel on distributed-memory architectures using MPI. To use MPI, you must first compile the code with MPI support – see <a class="reference internal" href="compiling.html#ssec-compiling"><span class="std std-ref">Compiling</span></a>. Then to start an MPI-parallel computation, do:</p>
+<div class="highlight-rest"><div class="highlight"><pre><span></span>mpirun -np N bin/slug param/filename.param
+</pre></div>
+</div>
+<p>where <cite>N</cite> is the number of parallel processes to run. In this mode each MPI process will write its own output files, which will be named as <cite>MODELNAME_XXXX_FILETYPE.EXT</cite> where <cite>MODELNAME</cite> is the model name specified in the parameter file (see <a class="reference internal" href="parameters.html#sec-parameters"><span class="std std-ref">Parameter Specification</span></a>), <cite>XXXX</cite> is the process number of the process that wrote the file, <cite>FILETYPE</cite> is the type of output file (see <a class="reference internal" href="output.html#sec-output"><span class="std std-ref">Output Files and Format</span></a>), and <cite>EXT</cite> is the extension specifying the file format (see <a class="reference internal" href="output.html#sec-output"><span class="std std-ref">Output Files and Format</span></a>).</p>
+<p>If it is desirable to do so, the output files produced by an MPI run can be combined into a single output file using the <code class="docutils literal"><span class="pre">consolidate.py</span></code> script in the <code class="docutils literal"><span class="pre">tools</span></code> subdirectory.</p>
+<p>Note that full parallel computation is only available under MPI implementations that support the MPI 3.0 standard or later. Earlier versions of MPI allow MPI functionality for SLUG in library mode (see <a class="reference internal" href="library.html#sec-library-mode"><span class="std std-ref">Using SLUG as a Library</span></a>), but do not allow MPI parallel runs of the slug executable.</p>
+</div>
+<div class="section" id="checkpointing-and-restarting">
+<h2>Checkpointing and Restarting<a class="headerlink" href="#checkpointing-and-restarting" title="Permalink to this headline">¶</a></h2>
+<p>When running a large number of trials, it is often desirable to checkpoint the calculation, i.e., to write intermediate outputs rather than waiting until the entire calculation is done to write. SLUG can checkpoint after a specified number of trials; this number is controlled by the <cite>checkpoint_interval</cite> parameter (see <a class="reference internal" href="parameters.html#sec-parameters"><span class="std std-ref">Parameter Specification</span></a>). Checkpoint files are are named as <cite>MODELNAME_chkYYYY_FILETYPE.EXT</cite> (or <cite>MODELNAME_XXXX_chkYYYY_FILETYPE.EXT</cite> for MPI runs) where <cite>YYYY</cite> is the number of the checkpoint, starting at 0. Checkpoints are valid output files with some added information – see <a class="reference internal" href="output.html#ssec-checkpoint-files"><span class="std std-ref">Checkpoint Files</span></a> for details.</p>
+<p>To restart a run from checkpoints, just give the command line option <cite>–restart</cite>, for example:</p>
+<div class="highlight-rest"><div class="highlight"><pre><span></span>mpirun -np N bin/slug param/filename.param --restart
+</pre></div>
+</div>
+<p>SLUG will automatically search for checkpoint files (using the file names specified in <cite>filename.param</cite>), determine how many trials they contain, and resume the run to complete any remaining trials neede to reach the target number specified in the parameter file.</p>
+<p>As with MPI runs, the output checkpoint files run can be combined into a single output file using the <code class="docutils literal"><span class="pre">consolidate.py</span></code> script in the <code class="docutils literal"><span class="pre">tools</span></code> subdirectory.</p>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Running a SLUG simulation</a><ul>
+<li><a class="reference internal" href="#basic-serial-runs">Basic Serial Runs</a></li>
+<li><a class="reference internal" href="#thread-based-parallelism">Thread-Based Parallelism</a></li>
+<li><a class="reference internal" href="#mpi-based-parallelism">MPI-Based Parallelism</a></li>
+<li><a class="reference internal" href="#checkpointing-and-restarting">Checkpointing and Restarting</a></li>
+</ul>
+</li>
+</ul>
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="compiling.html" title="previous chapter">Compiling and Installing SLUG</a></li>
+      <li>Next: <a href="parameters.html" title="next chapter">Parameter Specification</a></li>
+  </ul></li>
+</ul>
+</div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/running.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2014, Mark Krumholz, Michele Fumagalli, et al..
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.6.3</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.6</a>
+      
+      |
+      <a href="_sources/running.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>
