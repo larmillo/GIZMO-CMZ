@@ -1,0 +1,34 @@
+# Machine-specific settings for Darwin/OSX
+
+# Default is clang c++ and c compilers
+MACH_CXX          = c++
+MACH_CC		  = cc
+
+# For MPI compilation, use mpiCC
+MACH_MPICXX	  = mpiCC
+MACH_MPICC 	  = mpicc
+
+# Flag needed to specify c++11 standard
+MACH_C11FLAG      = -std=c++11
+
+# Flag needed to link off the correct std c++ library
+MACH_CXXLIB       = -lc++
+
+# Optimization flags for clang
+MACH_CXXOPTFLAGS  = -O2 -Wall #-O3 -ffast-math -Wall
+MACH_COPTFLAGS	  = $(MACH_CXXOPTFLAGS)
+MACH_LDOPTFLAGS   = -O2 -Wall #-O4 -Wall
+
+# Debug flags for clang
+MACH_CXXDEBFLAGS  = -g -Wall
+MACH_CDEBFLAGS	  = $(MACH_CXXDEBFLAGS)
+MACH_LDDEBFLAGS   = -g -Wall
+
+# Flags to compile as a shared or static libary
+LIB_EXTENSION	   = .dylib
+LIBSTAT_EXTENSION  = .a
+CLIBFLAGS	   = 
+DYNLIBFLAG	   = -dynamiclib
+
+# The macports version of boost includes the -mt tag
+MACH_BOOST_TAG 	  = -mt

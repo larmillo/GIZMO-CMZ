@@ -1,1 +1,8 @@
-make[1]: *** No rule to make target `DEPEND'.  Stop.
+
+   MACHINE: Use apt-get to install csh libhdf5-serial-dev gfortran
+   MACHINE-NAME: marconi
+
+   CONFIG_PRECISION  [precision-{32,64}]                     : 64
+   CONFIG_OPT  [opt-{warn,debug,high,aggressive}]            : high
+   CONFIG_OMP  [omp-{on,off}]                                : off
+

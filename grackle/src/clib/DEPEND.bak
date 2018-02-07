@@ -1,733 +1,362 @@
 # DO NOT DELETE
 
-calculate_cooling_time.o: /usr/include/stdlib.h /usr/include/Availability.h
-calculate_cooling_time.o: /usr/include/AvailabilityInternal.h
-calculate_cooling_time.o: /usr/include/_types.h /usr/include/sys/_types.h
-calculate_cooling_time.o: /usr/include/sys/cdefs.h
-calculate_cooling_time.o: /usr/include/sys/_symbol_aliasing.h
-calculate_cooling_time.o: /usr/include/sys/_posix_availability.h
-calculate_cooling_time.o: /usr/include/machine/_types.h
-calculate_cooling_time.o: /usr/include/i386/_types.h
-calculate_cooling_time.o: /usr/include/sys/_pthread/_pthread_types.h
-calculate_cooling_time.o: /usr/include/sys/wait.h
-calculate_cooling_time.o: /usr/include/sys/_types/_pid_t.h
-calculate_cooling_time.o: /usr/include/sys/_types/_id_t.h
-calculate_cooling_time.o: /usr/include/sys/signal.h
-calculate_cooling_time.o: /usr/include/sys/appleapiopts.h
-calculate_cooling_time.o: /usr/include/machine/signal.h
-calculate_cooling_time.o: /usr/include/i386/signal.h
-calculate_cooling_time.o: /usr/include/machine/_mcontext.h
-calculate_cooling_time.o: /usr/include/i386/_mcontext.h
-calculate_cooling_time.o: /usr/include/mach/i386/_structs.h
-calculate_cooling_time.o: /usr/include/sys/_pthread/_pthread_attr_t.h
-calculate_cooling_time.o: /usr/include/sys/_types/_sigaltstack.h
-calculate_cooling_time.o: /usr/include/sys/_types/_ucontext.h
-calculate_cooling_time.o: /usr/include/sys/_types/_sigset_t.h
-calculate_cooling_time.o: /usr/include/sys/_types/_size_t.h
-calculate_cooling_time.o: /usr/include/sys/_types/_uid_t.h
-calculate_cooling_time.o: /usr/include/sys/resource.h /usr/include/stdint.h
-calculate_cooling_time.o: /usr/include/sys/_types/_int8_t.h
-calculate_cooling_time.o: /usr/include/sys/_types/_int16_t.h
-calculate_cooling_time.o: /usr/include/sys/_types/_int32_t.h
-calculate_cooling_time.o: /usr/include/sys/_types/_int64_t.h
-calculate_cooling_time.o: /usr/include/_types/_uint8_t.h
-calculate_cooling_time.o: /usr/include/_types/_uint16_t.h
-calculate_cooling_time.o: /usr/include/_types/_uint32_t.h
-calculate_cooling_time.o: /usr/include/_types/_uint64_t.h
-calculate_cooling_time.o: /usr/include/sys/_types/_intptr_t.h
-calculate_cooling_time.o: /usr/include/sys/_types/_uintptr_t.h
-calculate_cooling_time.o: /usr/include/_types/_intmax_t.h
-calculate_cooling_time.o: /usr/include/_types/_uintmax_t.h
-calculate_cooling_time.o: /usr/include/sys/_types/_timeval.h
-calculate_cooling_time.o: /usr/include/machine/endian.h
-calculate_cooling_time.o: /usr/include/i386/endian.h
-calculate_cooling_time.o: /usr/include/sys/_endian.h
-calculate_cooling_time.o: /usr/include/libkern/_OSByteOrder.h
-calculate_cooling_time.o: /usr/include/libkern/i386/_OSByteOrder.h
+calculate_cooling_time.o: /usr/include/stdlib.h /usr/include/features.h
+calculate_cooling_time.o: /usr/include/stdc-predef.h /usr/include/sys/cdefs.h
+calculate_cooling_time.o: /usr/include/bits/wordsize.h
+calculate_cooling_time.o: /usr/include/gnu/stubs.h
+calculate_cooling_time.o: /usr/include/bits/waitflags.h
+calculate_cooling_time.o: /usr/include/bits/waitstatus.h
+calculate_cooling_time.o: /usr/include/endian.h /usr/include/bits/endian.h
+calculate_cooling_time.o: /usr/include/bits/byteswap.h
+calculate_cooling_time.o: /usr/include/bits/types.h
+calculate_cooling_time.o: /usr/include/bits/typesizes.h
+calculate_cooling_time.o: /usr/include/bits/byteswap-16.h
+calculate_cooling_time.o: /usr/include/sys/types.h /usr/include/time.h
+calculate_cooling_time.o: /usr/include/sys/select.h
+calculate_cooling_time.o: /usr/include/bits/select.h
+calculate_cooling_time.o: /usr/include/bits/sigset.h /usr/include/bits/time.h
+calculate_cooling_time.o: /usr/include/sys/sysmacros.h
+calculate_cooling_time.o: /usr/include/bits/pthreadtypes.h
 calculate_cooling_time.o: /usr/include/alloca.h
-calculate_cooling_time.o: /usr/include/sys/_types/_ct_rune_t.h
-calculate_cooling_time.o: /usr/include/sys/_types/_rune_t.h
-calculate_cooling_time.o: /usr/include/sys/_types/_wchar_t.h
-calculate_cooling_time.o: /usr/include/sys/_types/_null.h
-calculate_cooling_time.o: /usr/include/machine/types.h
-calculate_cooling_time.o: /usr/include/i386/types.h
-calculate_cooling_time.o: /usr/include/sys/_types/_u_int8_t.h
-calculate_cooling_time.o: /usr/include/sys/_types/_u_int16_t.h
-calculate_cooling_time.o: /usr/include/sys/_types/_u_int32_t.h
-calculate_cooling_time.o: /usr/include/sys/_types/_u_int64_t.h
-calculate_cooling_time.o: /usr/include/sys/_types/_dev_t.h
-calculate_cooling_time.o: /usr/include/sys/_types/_mode_t.h
-calculate_cooling_time.o: /usr/include/stdio.h
-calculate_cooling_time.o: /usr/include/sys/_types/_va_list.h
-calculate_cooling_time.o: /usr/include/sys/stdio.h
-calculate_cooling_time.o: /usr/include/sys/_types/_off_t.h
-calculate_cooling_time.o: /usr/include/sys/_types/_ssize_t.h
-calculate_cooling_time.o: /usr/include/secure/_stdio.h
-calculate_cooling_time.o: /usr/include/secure/_common.h /usr/include/math.h
-calculate_cooling_time.o: grackle_macros.h grackle_types.h
-calculate_cooling_time.o: grackle_chemistry_data.h phys_constants.h
-calculate_gamma.o: /usr/include/stdlib.h /usr/include/Availability.h
-calculate_gamma.o: /usr/include/AvailabilityInternal.h /usr/include/_types.h
-calculate_gamma.o: /usr/include/sys/_types.h /usr/include/sys/cdefs.h
-calculate_gamma.o: /usr/include/sys/_symbol_aliasing.h
-calculate_gamma.o: /usr/include/sys/_posix_availability.h
-calculate_gamma.o: /usr/include/machine/_types.h /usr/include/i386/_types.h
-calculate_gamma.o: /usr/include/sys/_pthread/_pthread_types.h
-calculate_gamma.o: /usr/include/sys/wait.h /usr/include/sys/_types/_pid_t.h
-calculate_gamma.o: /usr/include/sys/_types/_id_t.h /usr/include/sys/signal.h
-calculate_gamma.o: /usr/include/sys/appleapiopts.h
-calculate_gamma.o: /usr/include/machine/signal.h /usr/include/i386/signal.h
-calculate_gamma.o: /usr/include/machine/_mcontext.h
-calculate_gamma.o: /usr/include/i386/_mcontext.h
-calculate_gamma.o: /usr/include/mach/i386/_structs.h
-calculate_gamma.o: /usr/include/sys/_pthread/_pthread_attr_t.h
-calculate_gamma.o: /usr/include/sys/_types/_sigaltstack.h
-calculate_gamma.o: /usr/include/sys/_types/_ucontext.h
-calculate_gamma.o: /usr/include/sys/_types/_sigset_t.h
-calculate_gamma.o: /usr/include/sys/_types/_size_t.h
-calculate_gamma.o: /usr/include/sys/_types/_uid_t.h
-calculate_gamma.o: /usr/include/sys/resource.h /usr/include/stdint.h
-calculate_gamma.o: /usr/include/sys/_types/_int8_t.h
-calculate_gamma.o: /usr/include/sys/_types/_int16_t.h
-calculate_gamma.o: /usr/include/sys/_types/_int32_t.h
-calculate_gamma.o: /usr/include/sys/_types/_int64_t.h
-calculate_gamma.o: /usr/include/_types/_uint8_t.h
-calculate_gamma.o: /usr/include/_types/_uint16_t.h
-calculate_gamma.o: /usr/include/_types/_uint32_t.h
-calculate_gamma.o: /usr/include/_types/_uint64_t.h
-calculate_gamma.o: /usr/include/sys/_types/_intptr_t.h
-calculate_gamma.o: /usr/include/sys/_types/_uintptr_t.h
-calculate_gamma.o: /usr/include/_types/_intmax_t.h
-calculate_gamma.o: /usr/include/_types/_uintmax_t.h
-calculate_gamma.o: /usr/include/sys/_types/_timeval.h
-calculate_gamma.o: /usr/include/machine/endian.h /usr/include/i386/endian.h
-calculate_gamma.o: /usr/include/sys/_endian.h
-calculate_gamma.o: /usr/include/libkern/_OSByteOrder.h
-calculate_gamma.o: /usr/include/libkern/i386/_OSByteOrder.h
-calculate_gamma.o: /usr/include/alloca.h /usr/include/sys/_types/_ct_rune_t.h
-calculate_gamma.o: /usr/include/sys/_types/_rune_t.h
-calculate_gamma.o: /usr/include/sys/_types/_wchar_t.h
-calculate_gamma.o: /usr/include/sys/_types/_null.h
-calculate_gamma.o: /usr/include/machine/types.h /usr/include/i386/types.h
-calculate_gamma.o: /usr/include/sys/_types/_u_int8_t.h
-calculate_gamma.o: /usr/include/sys/_types/_u_int16_t.h
-calculate_gamma.o: /usr/include/sys/_types/_u_int32_t.h
-calculate_gamma.o: /usr/include/sys/_types/_u_int64_t.h
-calculate_gamma.o: /usr/include/sys/_types/_dev_t.h
-calculate_gamma.o: /usr/include/sys/_types/_mode_t.h /usr/include/stdio.h
-calculate_gamma.o: /usr/include/sys/_types/_va_list.h
-calculate_gamma.o: /usr/include/sys/stdio.h /usr/include/sys/_types/_off_t.h
-calculate_gamma.o: /usr/include/sys/_types/_ssize_t.h
-calculate_gamma.o: /usr/include/secure/_stdio.h /usr/include/secure/_common.h
-calculate_gamma.o: /usr/include/math.h grackle_macros.h grackle_types.h
-calculate_gamma.o: grackle_chemistry_data.h phys_constants.h
-calculate_pressure.o: /usr/include/stdlib.h /usr/include/Availability.h
-calculate_pressure.o: /usr/include/AvailabilityInternal.h
-calculate_pressure.o: /usr/include/_types.h /usr/include/sys/_types.h
-calculate_pressure.o: /usr/include/sys/cdefs.h
-calculate_pressure.o: /usr/include/sys/_symbol_aliasing.h
-calculate_pressure.o: /usr/include/sys/_posix_availability.h
-calculate_pressure.o: /usr/include/machine/_types.h
-calculate_pressure.o: /usr/include/i386/_types.h
-calculate_pressure.o: /usr/include/sys/_pthread/_pthread_types.h
-calculate_pressure.o: /usr/include/sys/wait.h
-calculate_pressure.o: /usr/include/sys/_types/_pid_t.h
-calculate_pressure.o: /usr/include/sys/_types/_id_t.h
-calculate_pressure.o: /usr/include/sys/signal.h
-calculate_pressure.o: /usr/include/sys/appleapiopts.h
-calculate_pressure.o: /usr/include/machine/signal.h
-calculate_pressure.o: /usr/include/i386/signal.h
-calculate_pressure.o: /usr/include/machine/_mcontext.h
-calculate_pressure.o: /usr/include/i386/_mcontext.h
-calculate_pressure.o: /usr/include/mach/i386/_structs.h
-calculate_pressure.o: /usr/include/sys/_pthread/_pthread_attr_t.h
-calculate_pressure.o: /usr/include/sys/_types/_sigaltstack.h
-calculate_pressure.o: /usr/include/sys/_types/_ucontext.h
-calculate_pressure.o: /usr/include/sys/_types/_sigset_t.h
-calculate_pressure.o: /usr/include/sys/_types/_size_t.h
-calculate_pressure.o: /usr/include/sys/_types/_uid_t.h
-calculate_pressure.o: /usr/include/sys/resource.h /usr/include/stdint.h
-calculate_pressure.o: /usr/include/sys/_types/_int8_t.h
-calculate_pressure.o: /usr/include/sys/_types/_int16_t.h
-calculate_pressure.o: /usr/include/sys/_types/_int32_t.h
-calculate_pressure.o: /usr/include/sys/_types/_int64_t.h
-calculate_pressure.o: /usr/include/_types/_uint8_t.h
-calculate_pressure.o: /usr/include/_types/_uint16_t.h
-calculate_pressure.o: /usr/include/_types/_uint32_t.h
-calculate_pressure.o: /usr/include/_types/_uint64_t.h
-calculate_pressure.o: /usr/include/sys/_types/_intptr_t.h
-calculate_pressure.o: /usr/include/sys/_types/_uintptr_t.h
-calculate_pressure.o: /usr/include/_types/_intmax_t.h
-calculate_pressure.o: /usr/include/_types/_uintmax_t.h
-calculate_pressure.o: /usr/include/sys/_types/_timeval.h
-calculate_pressure.o: /usr/include/machine/endian.h
-calculate_pressure.o: /usr/include/i386/endian.h /usr/include/sys/_endian.h
-calculate_pressure.o: /usr/include/libkern/_OSByteOrder.h
-calculate_pressure.o: /usr/include/libkern/i386/_OSByteOrder.h
-calculate_pressure.o: /usr/include/alloca.h
-calculate_pressure.o: /usr/include/sys/_types/_ct_rune_t.h
-calculate_pressure.o: /usr/include/sys/_types/_rune_t.h
-calculate_pressure.o: /usr/include/sys/_types/_wchar_t.h
-calculate_pressure.o: /usr/include/sys/_types/_null.h
-calculate_pressure.o: /usr/include/machine/types.h /usr/include/i386/types.h
-calculate_pressure.o: /usr/include/sys/_types/_u_int8_t.h
-calculate_pressure.o: /usr/include/sys/_types/_u_int16_t.h
-calculate_pressure.o: /usr/include/sys/_types/_u_int32_t.h
-calculate_pressure.o: /usr/include/sys/_types/_u_int64_t.h
-calculate_pressure.o: /usr/include/sys/_types/_dev_t.h
-calculate_pressure.o: /usr/include/sys/_types/_mode_t.h /usr/include/stdio.h
-calculate_pressure.o: /usr/include/sys/_types/_va_list.h
-calculate_pressure.o: /usr/include/sys/stdio.h
-calculate_pressure.o: /usr/include/sys/_types/_off_t.h
-calculate_pressure.o: /usr/include/sys/_types/_ssize_t.h
-calculate_pressure.o: /usr/include/secure/_stdio.h
-calculate_pressure.o: /usr/include/secure/_common.h /usr/include/math.h
-calculate_pressure.o: grackle_macros.h grackle_types.h
-calculate_pressure.o: grackle_chemistry_data.h phys_constants.h
-calculate_temperature.o: /usr/include/stdlib.h /usr/include/Availability.h
-calculate_temperature.o: /usr/include/AvailabilityInternal.h
-calculate_temperature.o: /usr/include/_types.h /usr/include/sys/_types.h
-calculate_temperature.o: /usr/include/sys/cdefs.h
-calculate_temperature.o: /usr/include/sys/_symbol_aliasing.h
-calculate_temperature.o: /usr/include/sys/_posix_availability.h
-calculate_temperature.o: /usr/include/machine/_types.h
-calculate_temperature.o: /usr/include/i386/_types.h
-calculate_temperature.o: /usr/include/sys/_pthread/_pthread_types.h
-calculate_temperature.o: /usr/include/sys/wait.h
-calculate_temperature.o: /usr/include/sys/_types/_pid_t.h
-calculate_temperature.o: /usr/include/sys/_types/_id_t.h
-calculate_temperature.o: /usr/include/sys/signal.h
-calculate_temperature.o: /usr/include/sys/appleapiopts.h
-calculate_temperature.o: /usr/include/machine/signal.h
-calculate_temperature.o: /usr/include/i386/signal.h
-calculate_temperature.o: /usr/include/machine/_mcontext.h
-calculate_temperature.o: /usr/include/i386/_mcontext.h
-calculate_temperature.o: /usr/include/mach/i386/_structs.h
-calculate_temperature.o: /usr/include/sys/_pthread/_pthread_attr_t.h
-calculate_temperature.o: /usr/include/sys/_types/_sigaltstack.h
-calculate_temperature.o: /usr/include/sys/_types/_ucontext.h
-calculate_temperature.o: /usr/include/sys/_types/_sigset_t.h
-calculate_temperature.o: /usr/include/sys/_types/_size_t.h
-calculate_temperature.o: /usr/include/sys/_types/_uid_t.h
-calculate_temperature.o: /usr/include/sys/resource.h /usr/include/stdint.h
-calculate_temperature.o: /usr/include/sys/_types/_int8_t.h
-calculate_temperature.o: /usr/include/sys/_types/_int16_t.h
-calculate_temperature.o: /usr/include/sys/_types/_int32_t.h
-calculate_temperature.o: /usr/include/sys/_types/_int64_t.h
-calculate_temperature.o: /usr/include/_types/_uint8_t.h
-calculate_temperature.o: /usr/include/_types/_uint16_t.h
-calculate_temperature.o: /usr/include/_types/_uint32_t.h
-calculate_temperature.o: /usr/include/_types/_uint64_t.h
-calculate_temperature.o: /usr/include/sys/_types/_intptr_t.h
-calculate_temperature.o: /usr/include/sys/_types/_uintptr_t.h
-calculate_temperature.o: /usr/include/_types/_intmax_t.h
-calculate_temperature.o: /usr/include/_types/_uintmax_t.h
-calculate_temperature.o: /usr/include/sys/_types/_timeval.h
-calculate_temperature.o: /usr/include/machine/endian.h
-calculate_temperature.o: /usr/include/i386/endian.h
-calculate_temperature.o: /usr/include/sys/_endian.h
-calculate_temperature.o: /usr/include/libkern/_OSByteOrder.h
-calculate_temperature.o: /usr/include/libkern/i386/_OSByteOrder.h
+calculate_cooling_time.o: /usr/include/bits/stdlib-float.h
+calculate_cooling_time.o: /usr/include/stdio.h /usr/include/libio.h
+calculate_cooling_time.o: /usr/include/_G_config.h /usr/include/wchar.h
+calculate_cooling_time.o: /usr/include/bits/stdio_lim.h
+calculate_cooling_time.o: /usr/include/bits/sys_errlist.h /usr/include/math.h
+calculate_cooling_time.o: /usr/include/bits/huge_val.h
+calculate_cooling_time.o: /usr/include/bits/huge_valf.h
+calculate_cooling_time.o: /usr/include/bits/huge_vall.h
+calculate_cooling_time.o: /usr/include/bits/inf.h /usr/include/bits/nan.h
+calculate_cooling_time.o: /usr/include/bits/mathdef.h
+calculate_cooling_time.o: /usr/include/bits/mathcalls.h grackle_macros.h
+calculate_cooling_time.o: grackle_types.h grackle_chemistry_data.h
+calculate_cooling_time.o: phys_constants.h
+calculate_gamma.o: /usr/include/stdlib.h /usr/include/features.h
+calculate_gamma.o: /usr/include/stdc-predef.h /usr/include/sys/cdefs.h
+calculate_gamma.o: /usr/include/bits/wordsize.h /usr/include/gnu/stubs.h
+calculate_gamma.o: /usr/include/bits/waitflags.h
+calculate_gamma.o: /usr/include/bits/waitstatus.h /usr/include/endian.h
+calculate_gamma.o: /usr/include/bits/endian.h /usr/include/bits/byteswap.h
+calculate_gamma.o: /usr/include/bits/types.h /usr/include/bits/typesizes.h
+calculate_gamma.o: /usr/include/bits/byteswap-16.h /usr/include/sys/types.h
+calculate_gamma.o: /usr/include/time.h /usr/include/sys/select.h
+calculate_gamma.o: /usr/include/bits/select.h /usr/include/bits/sigset.h
+calculate_gamma.o: /usr/include/bits/time.h /usr/include/sys/sysmacros.h
+calculate_gamma.o: /usr/include/bits/pthreadtypes.h /usr/include/alloca.h
+calculate_gamma.o: /usr/include/bits/stdlib-float.h /usr/include/stdio.h
+calculate_gamma.o: /usr/include/libio.h /usr/include/_G_config.h
+calculate_gamma.o: /usr/include/wchar.h /usr/include/bits/stdio_lim.h
+calculate_gamma.o: /usr/include/bits/sys_errlist.h /usr/include/math.h
+calculate_gamma.o: /usr/include/bits/huge_val.h /usr/include/bits/huge_valf.h
+calculate_gamma.o: /usr/include/bits/huge_vall.h /usr/include/bits/inf.h
+calculate_gamma.o: /usr/include/bits/nan.h /usr/include/bits/mathdef.h
+calculate_gamma.o: /usr/include/bits/mathcalls.h grackle_macros.h
+calculate_gamma.o: grackle_types.h grackle_chemistry_data.h phys_constants.h
+calculate_pressure.o: /usr/include/stdlib.h /usr/include/features.h
+calculate_pressure.o: /usr/include/stdc-predef.h /usr/include/sys/cdefs.h
+calculate_pressure.o: /usr/include/bits/wordsize.h /usr/include/gnu/stubs.h
+calculate_pressure.o: /usr/include/bits/waitflags.h
+calculate_pressure.o: /usr/include/bits/waitstatus.h /usr/include/endian.h
+calculate_pressure.o: /usr/include/bits/endian.h /usr/include/bits/byteswap.h
+calculate_pressure.o: /usr/include/bits/types.h /usr/include/bits/typesizes.h
+calculate_pressure.o: /usr/include/bits/byteswap-16.h
+calculate_pressure.o: /usr/include/sys/types.h /usr/include/time.h
+calculate_pressure.o: /usr/include/sys/select.h /usr/include/bits/select.h
+calculate_pressure.o: /usr/include/bits/sigset.h /usr/include/bits/time.h
+calculate_pressure.o: /usr/include/sys/sysmacros.h
+calculate_pressure.o: /usr/include/bits/pthreadtypes.h /usr/include/alloca.h
+calculate_pressure.o: /usr/include/bits/stdlib-float.h /usr/include/stdio.h
+calculate_pressure.o: /usr/include/libio.h /usr/include/_G_config.h
+calculate_pressure.o: /usr/include/wchar.h /usr/include/bits/stdio_lim.h
+calculate_pressure.o: /usr/include/bits/sys_errlist.h /usr/include/math.h
+calculate_pressure.o: /usr/include/bits/huge_val.h
+calculate_pressure.o: /usr/include/bits/huge_valf.h
+calculate_pressure.o: /usr/include/bits/huge_vall.h /usr/include/bits/inf.h
+calculate_pressure.o: /usr/include/bits/nan.h /usr/include/bits/mathdef.h
+calculate_pressure.o: /usr/include/bits/mathcalls.h grackle_macros.h
+calculate_pressure.o: grackle_types.h grackle_chemistry_data.h
+calculate_pressure.o: phys_constants.h
+calculate_temperature.o: /usr/include/stdlib.h /usr/include/features.h
+calculate_temperature.o: /usr/include/stdc-predef.h /usr/include/sys/cdefs.h
+calculate_temperature.o: /usr/include/bits/wordsize.h
+calculate_temperature.o: /usr/include/gnu/stubs.h
+calculate_temperature.o: /usr/include/bits/waitflags.h
+calculate_temperature.o: /usr/include/bits/waitstatus.h /usr/include/endian.h
+calculate_temperature.o: /usr/include/bits/endian.h
+calculate_temperature.o: /usr/include/bits/byteswap.h
+calculate_temperature.o: /usr/include/bits/types.h
+calculate_temperature.o: /usr/include/bits/typesizes.h
+calculate_temperature.o: /usr/include/bits/byteswap-16.h
+calculate_temperature.o: /usr/include/sys/types.h /usr/include/time.h
+calculate_temperature.o: /usr/include/sys/select.h /usr/include/bits/select.h
+calculate_temperature.o: /usr/include/bits/sigset.h /usr/include/bits/time.h
+calculate_temperature.o: /usr/include/sys/sysmacros.h
+calculate_temperature.o: /usr/include/bits/pthreadtypes.h
 calculate_temperature.o: /usr/include/alloca.h
-calculate_temperature.o: /usr/include/sys/_types/_ct_rune_t.h
-calculate_temperature.o: /usr/include/sys/_types/_rune_t.h
-calculate_temperature.o: /usr/include/sys/_types/_wchar_t.h
-calculate_temperature.o: /usr/include/sys/_types/_null.h
-calculate_temperature.o: /usr/include/machine/types.h
-calculate_temperature.o: /usr/include/i386/types.h
-calculate_temperature.o: /usr/include/sys/_types/_u_int8_t.h
-calculate_temperature.o: /usr/include/sys/_types/_u_int16_t.h
-calculate_temperature.o: /usr/include/sys/_types/_u_int32_t.h
-calculate_temperature.o: /usr/include/sys/_types/_u_int64_t.h
-calculate_temperature.o: /usr/include/sys/_types/_dev_t.h
-calculate_temperature.o: /usr/include/sys/_types/_mode_t.h
-calculate_temperature.o: /usr/include/stdio.h
-calculate_temperature.o: /usr/include/sys/_types/_va_list.h
-calculate_temperature.o: /usr/include/sys/stdio.h
-calculate_temperature.o: /usr/include/sys/_types/_off_t.h
-calculate_temperature.o: /usr/include/sys/_types/_ssize_t.h
-calculate_temperature.o: /usr/include/secure/_stdio.h
-calculate_temperature.o: /usr/include/secure/_common.h /usr/include/math.h
-calculate_temperature.o: grackle_macros.h grackle_types.h
-calculate_temperature.o: grackle_chemistry_data.h phys_constants.h
-initialize_UVbackground_data.o: /usr/include/stdlib.h
-initialize_UVbackground_data.o: /usr/include/Availability.h
-initialize_UVbackground_data.o: /usr/include/AvailabilityInternal.h
-initialize_UVbackground_data.o: /usr/include/_types.h
-initialize_UVbackground_data.o: /usr/include/sys/_types.h
-initialize_UVbackground_data.o: /usr/include/sys/cdefs.h
-initialize_UVbackground_data.o: /usr/include/sys/_symbol_aliasing.h
-initialize_UVbackground_data.o: /usr/include/sys/_posix_availability.h
-initialize_UVbackground_data.o: /usr/include/machine/_types.h
-initialize_UVbackground_data.o: /usr/include/i386/_types.h
-initialize_UVbackground_data.o: /usr/include/sys/_pthread/_pthread_types.h
-initialize_UVbackground_data.o: /usr/include/sys/wait.h
-initialize_UVbackground_data.o: /usr/include/sys/_types/_pid_t.h
-initialize_UVbackground_data.o: /usr/include/sys/_types/_id_t.h
-initialize_UVbackground_data.o: /usr/include/sys/signal.h
-initialize_UVbackground_data.o: /usr/include/sys/appleapiopts.h
-initialize_UVbackground_data.o: /usr/include/machine/signal.h
-initialize_UVbackground_data.o: /usr/include/i386/signal.h
-initialize_UVbackground_data.o: /usr/include/machine/_mcontext.h
-initialize_UVbackground_data.o: /usr/include/i386/_mcontext.h
-initialize_UVbackground_data.o: /usr/include/mach/i386/_structs.h
-initialize_UVbackground_data.o: /usr/include/sys/_pthread/_pthread_attr_t.h
-initialize_UVbackground_data.o: /usr/include/sys/_types/_sigaltstack.h
-initialize_UVbackground_data.o: /usr/include/sys/_types/_ucontext.h
-initialize_UVbackground_data.o: /usr/include/sys/_types/_sigset_t.h
-initialize_UVbackground_data.o: /usr/include/sys/_types/_size_t.h
-initialize_UVbackground_data.o: /usr/include/sys/_types/_uid_t.h
-initialize_UVbackground_data.o: /usr/include/sys/resource.h
-initialize_UVbackground_data.o: /usr/include/stdint.h
-initialize_UVbackground_data.o: /usr/include/sys/_types/_int8_t.h
-initialize_UVbackground_data.o: /usr/include/sys/_types/_int16_t.h
-initialize_UVbackground_data.o: /usr/include/sys/_types/_int32_t.h
-initialize_UVbackground_data.o: /usr/include/sys/_types/_int64_t.h
-initialize_UVbackground_data.o: /usr/include/_types/_uint8_t.h
-initialize_UVbackground_data.o: /usr/include/_types/_uint16_t.h
-initialize_UVbackground_data.o: /usr/include/_types/_uint32_t.h
-initialize_UVbackground_data.o: /usr/include/_types/_uint64_t.h
-initialize_UVbackground_data.o: /usr/include/sys/_types/_intptr_t.h
-initialize_UVbackground_data.o: /usr/include/sys/_types/_uintptr_t.h
-initialize_UVbackground_data.o: /usr/include/_types/_intmax_t.h
-initialize_UVbackground_data.o: /usr/include/_types/_uintmax_t.h
-initialize_UVbackground_data.o: /usr/include/sys/_types/_timeval.h
-initialize_UVbackground_data.o: /usr/include/machine/endian.h
-initialize_UVbackground_data.o: /usr/include/i386/endian.h
-initialize_UVbackground_data.o: /usr/include/sys/_endian.h
-initialize_UVbackground_data.o: /usr/include/libkern/_OSByteOrder.h
-initialize_UVbackground_data.o: /usr/include/libkern/i386/_OSByteOrder.h
-initialize_UVbackground_data.o: /usr/include/alloca.h
-initialize_UVbackground_data.o: /usr/include/sys/_types/_ct_rune_t.h
-initialize_UVbackground_data.o: /usr/include/sys/_types/_rune_t.h
-initialize_UVbackground_data.o: /usr/include/sys/_types/_wchar_t.h
-initialize_UVbackground_data.o: /usr/include/sys/_types/_null.h
-initialize_UVbackground_data.o: /usr/include/machine/types.h
-initialize_UVbackground_data.o: /usr/include/i386/types.h
-initialize_UVbackground_data.o: /usr/include/sys/_types/_u_int8_t.h
-initialize_UVbackground_data.o: /usr/include/sys/_types/_u_int16_t.h
-initialize_UVbackground_data.o: /usr/include/sys/_types/_u_int32_t.h
-initialize_UVbackground_data.o: /usr/include/sys/_types/_u_int64_t.h
-initialize_UVbackground_data.o: /usr/include/sys/_types/_dev_t.h
-initialize_UVbackground_data.o: /usr/include/sys/_types/_mode_t.h
-initialize_UVbackground_data.o: /usr/include/math.h /usr/local/include/hdf5.h
-initialize_UVbackground_data.o: /usr/local/include/H5public.h
-initialize_UVbackground_data.o: /usr/local/include/H5pubconf.h
-initialize_UVbackground_data.o: /usr/local/include/H5version.h
-initialize_UVbackground_data.o: /usr/include/sys/types.h
-initialize_UVbackground_data.o: /usr/include/sys/_types/_blkcnt_t.h
-initialize_UVbackground_data.o: /usr/include/sys/_types/_blksize_t.h
-initialize_UVbackground_data.o: /usr/include/sys/_types/_gid_t.h
-initialize_UVbackground_data.o: /usr/include/sys/_types/_in_addr_t.h
-initialize_UVbackground_data.o: /usr/include/sys/_types/_in_port_t.h
-initialize_UVbackground_data.o: /usr/include/sys/_types/_ino_t.h
-initialize_UVbackground_data.o: /usr/include/sys/_types/_ino64_t.h
-initialize_UVbackground_data.o: /usr/include/sys/_types/_key_t.h
-initialize_UVbackground_data.o: /usr/include/sys/_types/_nlink_t.h
-initialize_UVbackground_data.o: /usr/include/sys/_types/_off_t.h
-initialize_UVbackground_data.o: /usr/include/sys/_types/_clock_t.h
-initialize_UVbackground_data.o: /usr/include/sys/_types/_ssize_t.h
-initialize_UVbackground_data.o: /usr/include/sys/_types/_time_t.h
-initialize_UVbackground_data.o: /usr/include/sys/_types/_useconds_t.h
-initialize_UVbackground_data.o: /usr/include/sys/_types/_suseconds_t.h
-initialize_UVbackground_data.o: /usr/include/sys/_types/_rsize_t.h
-initialize_UVbackground_data.o: /usr/include/sys/_types/_errno_t.h
-initialize_UVbackground_data.o: /usr/include/sys/_types/_fd_def.h
-initialize_UVbackground_data.o: /usr/include/sys/_types/_fd_setsize.h
-initialize_UVbackground_data.o: /usr/include/sys/_types/_fd_set.h
-initialize_UVbackground_data.o: /usr/include/sys/_types/_fd_clr.h
-initialize_UVbackground_data.o: /usr/include/sys/_types/_fd_zero.h
-initialize_UVbackground_data.o: /usr/include/sys/_types/_fd_isset.h
-initialize_UVbackground_data.o: /usr/include/sys/_types/_fd_copy.h
-initialize_UVbackground_data.o: /usr/include/sys/_pthread/_pthread_cond_t.h
-initialize_UVbackground_data.o: /usr/include/sys/_pthread/_pthread_condattr_t.h
-initialize_UVbackground_data.o: /usr/include/sys/_pthread/_pthread_mutex_t.h
-initialize_UVbackground_data.o: /usr/include/sys/_pthread/_pthread_mutexattr_t.h
-initialize_UVbackground_data.o: /usr/include/sys/_pthread/_pthread_once_t.h
-initialize_UVbackground_data.o: /usr/include/sys/_pthread/_pthread_rwlock_t.h
-initialize_UVbackground_data.o: /usr/include/sys/_pthread/_pthread_rwlockattr_t.h
-initialize_UVbackground_data.o: /usr/include/sys/_pthread/_pthread_t.h
-initialize_UVbackground_data.o: /usr/include/sys/_pthread/_pthread_key_t.h
-initialize_UVbackground_data.o: /usr/include/sys/_types/_fsblkcnt_t.h
-initialize_UVbackground_data.o: /usr/include/sys/_types/_fsfilcnt_t.h
-initialize_UVbackground_data.o: /usr/include/limits.h
-initialize_UVbackground_data.o: /usr/include/machine/limits.h
-initialize_UVbackground_data.o: /usr/include/i386/limits.h
-initialize_UVbackground_data.o: /usr/include/i386/_limits.h
-initialize_UVbackground_data.o: /usr/include/sys/syslimits.h
-initialize_UVbackground_data.o: /usr/include/inttypes.h /usr/include/stddef.h
-initialize_UVbackground_data.o: /usr/include/sys/_types/_offsetof.h
-initialize_UVbackground_data.o: /usr/include/sys/_types/_ptrdiff_t.h
-initialize_UVbackground_data.o: /usr/include/sys/_types/_wint_t.h
-initialize_UVbackground_data.o: /usr/local/include/mpi.h
-initialize_UVbackground_data.o: /usr/local/include/mpi_portable_platform.h
-initialize_UVbackground_data.o: /usr/local/include/H5api_adpt.h
-initialize_UVbackground_data.o: /usr/local/include/H5Apublic.h
-initialize_UVbackground_data.o: /usr/local/include/H5Ipublic.h
-initialize_UVbackground_data.o: /usr/local/include/H5Opublic.h
-initialize_UVbackground_data.o: /usr/local/include/H5Lpublic.h
-initialize_UVbackground_data.o: /usr/local/include/H5Tpublic.h
-initialize_UVbackground_data.o: /usr/local/include/H5ACpublic.h
-initialize_UVbackground_data.o: /usr/local/include/H5Cpublic.h
-initialize_UVbackground_data.o: /usr/local/include/H5Dpublic.h
-initialize_UVbackground_data.o: /usr/local/include/H5Epublic.h
-initialize_UVbackground_data.o: /usr/include/stdio.h
-initialize_UVbackground_data.o: /usr/include/sys/_types/_va_list.h
-initialize_UVbackground_data.o: /usr/include/sys/stdio.h
-initialize_UVbackground_data.o: /usr/include/secure/_stdio.h
-initialize_UVbackground_data.o: /usr/include/secure/_common.h
-initialize_UVbackground_data.o: /usr/local/include/H5Epubgen.h
-initialize_UVbackground_data.o: /usr/local/include/H5Fpublic.h
-initialize_UVbackground_data.o: /usr/local/include/H5FDpublic.h
-initialize_UVbackground_data.o: /usr/local/include/H5Gpublic.h
-initialize_UVbackground_data.o: /usr/local/include/H5MMpublic.h
-initialize_UVbackground_data.o: /usr/local/include/H5Ppublic.h
-initialize_UVbackground_data.o: /usr/local/include/H5Zpublic.h
-initialize_UVbackground_data.o: /usr/local/include/H5PLpublic.h
-initialize_UVbackground_data.o: /usr/local/include/H5Rpublic.h
-initialize_UVbackground_data.o: /usr/local/include/H5Spublic.h
-initialize_UVbackground_data.o: /usr/local/include/H5FDcore.h
-initialize_UVbackground_data.o: /usr/local/include/H5FDdirect.h
-initialize_UVbackground_data.o: /usr/local/include/H5FDfamily.h
-initialize_UVbackground_data.o: /usr/local/include/H5FDlog.h
-initialize_UVbackground_data.o: /usr/local/include/H5FDmpi.h
-initialize_UVbackground_data.o: /usr/local/include/H5FDmpio.h
-initialize_UVbackground_data.o: /usr/local/include/H5FDmulti.h
-initialize_UVbackground_data.o: /usr/local/include/H5FDsec2.h
-initialize_UVbackground_data.o: /usr/local/include/H5FDstdio.h
-initialize_UVbackground_data.o: grackle_macros.h grackle_types.h
-initialize_UVbackground_data.o: grackle_chemistry_data.h
-initialize_chemistry_data.o: /usr/include/stdlib.h
-initialize_chemistry_data.o: /usr/include/Availability.h
-initialize_chemistry_data.o: /usr/include/AvailabilityInternal.h
-initialize_chemistry_data.o: /usr/include/_types.h /usr/include/sys/_types.h
+calculate_temperature.o: /usr/include/bits/stdlib-float.h
+calculate_temperature.o: /usr/include/stdio.h /usr/include/libio.h
+calculate_temperature.o: /usr/include/_G_config.h /usr/include/wchar.h
+calculate_temperature.o: /usr/include/bits/stdio_lim.h
+calculate_temperature.o: /usr/include/bits/sys_errlist.h /usr/include/math.h
+calculate_temperature.o: /usr/include/bits/huge_val.h
+calculate_temperature.o: /usr/include/bits/huge_valf.h
+calculate_temperature.o: /usr/include/bits/huge_vall.h
+calculate_temperature.o: /usr/include/bits/inf.h /usr/include/bits/nan.h
+calculate_temperature.o: /usr/include/bits/mathdef.h
+calculate_temperature.o: /usr/include/bits/mathcalls.h grackle_macros.h
+calculate_temperature.o: grackle_types.h grackle_chemistry_data.h
+calculate_temperature.o: phys_constants.h
+initialize_chemistry_data.o: /usr/include/stdlib.h /usr/include/features.h
+initialize_chemistry_data.o: /usr/include/stdc-predef.h
 initialize_chemistry_data.o: /usr/include/sys/cdefs.h
-initialize_chemistry_data.o: /usr/include/sys/_symbol_aliasing.h
-initialize_chemistry_data.o: /usr/include/sys/_posix_availability.h
-initialize_chemistry_data.o: /usr/include/machine/_types.h
-initialize_chemistry_data.o: /usr/include/i386/_types.h
-initialize_chemistry_data.o: /usr/include/sys/_pthread/_pthread_types.h
-initialize_chemistry_data.o: /usr/include/sys/wait.h
-initialize_chemistry_data.o: /usr/include/sys/_types/_pid_t.h
-initialize_chemistry_data.o: /usr/include/sys/_types/_id_t.h
-initialize_chemistry_data.o: /usr/include/sys/signal.h
-initialize_chemistry_data.o: /usr/include/sys/appleapiopts.h
-initialize_chemistry_data.o: /usr/include/machine/signal.h
-initialize_chemistry_data.o: /usr/include/i386/signal.h
-initialize_chemistry_data.o: /usr/include/machine/_mcontext.h
-initialize_chemistry_data.o: /usr/include/i386/_mcontext.h
-initialize_chemistry_data.o: /usr/include/mach/i386/_structs.h
-initialize_chemistry_data.o: /usr/include/sys/_pthread/_pthread_attr_t.h
-initialize_chemistry_data.o: /usr/include/sys/_types/_sigaltstack.h
-initialize_chemistry_data.o: /usr/include/sys/_types/_ucontext.h
-initialize_chemistry_data.o: /usr/include/sys/_types/_sigset_t.h
-initialize_chemistry_data.o: /usr/include/sys/_types/_size_t.h
-initialize_chemistry_data.o: /usr/include/sys/_types/_uid_t.h
-initialize_chemistry_data.o: /usr/include/sys/resource.h
-initialize_chemistry_data.o: /usr/include/stdint.h
-initialize_chemistry_data.o: /usr/include/sys/_types/_int8_t.h
-initialize_chemistry_data.o: /usr/include/sys/_types/_int16_t.h
-initialize_chemistry_data.o: /usr/include/sys/_types/_int32_t.h
-initialize_chemistry_data.o: /usr/include/sys/_types/_int64_t.h
-initialize_chemistry_data.o: /usr/include/_types/_uint8_t.h
-initialize_chemistry_data.o: /usr/include/_types/_uint16_t.h
-initialize_chemistry_data.o: /usr/include/_types/_uint32_t.h
-initialize_chemistry_data.o: /usr/include/_types/_uint64_t.h
-initialize_chemistry_data.o: /usr/include/sys/_types/_intptr_t.h
-initialize_chemistry_data.o: /usr/include/sys/_types/_uintptr_t.h
-initialize_chemistry_data.o: /usr/include/_types/_intmax_t.h
-initialize_chemistry_data.o: /usr/include/_types/_uintmax_t.h
-initialize_chemistry_data.o: /usr/include/sys/_types/_timeval.h
-initialize_chemistry_data.o: /usr/include/machine/endian.h
-initialize_chemistry_data.o: /usr/include/i386/endian.h
-initialize_chemistry_data.o: /usr/include/sys/_endian.h
-initialize_chemistry_data.o: /usr/include/libkern/_OSByteOrder.h
-initialize_chemistry_data.o: /usr/include/libkern/i386/_OSByteOrder.h
+initialize_chemistry_data.o: /usr/include/bits/wordsize.h
+initialize_chemistry_data.o: /usr/include/gnu/stubs.h
+initialize_chemistry_data.o: /usr/include/bits/waitflags.h
+initialize_chemistry_data.o: /usr/include/bits/waitstatus.h
+initialize_chemistry_data.o: /usr/include/endian.h /usr/include/bits/endian.h
+initialize_chemistry_data.o: /usr/include/bits/byteswap.h
+initialize_chemistry_data.o: /usr/include/bits/types.h
+initialize_chemistry_data.o: /usr/include/bits/typesizes.h
+initialize_chemistry_data.o: /usr/include/bits/byteswap-16.h
+initialize_chemistry_data.o: /usr/include/sys/types.h /usr/include/time.h
+initialize_chemistry_data.o: /usr/include/sys/select.h
+initialize_chemistry_data.o: /usr/include/bits/select.h
+initialize_chemistry_data.o: /usr/include/bits/sigset.h
+initialize_chemistry_data.o: /usr/include/bits/time.h
+initialize_chemistry_data.o: /usr/include/sys/sysmacros.h
+initialize_chemistry_data.o: /usr/include/bits/pthreadtypes.h
 initialize_chemistry_data.o: /usr/include/alloca.h
-initialize_chemistry_data.o: /usr/include/sys/_types/_ct_rune_t.h
-initialize_chemistry_data.o: /usr/include/sys/_types/_rune_t.h
-initialize_chemistry_data.o: /usr/include/sys/_types/_wchar_t.h
-initialize_chemistry_data.o: /usr/include/sys/_types/_null.h
-initialize_chemistry_data.o: /usr/include/machine/types.h
-initialize_chemistry_data.o: /usr/include/i386/types.h
-initialize_chemistry_data.o: /usr/include/sys/_types/_u_int8_t.h
-initialize_chemistry_data.o: /usr/include/sys/_types/_u_int16_t.h
-initialize_chemistry_data.o: /usr/include/sys/_types/_u_int32_t.h
-initialize_chemistry_data.o: /usr/include/sys/_types/_u_int64_t.h
-initialize_chemistry_data.o: /usr/include/sys/_types/_dev_t.h
-initialize_chemistry_data.o: /usr/include/sys/_types/_mode_t.h
-initialize_chemistry_data.o: /usr/include/string.h
-initialize_chemistry_data.o: /usr/include/sys/_types/_rsize_t.h
-initialize_chemistry_data.o: /usr/include/sys/_types/_errno_t.h
-initialize_chemistry_data.o: /usr/include/sys/_types/_ssize_t.h
-initialize_chemistry_data.o: /usr/include/strings.h
-initialize_chemistry_data.o: /usr/include/secure/_string.h
-initialize_chemistry_data.o: /usr/include/secure/_common.h
-initialize_chemistry_data.o: /usr/include/stdio.h
-initialize_chemistry_data.o: /usr/include/sys/_types/_va_list.h
-initialize_chemistry_data.o: /usr/include/sys/stdio.h
-initialize_chemistry_data.o: /usr/include/sys/_types/_off_t.h
-initialize_chemistry_data.o: /usr/include/secure/_stdio.h /usr/include/time.h
-initialize_chemistry_data.o: /usr/include/sys/_types/_clock_t.h
-initialize_chemistry_data.o: /usr/include/sys/_types/_time_t.h
-initialize_chemistry_data.o: /usr/include/sys/_types/_timespec.h
-initialize_chemistry_data.o: /usr/include/math.h grackle_macros.h
+initialize_chemistry_data.o: /usr/include/bits/stdlib-float.h
+initialize_chemistry_data.o: /usr/include/string.h /usr/include/xlocale.h
+initialize_chemistry_data.o: /usr/include/stdio.h /usr/include/libio.h
+initialize_chemistry_data.o: /usr/include/_G_config.h /usr/include/wchar.h
+initialize_chemistry_data.o: /usr/include/bits/stdio_lim.h
+initialize_chemistry_data.o: /usr/include/bits/sys_errlist.h
+initialize_chemistry_data.o: /usr/include/math.h /usr/include/bits/huge_val.h
+initialize_chemistry_data.o: /usr/include/bits/huge_valf.h
+initialize_chemistry_data.o: /usr/include/bits/huge_vall.h
+initialize_chemistry_data.o: /usr/include/bits/inf.h /usr/include/bits/nan.h
+initialize_chemistry_data.o: /usr/include/bits/mathdef.h
+initialize_chemistry_data.o: /usr/include/bits/mathcalls.h grackle_macros.h
 initialize_chemistry_data.o: grackle_types.h grackle_chemistry_data.h
 initialize_chemistry_data.o: phys_constants.h
-initialize_cloudy_data.o: /usr/include/stdlib.h /usr/include/Availability.h
-initialize_cloudy_data.o: /usr/include/AvailabilityInternal.h
-initialize_cloudy_data.o: /usr/include/_types.h /usr/include/sys/_types.h
-initialize_cloudy_data.o: /usr/include/sys/cdefs.h
-initialize_cloudy_data.o: /usr/include/sys/_symbol_aliasing.h
-initialize_cloudy_data.o: /usr/include/sys/_posix_availability.h
-initialize_cloudy_data.o: /usr/include/machine/_types.h
-initialize_cloudy_data.o: /usr/include/i386/_types.h
-initialize_cloudy_data.o: /usr/include/sys/_pthread/_pthread_types.h
-initialize_cloudy_data.o: /usr/include/sys/wait.h
-initialize_cloudy_data.o: /usr/include/sys/_types/_pid_t.h
-initialize_cloudy_data.o: /usr/include/sys/_types/_id_t.h
-initialize_cloudy_data.o: /usr/include/sys/signal.h
-initialize_cloudy_data.o: /usr/include/sys/appleapiopts.h
-initialize_cloudy_data.o: /usr/include/machine/signal.h
-initialize_cloudy_data.o: /usr/include/i386/signal.h
-initialize_cloudy_data.o: /usr/include/machine/_mcontext.h
-initialize_cloudy_data.o: /usr/include/i386/_mcontext.h
-initialize_cloudy_data.o: /usr/include/mach/i386/_structs.h
-initialize_cloudy_data.o: /usr/include/sys/_pthread/_pthread_attr_t.h
-initialize_cloudy_data.o: /usr/include/sys/_types/_sigaltstack.h
-initialize_cloudy_data.o: /usr/include/sys/_types/_ucontext.h
-initialize_cloudy_data.o: /usr/include/sys/_types/_sigset_t.h
-initialize_cloudy_data.o: /usr/include/sys/_types/_size_t.h
-initialize_cloudy_data.o: /usr/include/sys/_types/_uid_t.h
-initialize_cloudy_data.o: /usr/include/sys/resource.h /usr/include/stdint.h
-initialize_cloudy_data.o: /usr/include/sys/_types/_int8_t.h
-initialize_cloudy_data.o: /usr/include/sys/_types/_int16_t.h
-initialize_cloudy_data.o: /usr/include/sys/_types/_int32_t.h
-initialize_cloudy_data.o: /usr/include/sys/_types/_int64_t.h
-initialize_cloudy_data.o: /usr/include/_types/_uint8_t.h
-initialize_cloudy_data.o: /usr/include/_types/_uint16_t.h
-initialize_cloudy_data.o: /usr/include/_types/_uint32_t.h
-initialize_cloudy_data.o: /usr/include/_types/_uint64_t.h
-initialize_cloudy_data.o: /usr/include/sys/_types/_intptr_t.h
-initialize_cloudy_data.o: /usr/include/sys/_types/_uintptr_t.h
-initialize_cloudy_data.o: /usr/include/_types/_intmax_t.h
-initialize_cloudy_data.o: /usr/include/_types/_uintmax_t.h
-initialize_cloudy_data.o: /usr/include/sys/_types/_timeval.h
-initialize_cloudy_data.o: /usr/include/machine/endian.h
-initialize_cloudy_data.o: /usr/include/i386/endian.h
-initialize_cloudy_data.o: /usr/include/sys/_endian.h
-initialize_cloudy_data.o: /usr/include/libkern/_OSByteOrder.h
-initialize_cloudy_data.o: /usr/include/libkern/i386/_OSByteOrder.h
+initialize_cloudy_data.o: /usr/include/stdlib.h /usr/include/features.h
+initialize_cloudy_data.o: /usr/include/stdc-predef.h /usr/include/sys/cdefs.h
+initialize_cloudy_data.o: /usr/include/bits/wordsize.h
+initialize_cloudy_data.o: /usr/include/gnu/stubs.h
+initialize_cloudy_data.o: /usr/include/bits/waitflags.h
+initialize_cloudy_data.o: /usr/include/bits/waitstatus.h
+initialize_cloudy_data.o: /usr/include/endian.h /usr/include/bits/endian.h
+initialize_cloudy_data.o: /usr/include/bits/byteswap.h
+initialize_cloudy_data.o: /usr/include/bits/types.h
+initialize_cloudy_data.o: /usr/include/bits/typesizes.h
+initialize_cloudy_data.o: /usr/include/bits/byteswap-16.h
+initialize_cloudy_data.o: /usr/include/sys/types.h /usr/include/time.h
+initialize_cloudy_data.o: /usr/include/sys/select.h
+initialize_cloudy_data.o: /usr/include/bits/select.h
+initialize_cloudy_data.o: /usr/include/bits/sigset.h /usr/include/bits/time.h
+initialize_cloudy_data.o: /usr/include/sys/sysmacros.h
+initialize_cloudy_data.o: /usr/include/bits/pthreadtypes.h
 initialize_cloudy_data.o: /usr/include/alloca.h
-initialize_cloudy_data.o: /usr/include/sys/_types/_ct_rune_t.h
-initialize_cloudy_data.o: /usr/include/sys/_types/_rune_t.h
-initialize_cloudy_data.o: /usr/include/sys/_types/_wchar_t.h
-initialize_cloudy_data.o: /usr/include/sys/_types/_null.h
-initialize_cloudy_data.o: /usr/include/machine/types.h
-initialize_cloudy_data.o: /usr/include/i386/types.h
-initialize_cloudy_data.o: /usr/include/sys/_types/_u_int8_t.h
-initialize_cloudy_data.o: /usr/include/sys/_types/_u_int16_t.h
-initialize_cloudy_data.o: /usr/include/sys/_types/_u_int32_t.h
-initialize_cloudy_data.o: /usr/include/sys/_types/_u_int64_t.h
-initialize_cloudy_data.o: /usr/include/sys/_types/_dev_t.h
-initialize_cloudy_data.o: /usr/include/sys/_types/_mode_t.h
-initialize_cloudy_data.o: /usr/include/math.h /usr/local/include/hdf5.h
-initialize_cloudy_data.o: /usr/local/include/H5public.h
-initialize_cloudy_data.o: /usr/local/include/H5pubconf.h
-initialize_cloudy_data.o: /usr/local/include/H5version.h
-initialize_cloudy_data.o: /usr/include/sys/types.h
-initialize_cloudy_data.o: /usr/include/sys/_types/_blkcnt_t.h
-initialize_cloudy_data.o: /usr/include/sys/_types/_blksize_t.h
-initialize_cloudy_data.o: /usr/include/sys/_types/_gid_t.h
-initialize_cloudy_data.o: /usr/include/sys/_types/_in_addr_t.h
-initialize_cloudy_data.o: /usr/include/sys/_types/_in_port_t.h
-initialize_cloudy_data.o: /usr/include/sys/_types/_ino_t.h
-initialize_cloudy_data.o: /usr/include/sys/_types/_ino64_t.h
-initialize_cloudy_data.o: /usr/include/sys/_types/_key_t.h
-initialize_cloudy_data.o: /usr/include/sys/_types/_nlink_t.h
-initialize_cloudy_data.o: /usr/include/sys/_types/_off_t.h
-initialize_cloudy_data.o: /usr/include/sys/_types/_clock_t.h
-initialize_cloudy_data.o: /usr/include/sys/_types/_ssize_t.h
-initialize_cloudy_data.o: /usr/include/sys/_types/_time_t.h
-initialize_cloudy_data.o: /usr/include/sys/_types/_useconds_t.h
-initialize_cloudy_data.o: /usr/include/sys/_types/_suseconds_t.h
-initialize_cloudy_data.o: /usr/include/sys/_types/_rsize_t.h
-initialize_cloudy_data.o: /usr/include/sys/_types/_errno_t.h
-initialize_cloudy_data.o: /usr/include/sys/_types/_fd_def.h
-initialize_cloudy_data.o: /usr/include/sys/_types/_fd_setsize.h
-initialize_cloudy_data.o: /usr/include/sys/_types/_fd_set.h
-initialize_cloudy_data.o: /usr/include/sys/_types/_fd_clr.h
-initialize_cloudy_data.o: /usr/include/sys/_types/_fd_zero.h
-initialize_cloudy_data.o: /usr/include/sys/_types/_fd_isset.h
-initialize_cloudy_data.o: /usr/include/sys/_types/_fd_copy.h
-initialize_cloudy_data.o: /usr/include/sys/_pthread/_pthread_cond_t.h
-initialize_cloudy_data.o: /usr/include/sys/_pthread/_pthread_condattr_t.h
-initialize_cloudy_data.o: /usr/include/sys/_pthread/_pthread_mutex_t.h
-initialize_cloudy_data.o: /usr/include/sys/_pthread/_pthread_mutexattr_t.h
-initialize_cloudy_data.o: /usr/include/sys/_pthread/_pthread_once_t.h
-initialize_cloudy_data.o: /usr/include/sys/_pthread/_pthread_rwlock_t.h
-initialize_cloudy_data.o: /usr/include/sys/_pthread/_pthread_rwlockattr_t.h
-initialize_cloudy_data.o: /usr/include/sys/_pthread/_pthread_t.h
-initialize_cloudy_data.o: /usr/include/sys/_pthread/_pthread_key_t.h
-initialize_cloudy_data.o: /usr/include/sys/_types/_fsblkcnt_t.h
-initialize_cloudy_data.o: /usr/include/sys/_types/_fsfilcnt_t.h
-initialize_cloudy_data.o: /usr/include/limits.h /usr/include/machine/limits.h
-initialize_cloudy_data.o: /usr/include/i386/limits.h
-initialize_cloudy_data.o: /usr/include/i386/_limits.h
-initialize_cloudy_data.o: /usr/include/sys/syslimits.h
-initialize_cloudy_data.o: /usr/include/inttypes.h /usr/include/stddef.h
-initialize_cloudy_data.o: /usr/include/sys/_types/_offsetof.h
-initialize_cloudy_data.o: /usr/include/sys/_types/_ptrdiff_t.h
-initialize_cloudy_data.o: /usr/include/sys/_types/_wint_t.h
-initialize_cloudy_data.o: /usr/local/include/mpi.h
-initialize_cloudy_data.o: /usr/local/include/mpi_portable_platform.h
-initialize_cloudy_data.o: /usr/local/include/H5api_adpt.h
-initialize_cloudy_data.o: /usr/local/include/H5Apublic.h
-initialize_cloudy_data.o: /usr/local/include/H5Ipublic.h
-initialize_cloudy_data.o: /usr/local/include/H5Opublic.h
-initialize_cloudy_data.o: /usr/local/include/H5Lpublic.h
-initialize_cloudy_data.o: /usr/local/include/H5Tpublic.h
-initialize_cloudy_data.o: /usr/local/include/H5ACpublic.h
-initialize_cloudy_data.o: /usr/local/include/H5Cpublic.h
-initialize_cloudy_data.o: /usr/local/include/H5Dpublic.h
-initialize_cloudy_data.o: /usr/local/include/H5Epublic.h /usr/include/stdio.h
-initialize_cloudy_data.o: /usr/include/sys/_types/_va_list.h
-initialize_cloudy_data.o: /usr/include/sys/stdio.h
-initialize_cloudy_data.o: /usr/include/secure/_stdio.h
-initialize_cloudy_data.o: /usr/include/secure/_common.h
-initialize_cloudy_data.o: /usr/local/include/H5Epubgen.h
-initialize_cloudy_data.o: /usr/local/include/H5Fpublic.h
-initialize_cloudy_data.o: /usr/local/include/H5FDpublic.h
-initialize_cloudy_data.o: /usr/local/include/H5Gpublic.h
-initialize_cloudy_data.o: /usr/local/include/H5MMpublic.h
-initialize_cloudy_data.o: /usr/local/include/H5Ppublic.h
-initialize_cloudy_data.o: /usr/local/include/H5Zpublic.h
-initialize_cloudy_data.o: /usr/local/include/H5PLpublic.h
-initialize_cloudy_data.o: /usr/local/include/H5Rpublic.h
-initialize_cloudy_data.o: /usr/local/include/H5Spublic.h
-initialize_cloudy_data.o: /usr/local/include/H5FDcore.h
-initialize_cloudy_data.o: /usr/local/include/H5FDdirect.h
-initialize_cloudy_data.o: /usr/local/include/H5FDfamily.h
-initialize_cloudy_data.o: /usr/local/include/H5FDlog.h
-initialize_cloudy_data.o: /usr/local/include/H5FDmpi.h
-initialize_cloudy_data.o: /usr/local/include/H5FDmpio.h
-initialize_cloudy_data.o: /usr/local/include/H5FDmulti.h
-initialize_cloudy_data.o: /usr/local/include/H5FDsec2.h
-initialize_cloudy_data.o: /usr/local/include/H5FDstdio.h grackle_macros.h
-initialize_cloudy_data.o: grackle_types.h grackle_chemistry_data.h
+initialize_cloudy_data.o: /usr/include/bits/stdlib-float.h
+initialize_cloudy_data.o: /usr/include/math.h /usr/include/bits/huge_val.h
+initialize_cloudy_data.o: /usr/include/bits/huge_valf.h
+initialize_cloudy_data.o: /usr/include/bits/huge_vall.h
+initialize_cloudy_data.o: /usr/include/bits/inf.h /usr/include/bits/nan.h
+initialize_cloudy_data.o: /usr/include/bits/mathdef.h
+initialize_cloudy_data.o: /usr/include/bits/mathcalls.h
+initialize_cloudy_data.o: /cineca/prod/opt/libraries/hdf5/1.8.17/intelmpi--2017--binary/include/hdf5.h
+initialize_cloudy_data.o: /cineca/prod/opt/libraries/hdf5/1.8.17/intelmpi--2017--binary/include/H5public.h
+initialize_cloudy_data.o: /cineca/prod/opt/libraries/hdf5/1.8.17/intelmpi--2017--binary/include/H5pubconf.h
+initialize_cloudy_data.o: /cineca/prod/opt/libraries/hdf5/1.8.17/intelmpi--2017--binary/include/H5version.h
+initialize_cloudy_data.o: /usr/include/limits.h
+initialize_cloudy_data.o: /usr/include/bits/posix1_lim.h
+initialize_cloudy_data.o: /usr/include/bits/local_lim.h
+initialize_cloudy_data.o: /usr/include/linux/limits.h
+initialize_cloudy_data.o: /usr/include/bits/posix2_lim.h
+initialize_cloudy_data.o: /usr/include/stdint.h /usr/include/bits/wchar.h
+initialize_cloudy_data.o: /usr/include/inttypes.h
+initialize_cloudy_data.o: /cineca/prod/opt/libraries/hdf5/1.8.17/intelmpi--2017--binary/include/H5api_adpt.h
+initialize_cloudy_data.o: /cineca/prod/opt/libraries/hdf5/1.8.17/intelmpi--2017--binary/include/H5Apublic.h
+initialize_cloudy_data.o: /cineca/prod/opt/libraries/hdf5/1.8.17/intelmpi--2017--binary/include/H5Ipublic.h
+initialize_cloudy_data.o: /cineca/prod/opt/libraries/hdf5/1.8.17/intelmpi--2017--binary/include/H5Opublic.h
+initialize_cloudy_data.o: /cineca/prod/opt/libraries/hdf5/1.8.17/intelmpi--2017--binary/include/H5Lpublic.h
+initialize_cloudy_data.o: /cineca/prod/opt/libraries/hdf5/1.8.17/intelmpi--2017--binary/include/H5Tpublic.h
+initialize_cloudy_data.o: /cineca/prod/opt/libraries/hdf5/1.8.17/intelmpi--2017--binary/include/H5ACpublic.h
+initialize_cloudy_data.o: /cineca/prod/opt/libraries/hdf5/1.8.17/intelmpi--2017--binary/include/H5Cpublic.h
+initialize_cloudy_data.o: /cineca/prod/opt/libraries/hdf5/1.8.17/intelmpi--2017--binary/include/H5Dpublic.h
+initialize_cloudy_data.o: /cineca/prod/opt/libraries/hdf5/1.8.17/intelmpi--2017--binary/include/H5Epublic.h
+initialize_cloudy_data.o: /usr/include/stdio.h /usr/include/libio.h
+initialize_cloudy_data.o: /usr/include/_G_config.h /usr/include/wchar.h
+initialize_cloudy_data.o: /usr/include/bits/stdio_lim.h
+initialize_cloudy_data.o: /usr/include/bits/sys_errlist.h
+initialize_cloudy_data.o: /cineca/prod/opt/libraries/hdf5/1.8.17/intelmpi--2017--binary/include/H5Epubgen.h
+initialize_cloudy_data.o: /cineca/prod/opt/libraries/hdf5/1.8.17/intelmpi--2017--binary/include/H5Fpublic.h
+initialize_cloudy_data.o: /cineca/prod/opt/libraries/hdf5/1.8.17/intelmpi--2017--binary/include/H5FDpublic.h
+initialize_cloudy_data.o: /cineca/prod/opt/libraries/hdf5/1.8.17/intelmpi--2017--binary/include/H5Gpublic.h
+initialize_cloudy_data.o: /cineca/prod/opt/libraries/hdf5/1.8.17/intelmpi--2017--binary/include/H5MMpublic.h
+initialize_cloudy_data.o: /cineca/prod/opt/libraries/hdf5/1.8.17/intelmpi--2017--binary/include/H5Ppublic.h
+initialize_cloudy_data.o: /cineca/prod/opt/libraries/hdf5/1.8.17/intelmpi--2017--binary/include/H5Zpublic.h
+initialize_cloudy_data.o: /cineca/prod/opt/libraries/hdf5/1.8.17/intelmpi--2017--binary/include/H5PLpublic.h
+initialize_cloudy_data.o: /cineca/prod/opt/libraries/hdf5/1.8.17/intelmpi--2017--binary/include/H5Rpublic.h
+initialize_cloudy_data.o: /cineca/prod/opt/libraries/hdf5/1.8.17/intelmpi--2017--binary/include/H5Spublic.h
+initialize_cloudy_data.o: /cineca/prod/opt/libraries/hdf5/1.8.17/intelmpi--2017--binary/include/H5FDcore.h
+initialize_cloudy_data.o: /cineca/prod/opt/libraries/hdf5/1.8.17/intelmpi--2017--binary/include/H5FDfamily.h
+initialize_cloudy_data.o: /cineca/prod/opt/libraries/hdf5/1.8.17/intelmpi--2017--binary/include/H5FDlog.h
+initialize_cloudy_data.o: /cineca/prod/opt/libraries/hdf5/1.8.17/intelmpi--2017--binary/include/H5FDmpi.h
+initialize_cloudy_data.o: /cineca/prod/opt/libraries/hdf5/1.8.17/intelmpi--2017--binary/include/H5FDmpio.h
+initialize_cloudy_data.o: /cineca/prod/opt/libraries/hdf5/1.8.17/intelmpi--2017--binary/include/H5FDmulti.h
+initialize_cloudy_data.o: /cineca/prod/opt/libraries/hdf5/1.8.17/intelmpi--2017--binary/include/H5FDsec2.h
+initialize_cloudy_data.o: /cineca/prod/opt/libraries/hdf5/1.8.17/intelmpi--2017--binary/include/H5FDstdio.h
+initialize_cloudy_data.o: /cineca/prod/opt/libraries/hdf5/1.8.17/intelmpi--2017--binary/include/H5FDdirect.h
+initialize_cloudy_data.o: grackle_macros.h grackle_types.h
+initialize_cloudy_data.o: grackle_chemistry_data.h
+initialize_UVbackground_data.o: /usr/include/stdlib.h /usr/include/features.h
+initialize_UVbackground_data.o: /usr/include/stdc-predef.h
+initialize_UVbackground_data.o: /usr/include/sys/cdefs.h
+initialize_UVbackground_data.o: /usr/include/bits/wordsize.h
+initialize_UVbackground_data.o: /usr/include/gnu/stubs.h
+initialize_UVbackground_data.o: /usr/include/bits/waitflags.h
+initialize_UVbackground_data.o: /usr/include/bits/waitstatus.h
+initialize_UVbackground_data.o: /usr/include/endian.h
+initialize_UVbackground_data.o: /usr/include/bits/endian.h
+initialize_UVbackground_data.o: /usr/include/bits/byteswap.h
+initialize_UVbackground_data.o: /usr/include/bits/types.h
+initialize_UVbackground_data.o: /usr/include/bits/typesizes.h
+initialize_UVbackground_data.o: /usr/include/bits/byteswap-16.h
+initialize_UVbackground_data.o: /usr/include/sys/types.h /usr/include/time.h
+initialize_UVbackground_data.o: /usr/include/sys/select.h
+initialize_UVbackground_data.o: /usr/include/bits/select.h
+initialize_UVbackground_data.o: /usr/include/bits/sigset.h
+initialize_UVbackground_data.o: /usr/include/bits/time.h
+initialize_UVbackground_data.o: /usr/include/sys/sysmacros.h
+initialize_UVbackground_data.o: /usr/include/bits/pthreadtypes.h
+initialize_UVbackground_data.o: /usr/include/alloca.h
+initialize_UVbackground_data.o: /usr/include/bits/stdlib-float.h
+initialize_UVbackground_data.o: /usr/include/math.h
+initialize_UVbackground_data.o: /usr/include/bits/huge_val.h
+initialize_UVbackground_data.o: /usr/include/bits/huge_valf.h
+initialize_UVbackground_data.o: /usr/include/bits/huge_vall.h
+initialize_UVbackground_data.o: /usr/include/bits/inf.h
+initialize_UVbackground_data.o: /usr/include/bits/nan.h
+initialize_UVbackground_data.o: /usr/include/bits/mathdef.h
+initialize_UVbackground_data.o: /usr/include/bits/mathcalls.h
+initialize_UVbackground_data.o: /cineca/prod/opt/libraries/hdf5/1.8.17/intelmpi--2017--binary/include/hdf5.h
+initialize_UVbackground_data.o: /cineca/prod/opt/libraries/hdf5/1.8.17/intelmpi--2017--binary/include/H5public.h
+initialize_UVbackground_data.o: /cineca/prod/opt/libraries/hdf5/1.8.17/intelmpi--2017--binary/include/H5pubconf.h
+initialize_UVbackground_data.o: /cineca/prod/opt/libraries/hdf5/1.8.17/intelmpi--2017--binary/include/H5version.h
+initialize_UVbackground_data.o: /usr/include/limits.h
+initialize_UVbackground_data.o: /usr/include/bits/posix1_lim.h
+initialize_UVbackground_data.o: /usr/include/bits/local_lim.h
+initialize_UVbackground_data.o: /usr/include/linux/limits.h
+initialize_UVbackground_data.o: /usr/include/bits/posix2_lim.h
+initialize_UVbackground_data.o: /usr/include/stdint.h
+initialize_UVbackground_data.o: /usr/include/bits/wchar.h
+initialize_UVbackground_data.o: /usr/include/inttypes.h
+initialize_UVbackground_data.o: /cineca/prod/opt/libraries/hdf5/1.8.17/intelmpi--2017--binary/include/H5api_adpt.h
+initialize_UVbackground_data.o: /cineca/prod/opt/libraries/hdf5/1.8.17/intelmpi--2017--binary/include/H5Apublic.h
+initialize_UVbackground_data.o: /cineca/prod/opt/libraries/hdf5/1.8.17/intelmpi--2017--binary/include/H5Ipublic.h
+initialize_UVbackground_data.o: /cineca/prod/opt/libraries/hdf5/1.8.17/intelmpi--2017--binary/include/H5Opublic.h
+initialize_UVbackground_data.o: /cineca/prod/opt/libraries/hdf5/1.8.17/intelmpi--2017--binary/include/H5Lpublic.h
+initialize_UVbackground_data.o: /cineca/prod/opt/libraries/hdf5/1.8.17/intelmpi--2017--binary/include/H5Tpublic.h
+initialize_UVbackground_data.o: /cineca/prod/opt/libraries/hdf5/1.8.17/intelmpi--2017--binary/include/H5ACpublic.h
+initialize_UVbackground_data.o: /cineca/prod/opt/libraries/hdf5/1.8.17/intelmpi--2017--binary/include/H5Cpublic.h
+initialize_UVbackground_data.o: /cineca/prod/opt/libraries/hdf5/1.8.17/intelmpi--2017--binary/include/H5Dpublic.h
+initialize_UVbackground_data.o: /cineca/prod/opt/libraries/hdf5/1.8.17/intelmpi--2017--binary/include/H5Epublic.h
+initialize_UVbackground_data.o: /usr/include/stdio.h /usr/include/libio.h
+initialize_UVbackground_data.o: /usr/include/_G_config.h /usr/include/wchar.h
+initialize_UVbackground_data.o: /usr/include/bits/stdio_lim.h
+initialize_UVbackground_data.o: /usr/include/bits/sys_errlist.h
+initialize_UVbackground_data.o: /cineca/prod/opt/libraries/hdf5/1.8.17/intelmpi--2017--binary/include/H5Epubgen.h
+initialize_UVbackground_data.o: /cineca/prod/opt/libraries/hdf5/1.8.17/intelmpi--2017--binary/include/H5Fpublic.h
+initialize_UVbackground_data.o: /cineca/prod/opt/libraries/hdf5/1.8.17/intelmpi--2017--binary/include/H5FDpublic.h
+initialize_UVbackground_data.o: /cineca/prod/opt/libraries/hdf5/1.8.17/intelmpi--2017--binary/include/H5Gpublic.h
+initialize_UVbackground_data.o: /cineca/prod/opt/libraries/hdf5/1.8.17/intelmpi--2017--binary/include/H5MMpublic.h
+initialize_UVbackground_data.o: /cineca/prod/opt/libraries/hdf5/1.8.17/intelmpi--2017--binary/include/H5Ppublic.h
+initialize_UVbackground_data.o: /cineca/prod/opt/libraries/hdf5/1.8.17/intelmpi--2017--binary/include/H5Zpublic.h
+initialize_UVbackground_data.o: /cineca/prod/opt/libraries/hdf5/1.8.17/intelmpi--2017--binary/include/H5PLpublic.h
+initialize_UVbackground_data.o: /cineca/prod/opt/libraries/hdf5/1.8.17/intelmpi--2017--binary/include/H5Rpublic.h
+initialize_UVbackground_data.o: /cineca/prod/opt/libraries/hdf5/1.8.17/intelmpi--2017--binary/include/H5Spublic.h
+initialize_UVbackground_data.o: /cineca/prod/opt/libraries/hdf5/1.8.17/intelmpi--2017--binary/include/H5FDcore.h
+initialize_UVbackground_data.o: /cineca/prod/opt/libraries/hdf5/1.8.17/intelmpi--2017--binary/include/H5FDfamily.h
+initialize_UVbackground_data.o: /cineca/prod/opt/libraries/hdf5/1.8.17/intelmpi--2017--binary/include/H5FDlog.h
+initialize_UVbackground_data.o: /cineca/prod/opt/libraries/hdf5/1.8.17/intelmpi--2017--binary/include/H5FDmpi.h
+initialize_UVbackground_data.o: /cineca/prod/opt/libraries/hdf5/1.8.17/intelmpi--2017--binary/include/H5FDmpio.h
+initialize_UVbackground_data.o: /cineca/prod/opt/libraries/hdf5/1.8.17/intelmpi--2017--binary/include/H5FDmulti.h
+initialize_UVbackground_data.o: /cineca/prod/opt/libraries/hdf5/1.8.17/intelmpi--2017--binary/include/H5FDsec2.h
+initialize_UVbackground_data.o: /cineca/prod/opt/libraries/hdf5/1.8.17/intelmpi--2017--binary/include/H5FDstdio.h
+initialize_UVbackground_data.o: /cineca/prod/opt/libraries/hdf5/1.8.17/intelmpi--2017--binary/include/H5FDdirect.h
+initialize_UVbackground_data.o: grackle_macros.h grackle_types.h
+initialize_UVbackground_data.o: grackle_chemistry_data.h
 set_default_chemistry_parameters.o: /usr/include/string.h
-set_default_chemistry_parameters.o: /usr/include/_types.h
-set_default_chemistry_parameters.o: /usr/include/sys/_types.h
+set_default_chemistry_parameters.o: /usr/include/features.h
+set_default_chemistry_parameters.o: /usr/include/stdc-predef.h
 set_default_chemistry_parameters.o: /usr/include/sys/cdefs.h
-set_default_chemistry_parameters.o: /usr/include/sys/_symbol_aliasing.h
-set_default_chemistry_parameters.o: /usr/include/sys/_posix_availability.h
-set_default_chemistry_parameters.o: /usr/include/machine/_types.h
-set_default_chemistry_parameters.o: /usr/include/i386/_types.h
-set_default_chemistry_parameters.o: /usr/include/sys/_pthread/_pthread_types.h
-set_default_chemistry_parameters.o: /usr/include/Availability.h
-set_default_chemistry_parameters.o: /usr/include/AvailabilityInternal.h
-set_default_chemistry_parameters.o: /usr/include/sys/_types/_size_t.h
-set_default_chemistry_parameters.o: /usr/include/sys/_types/_null.h
-set_default_chemistry_parameters.o: /usr/include/sys/_types/_rsize_t.h
-set_default_chemistry_parameters.o: /usr/include/sys/_types/_errno_t.h
-set_default_chemistry_parameters.o: /usr/include/sys/_types/_ssize_t.h
-set_default_chemistry_parameters.o: /usr/include/strings.h
-set_default_chemistry_parameters.o: /usr/include/secure/_string.h
-set_default_chemistry_parameters.o: /usr/include/secure/_common.h
+set_default_chemistry_parameters.o: /usr/include/bits/wordsize.h
+set_default_chemistry_parameters.o: /usr/include/gnu/stubs.h
+set_default_chemistry_parameters.o: /usr/include/xlocale.h
 set_default_chemistry_parameters.o: /usr/include/stdio.h
-set_default_chemistry_parameters.o: /usr/include/sys/_types/_va_list.h
-set_default_chemistry_parameters.o: /usr/include/sys/stdio.h
-set_default_chemistry_parameters.o: /usr/include/sys/_types/_off_t.h
-set_default_chemistry_parameters.o: /usr/include/secure/_stdio.h
-set_default_chemistry_parameters.o: /usr/include/math.h grackle_macros.h
-set_default_chemistry_parameters.o: grackle_types.h grackle_chemistry_data.h
-solve_chemistry.o: /usr/include/stdio.h /usr/include/sys/cdefs.h
-solve_chemistry.o: /usr/include/sys/_symbol_aliasing.h
-solve_chemistry.o: /usr/include/sys/_posix_availability.h
-solve_chemistry.o: /usr/include/Availability.h
-solve_chemistry.o: /usr/include/AvailabilityInternal.h /usr/include/_types.h
-solve_chemistry.o: /usr/include/sys/_types.h /usr/include/machine/_types.h
-solve_chemistry.o: /usr/include/i386/_types.h
-solve_chemistry.o: /usr/include/sys/_pthread/_pthread_types.h
-solve_chemistry.o: /usr/include/sys/_types/_va_list.h
-solve_chemistry.o: /usr/include/sys/_types/_size_t.h
-solve_chemistry.o: /usr/include/sys/_types/_null.h /usr/include/sys/stdio.h
-solve_chemistry.o: /usr/include/sys/_types/_off_t.h
-solve_chemistry.o: /usr/include/sys/_types/_ssize_t.h
-solve_chemistry.o: /usr/include/secure/_stdio.h /usr/include/secure/_common.h
-solve_chemistry.o: /usr/include/math.h grackle_macros.h grackle_types.h
-solve_chemistry.o: grackle_chemistry_data.h phys_constants.h
-update_UVbackground_rates.o: /usr/include/string.h /usr/include/_types.h
-update_UVbackground_rates.o: /usr/include/sys/_types.h
+set_default_chemistry_parameters.o: /usr/include/bits/types.h
+set_default_chemistry_parameters.o: /usr/include/bits/typesizes.h
+set_default_chemistry_parameters.o: /usr/include/libio.h
+set_default_chemistry_parameters.o: /usr/include/_G_config.h
+set_default_chemistry_parameters.o: /usr/include/wchar.h
+set_default_chemistry_parameters.o: /usr/include/bits/stdio_lim.h
+set_default_chemistry_parameters.o: /usr/include/bits/sys_errlist.h
+set_default_chemistry_parameters.o: /usr/include/math.h
+set_default_chemistry_parameters.o: /usr/include/bits/huge_val.h
+set_default_chemistry_parameters.o: /usr/include/bits/huge_valf.h
+set_default_chemistry_parameters.o: /usr/include/bits/huge_vall.h
+set_default_chemistry_parameters.o: /usr/include/bits/inf.h
+set_default_chemistry_parameters.o: /usr/include/bits/nan.h
+set_default_chemistry_parameters.o: /usr/include/bits/mathdef.h
+set_default_chemistry_parameters.o: /usr/include/bits/mathcalls.h
+set_default_chemistry_parameters.o: grackle_macros.h grackle_types.h
+set_default_chemistry_parameters.o: grackle_chemistry_data.h
+solve_chemistry.o: /usr/include/stdio.h /usr/include/features.h
+solve_chemistry.o: /usr/include/stdc-predef.h /usr/include/sys/cdefs.h
+solve_chemistry.o: /usr/include/bits/wordsize.h /usr/include/gnu/stubs.h
+solve_chemistry.o: /usr/include/bits/types.h /usr/include/bits/typesizes.h
+solve_chemistry.o: /usr/include/libio.h /usr/include/_G_config.h
+solve_chemistry.o: /usr/include/wchar.h /usr/include/bits/stdio_lim.h
+solve_chemistry.o: /usr/include/bits/sys_errlist.h /usr/include/math.h
+solve_chemistry.o: /usr/include/bits/huge_val.h /usr/include/bits/huge_valf.h
+solve_chemistry.o: /usr/include/bits/huge_vall.h /usr/include/bits/inf.h
+solve_chemistry.o: /usr/include/bits/nan.h /usr/include/bits/mathdef.h
+solve_chemistry.o: /usr/include/bits/mathcalls.h grackle_macros.h
+solve_chemistry.o: grackle_types.h grackle_chemistry_data.h phys_constants.h
+update_UVbackground_rates.o: /usr/include/string.h /usr/include/features.h
+update_UVbackground_rates.o: /usr/include/stdc-predef.h
 update_UVbackground_rates.o: /usr/include/sys/cdefs.h
-update_UVbackground_rates.o: /usr/include/sys/_symbol_aliasing.h
-update_UVbackground_rates.o: /usr/include/sys/_posix_availability.h
-update_UVbackground_rates.o: /usr/include/machine/_types.h
-update_UVbackground_rates.o: /usr/include/i386/_types.h
-update_UVbackground_rates.o: /usr/include/sys/_pthread/_pthread_types.h
-update_UVbackground_rates.o: /usr/include/Availability.h
-update_UVbackground_rates.o: /usr/include/AvailabilityInternal.h
-update_UVbackground_rates.o: /usr/include/sys/_types/_size_t.h
-update_UVbackground_rates.o: /usr/include/sys/_types/_null.h
-update_UVbackground_rates.o: /usr/include/sys/_types/_rsize_t.h
-update_UVbackground_rates.o: /usr/include/sys/_types/_errno_t.h
-update_UVbackground_rates.o: /usr/include/sys/_types/_ssize_t.h
-update_UVbackground_rates.o: /usr/include/strings.h
-update_UVbackground_rates.o: /usr/include/secure/_string.h
-update_UVbackground_rates.o: /usr/include/secure/_common.h
-update_UVbackground_rates.o: /usr/include/stdio.h
-update_UVbackground_rates.o: /usr/include/sys/_types/_va_list.h
-update_UVbackground_rates.o: /usr/include/sys/stdio.h
-update_UVbackground_rates.o: /usr/include/sys/_types/_off_t.h
-update_UVbackground_rates.o: /usr/include/secure/_stdio.h
-update_UVbackground_rates.o: /usr/include/stdlib.h /usr/include/sys/wait.h
-update_UVbackground_rates.o: /usr/include/sys/_types/_pid_t.h
-update_UVbackground_rates.o: /usr/include/sys/_types/_id_t.h
-update_UVbackground_rates.o: /usr/include/sys/signal.h
-update_UVbackground_rates.o: /usr/include/sys/appleapiopts.h
-update_UVbackground_rates.o: /usr/include/machine/signal.h
-update_UVbackground_rates.o: /usr/include/i386/signal.h
-update_UVbackground_rates.o: /usr/include/machine/_mcontext.h
-update_UVbackground_rates.o: /usr/include/i386/_mcontext.h
-update_UVbackground_rates.o: /usr/include/mach/i386/_structs.h
-update_UVbackground_rates.o: /usr/include/sys/_pthread/_pthread_attr_t.h
-update_UVbackground_rates.o: /usr/include/sys/_types/_sigaltstack.h
-update_UVbackground_rates.o: /usr/include/sys/_types/_ucontext.h
-update_UVbackground_rates.o: /usr/include/sys/_types/_sigset_t.h
-update_UVbackground_rates.o: /usr/include/sys/_types/_uid_t.h
-update_UVbackground_rates.o: /usr/include/sys/resource.h
-update_UVbackground_rates.o: /usr/include/stdint.h
-update_UVbackground_rates.o: /usr/include/sys/_types/_int8_t.h
-update_UVbackground_rates.o: /usr/include/sys/_types/_int16_t.h
-update_UVbackground_rates.o: /usr/include/sys/_types/_int32_t.h
-update_UVbackground_rates.o: /usr/include/sys/_types/_int64_t.h
-update_UVbackground_rates.o: /usr/include/_types/_uint8_t.h
-update_UVbackground_rates.o: /usr/include/_types/_uint16_t.h
-update_UVbackground_rates.o: /usr/include/_types/_uint32_t.h
-update_UVbackground_rates.o: /usr/include/_types/_uint64_t.h
-update_UVbackground_rates.o: /usr/include/sys/_types/_intptr_t.h
-update_UVbackground_rates.o: /usr/include/sys/_types/_uintptr_t.h
-update_UVbackground_rates.o: /usr/include/_types/_intmax_t.h
-update_UVbackground_rates.o: /usr/include/_types/_uintmax_t.h
-update_UVbackground_rates.o: /usr/include/sys/_types/_timeval.h
-update_UVbackground_rates.o: /usr/include/machine/endian.h
-update_UVbackground_rates.o: /usr/include/i386/endian.h
-update_UVbackground_rates.o: /usr/include/sys/_endian.h
-update_UVbackground_rates.o: /usr/include/libkern/_OSByteOrder.h
-update_UVbackground_rates.o: /usr/include/libkern/i386/_OSByteOrder.h
+update_UVbackground_rates.o: /usr/include/bits/wordsize.h
+update_UVbackground_rates.o: /usr/include/gnu/stubs.h /usr/include/xlocale.h
+update_UVbackground_rates.o: /usr/include/stdio.h /usr/include/bits/types.h
+update_UVbackground_rates.o: /usr/include/bits/typesizes.h
+update_UVbackground_rates.o: /usr/include/libio.h /usr/include/_G_config.h
+update_UVbackground_rates.o: /usr/include/wchar.h
+update_UVbackground_rates.o: /usr/include/bits/stdio_lim.h
+update_UVbackground_rates.o: /usr/include/bits/sys_errlist.h
+update_UVbackground_rates.o: /usr/include/stdlib.h
+update_UVbackground_rates.o: /usr/include/bits/waitflags.h
+update_UVbackground_rates.o: /usr/include/bits/waitstatus.h
+update_UVbackground_rates.o: /usr/include/endian.h /usr/include/bits/endian.h
+update_UVbackground_rates.o: /usr/include/bits/byteswap.h
+update_UVbackground_rates.o: /usr/include/bits/byteswap-16.h
+update_UVbackground_rates.o: /usr/include/sys/types.h /usr/include/time.h
+update_UVbackground_rates.o: /usr/include/sys/select.h
+update_UVbackground_rates.o: /usr/include/bits/select.h
+update_UVbackground_rates.o: /usr/include/bits/sigset.h
+update_UVbackground_rates.o: /usr/include/bits/time.h
+update_UVbackground_rates.o: /usr/include/sys/sysmacros.h
+update_UVbackground_rates.o: /usr/include/bits/pthreadtypes.h
 update_UVbackground_rates.o: /usr/include/alloca.h
-update_UVbackground_rates.o: /usr/include/sys/_types/_ct_rune_t.h
-update_UVbackground_rates.o: /usr/include/sys/_types/_rune_t.h
-update_UVbackground_rates.o: /usr/include/sys/_types/_wchar_t.h
-update_UVbackground_rates.o: /usr/include/machine/types.h
-update_UVbackground_rates.o: /usr/include/i386/types.h
-update_UVbackground_rates.o: /usr/include/sys/_types/_u_int8_t.h
-update_UVbackground_rates.o: /usr/include/sys/_types/_u_int16_t.h
-update_UVbackground_rates.o: /usr/include/sys/_types/_u_int32_t.h
-update_UVbackground_rates.o: /usr/include/sys/_types/_u_int64_t.h
-update_UVbackground_rates.o: /usr/include/sys/_types/_dev_t.h
-update_UVbackground_rates.o: /usr/include/sys/_types/_mode_t.h
-update_UVbackground_rates.o: /usr/include/math.h grackle_macros.h
+update_UVbackground_rates.o: /usr/include/bits/stdlib-float.h
+update_UVbackground_rates.o: /usr/include/math.h /usr/include/bits/huge_val.h
+update_UVbackground_rates.o: /usr/include/bits/huge_valf.h
+update_UVbackground_rates.o: /usr/include/bits/huge_vall.h
+update_UVbackground_rates.o: /usr/include/bits/inf.h /usr/include/bits/nan.h
+update_UVbackground_rates.o: /usr/include/bits/mathdef.h
+update_UVbackground_rates.o: /usr/include/bits/mathcalls.h grackle_macros.h
 update_UVbackground_rates.o: grackle_types.h grackle_chemistry_data.h
 
 calc_rates_g.o: phys_const.def grackle_fortran_types.def
@@ -746,778 +375,384 @@ solve_rate_cool_g.o: phys_const.def grackle_fortran_types.def
 
 grackle.o: grackle_types.h grackle_chemistry_data.h
 
-auto_show_config.o: /usr/include/stdio.h /usr/include/sys/cdefs.h
-auto_show_config.o: /usr/include/sys/_symbol_aliasing.h
-auto_show_config.o: /usr/include/sys/_posix_availability.h
-auto_show_config.o: /usr/include/Availability.h
-auto_show_config.o: /usr/include/AvailabilityInternal.h /usr/include/_types.h
-auto_show_config.o: /usr/include/sys/_types.h /usr/include/machine/_types.h
-auto_show_config.o: /usr/include/i386/_types.h
-auto_show_config.o: /usr/include/sys/_pthread/_pthread_types.h
-auto_show_config.o: /usr/include/sys/_types/_va_list.h
-auto_show_config.o: /usr/include/sys/_types/_size_t.h
-auto_show_config.o: /usr/include/sys/_types/_null.h /usr/include/sys/stdio.h
-auto_show_config.o: /usr/include/sys/_types/_off_t.h
-auto_show_config.o: /usr/include/sys/_types/_ssize_t.h
-auto_show_config.o: /usr/include/secure/_stdio.h
-auto_show_config.o: /usr/include/secure/_common.h
-auto_show_flags.o: /usr/include/stdio.h /usr/include/sys/cdefs.h
-auto_show_flags.o: /usr/include/sys/_symbol_aliasing.h
-auto_show_flags.o: /usr/include/sys/_posix_availability.h
-auto_show_flags.o: /usr/include/Availability.h
-auto_show_flags.o: /usr/include/AvailabilityInternal.h /usr/include/_types.h
-auto_show_flags.o: /usr/include/sys/_types.h /usr/include/machine/_types.h
-auto_show_flags.o: /usr/include/i386/_types.h
-auto_show_flags.o: /usr/include/sys/_pthread/_pthread_types.h
-auto_show_flags.o: /usr/include/sys/_types/_va_list.h
-auto_show_flags.o: /usr/include/sys/_types/_size_t.h
-auto_show_flags.o: /usr/include/sys/_types/_null.h /usr/include/sys/stdio.h
-auto_show_flags.o: /usr/include/sys/_types/_off_t.h
-auto_show_flags.o: /usr/include/sys/_types/_ssize_t.h
-auto_show_flags.o: /usr/include/secure/_stdio.h /usr/include/secure/_common.h
-auto_show_version.o: /usr/include/stdio.h /usr/include/sys/cdefs.h
-auto_show_version.o: /usr/include/sys/_symbol_aliasing.h
-auto_show_version.o: /usr/include/sys/_posix_availability.h
-auto_show_version.o: /usr/include/Availability.h
-auto_show_version.o: /usr/include/AvailabilityInternal.h
-auto_show_version.o: /usr/include/_types.h /usr/include/sys/_types.h
-auto_show_version.o: /usr/include/machine/_types.h /usr/include/i386/_types.h
-auto_show_version.o: /usr/include/sys/_pthread/_pthread_types.h
-auto_show_version.o: /usr/include/sys/_types/_va_list.h
-auto_show_version.o: /usr/include/sys/_types/_size_t.h
-auto_show_version.o: /usr/include/sys/_types/_null.h /usr/include/sys/stdio.h
-auto_show_version.o: /usr/include/sys/_types/_off_t.h
-auto_show_version.o: /usr/include/sys/_types/_ssize_t.h
-auto_show_version.o: /usr/include/secure/_stdio.h
-auto_show_version.o: /usr/include/secure/_common.h
-calculate_cooling_time.o: /usr/include/stdlib.h /usr/include/Availability.h
-calculate_cooling_time.o: /usr/include/AvailabilityInternal.h
-calculate_cooling_time.o: /usr/include/_types.h /usr/include/sys/_types.h
-calculate_cooling_time.o: /usr/include/sys/cdefs.h
-calculate_cooling_time.o: /usr/include/sys/_symbol_aliasing.h
-calculate_cooling_time.o: /usr/include/sys/_posix_availability.h
-calculate_cooling_time.o: /usr/include/machine/_types.h
-calculate_cooling_time.o: /usr/include/i386/_types.h
-calculate_cooling_time.o: /usr/include/sys/_pthread/_pthread_types.h
-calculate_cooling_time.o: /usr/include/sys/wait.h
-calculate_cooling_time.o: /usr/include/sys/_types/_pid_t.h
-calculate_cooling_time.o: /usr/include/sys/_types/_id_t.h
-calculate_cooling_time.o: /usr/include/sys/signal.h
-calculate_cooling_time.o: /usr/include/sys/appleapiopts.h
-calculate_cooling_time.o: /usr/include/machine/signal.h
-calculate_cooling_time.o: /usr/include/i386/signal.h
-calculate_cooling_time.o: /usr/include/machine/_mcontext.h
-calculate_cooling_time.o: /usr/include/i386/_mcontext.h
-calculate_cooling_time.o: /usr/include/mach/i386/_structs.h
-calculate_cooling_time.o: /usr/include/sys/_pthread/_pthread_attr_t.h
-calculate_cooling_time.o: /usr/include/sys/_types/_sigaltstack.h
-calculate_cooling_time.o: /usr/include/sys/_types/_ucontext.h
-calculate_cooling_time.o: /usr/include/sys/_types/_sigset_t.h
-calculate_cooling_time.o: /usr/include/sys/_types/_size_t.h
-calculate_cooling_time.o: /usr/include/sys/_types/_uid_t.h
-calculate_cooling_time.o: /usr/include/sys/resource.h /usr/include/stdint.h
-calculate_cooling_time.o: /usr/include/sys/_types/_int8_t.h
-calculate_cooling_time.o: /usr/include/sys/_types/_int16_t.h
-calculate_cooling_time.o: /usr/include/sys/_types/_int32_t.h
-calculate_cooling_time.o: /usr/include/sys/_types/_int64_t.h
-calculate_cooling_time.o: /usr/include/_types/_uint8_t.h
-calculate_cooling_time.o: /usr/include/_types/_uint16_t.h
-calculate_cooling_time.o: /usr/include/_types/_uint32_t.h
-calculate_cooling_time.o: /usr/include/_types/_uint64_t.h
-calculate_cooling_time.o: /usr/include/sys/_types/_intptr_t.h
-calculate_cooling_time.o: /usr/include/sys/_types/_uintptr_t.h
-calculate_cooling_time.o: /usr/include/_types/_intmax_t.h
-calculate_cooling_time.o: /usr/include/_types/_uintmax_t.h
-calculate_cooling_time.o: /usr/include/sys/_types/_timeval.h
-calculate_cooling_time.o: /usr/include/machine/endian.h
-calculate_cooling_time.o: /usr/include/i386/endian.h
-calculate_cooling_time.o: /usr/include/sys/_endian.h
-calculate_cooling_time.o: /usr/include/libkern/_OSByteOrder.h
-calculate_cooling_time.o: /usr/include/libkern/i386/_OSByteOrder.h
+auto_show_config.o: /usr/include/stdio.h /usr/include/features.h
+auto_show_config.o: /usr/include/stdc-predef.h /usr/include/sys/cdefs.h
+auto_show_config.o: /usr/include/bits/wordsize.h /usr/include/gnu/stubs.h
+auto_show_config.o: /usr/include/bits/types.h /usr/include/bits/typesizes.h
+auto_show_config.o: /usr/include/libio.h /usr/include/_G_config.h
+auto_show_config.o: /usr/include/wchar.h /usr/include/bits/stdio_lim.h
+auto_show_config.o: /usr/include/bits/sys_errlist.h
+auto_show_flags.o: /usr/include/stdio.h /usr/include/features.h
+auto_show_flags.o: /usr/include/stdc-predef.h /usr/include/sys/cdefs.h
+auto_show_flags.o: /usr/include/bits/wordsize.h /usr/include/gnu/stubs.h
+auto_show_flags.o: /usr/include/bits/types.h /usr/include/bits/typesizes.h
+auto_show_flags.o: /usr/include/libio.h /usr/include/_G_config.h
+auto_show_flags.o: /usr/include/wchar.h /usr/include/bits/stdio_lim.h
+auto_show_flags.o: /usr/include/bits/sys_errlist.h
+auto_show_version.o: /usr/include/stdio.h /usr/include/features.h
+auto_show_version.o: /usr/include/stdc-predef.h /usr/include/sys/cdefs.h
+auto_show_version.o: /usr/include/bits/wordsize.h /usr/include/gnu/stubs.h
+auto_show_version.o: /usr/include/bits/types.h /usr/include/bits/typesizes.h
+auto_show_version.o: /usr/include/libio.h /usr/include/_G_config.h
+auto_show_version.o: /usr/include/wchar.h /usr/include/bits/stdio_lim.h
+auto_show_version.o: /usr/include/bits/sys_errlist.h
+calculate_cooling_time.o: /usr/include/stdlib.h /usr/include/features.h
+calculate_cooling_time.o: /usr/include/stdc-predef.h /usr/include/sys/cdefs.h
+calculate_cooling_time.o: /usr/include/bits/wordsize.h
+calculate_cooling_time.o: /usr/include/gnu/stubs.h
+calculate_cooling_time.o: /usr/include/bits/waitflags.h
+calculate_cooling_time.o: /usr/include/bits/waitstatus.h
+calculate_cooling_time.o: /usr/include/endian.h /usr/include/bits/endian.h
+calculate_cooling_time.o: /usr/include/bits/byteswap.h
+calculate_cooling_time.o: /usr/include/bits/types.h
+calculate_cooling_time.o: /usr/include/bits/typesizes.h
+calculate_cooling_time.o: /usr/include/bits/byteswap-16.h
+calculate_cooling_time.o: /usr/include/sys/types.h /usr/include/time.h
+calculate_cooling_time.o: /usr/include/sys/select.h
+calculate_cooling_time.o: /usr/include/bits/select.h
+calculate_cooling_time.o: /usr/include/bits/sigset.h /usr/include/bits/time.h
+calculate_cooling_time.o: /usr/include/sys/sysmacros.h
+calculate_cooling_time.o: /usr/include/bits/pthreadtypes.h
 calculate_cooling_time.o: /usr/include/alloca.h
-calculate_cooling_time.o: /usr/include/sys/_types/_ct_rune_t.h
-calculate_cooling_time.o: /usr/include/sys/_types/_rune_t.h
-calculate_cooling_time.o: /usr/include/sys/_types/_wchar_t.h
-calculate_cooling_time.o: /usr/include/sys/_types/_null.h
-calculate_cooling_time.o: /usr/include/machine/types.h
-calculate_cooling_time.o: /usr/include/i386/types.h
-calculate_cooling_time.o: /usr/include/sys/_types/_u_int8_t.h
-calculate_cooling_time.o: /usr/include/sys/_types/_u_int16_t.h
-calculate_cooling_time.o: /usr/include/sys/_types/_u_int32_t.h
-calculate_cooling_time.o: /usr/include/sys/_types/_u_int64_t.h
-calculate_cooling_time.o: /usr/include/sys/_types/_dev_t.h
-calculate_cooling_time.o: /usr/include/sys/_types/_mode_t.h
-calculate_cooling_time.o: /usr/include/stdio.h
-calculate_cooling_time.o: /usr/include/sys/_types/_va_list.h
-calculate_cooling_time.o: /usr/include/sys/stdio.h
-calculate_cooling_time.o: /usr/include/sys/_types/_off_t.h
-calculate_cooling_time.o: /usr/include/sys/_types/_ssize_t.h
-calculate_cooling_time.o: /usr/include/secure/_stdio.h
-calculate_cooling_time.o: /usr/include/secure/_common.h /usr/include/math.h
-calculate_cooling_time.o: grackle_macros.h grackle_types.h
-calculate_cooling_time.o: grackle_chemistry_data.h phys_constants.h
-calculate_gamma.o: /usr/include/stdlib.h /usr/include/Availability.h
-calculate_gamma.o: /usr/include/AvailabilityInternal.h /usr/include/_types.h
-calculate_gamma.o: /usr/include/sys/_types.h /usr/include/sys/cdefs.h
-calculate_gamma.o: /usr/include/sys/_symbol_aliasing.h
-calculate_gamma.o: /usr/include/sys/_posix_availability.h
-calculate_gamma.o: /usr/include/machine/_types.h /usr/include/i386/_types.h
-calculate_gamma.o: /usr/include/sys/_pthread/_pthread_types.h
-calculate_gamma.o: /usr/include/sys/wait.h /usr/include/sys/_types/_pid_t.h
-calculate_gamma.o: /usr/include/sys/_types/_id_t.h /usr/include/sys/signal.h
-calculate_gamma.o: /usr/include/sys/appleapiopts.h
-calculate_gamma.o: /usr/include/machine/signal.h /usr/include/i386/signal.h
-calculate_gamma.o: /usr/include/machine/_mcontext.h
-calculate_gamma.o: /usr/include/i386/_mcontext.h
-calculate_gamma.o: /usr/include/mach/i386/_structs.h
-calculate_gamma.o: /usr/include/sys/_pthread/_pthread_attr_t.h
-calculate_gamma.o: /usr/include/sys/_types/_sigaltstack.h
-calculate_gamma.o: /usr/include/sys/_types/_ucontext.h
-calculate_gamma.o: /usr/include/sys/_types/_sigset_t.h
-calculate_gamma.o: /usr/include/sys/_types/_size_t.h
-calculate_gamma.o: /usr/include/sys/_types/_uid_t.h
-calculate_gamma.o: /usr/include/sys/resource.h /usr/include/stdint.h
-calculate_gamma.o: /usr/include/sys/_types/_int8_t.h
-calculate_gamma.o: /usr/include/sys/_types/_int16_t.h
-calculate_gamma.o: /usr/include/sys/_types/_int32_t.h
-calculate_gamma.o: /usr/include/sys/_types/_int64_t.h
-calculate_gamma.o: /usr/include/_types/_uint8_t.h
-calculate_gamma.o: /usr/include/_types/_uint16_t.h
-calculate_gamma.o: /usr/include/_types/_uint32_t.h
-calculate_gamma.o: /usr/include/_types/_uint64_t.h
-calculate_gamma.o: /usr/include/sys/_types/_intptr_t.h
-calculate_gamma.o: /usr/include/sys/_types/_uintptr_t.h
-calculate_gamma.o: /usr/include/_types/_intmax_t.h
-calculate_gamma.o: /usr/include/_types/_uintmax_t.h
-calculate_gamma.o: /usr/include/sys/_types/_timeval.h
-calculate_gamma.o: /usr/include/machine/endian.h /usr/include/i386/endian.h
-calculate_gamma.o: /usr/include/sys/_endian.h
-calculate_gamma.o: /usr/include/libkern/_OSByteOrder.h
-calculate_gamma.o: /usr/include/libkern/i386/_OSByteOrder.h
-calculate_gamma.o: /usr/include/alloca.h /usr/include/sys/_types/_ct_rune_t.h
-calculate_gamma.o: /usr/include/sys/_types/_rune_t.h
-calculate_gamma.o: /usr/include/sys/_types/_wchar_t.h
-calculate_gamma.o: /usr/include/sys/_types/_null.h
-calculate_gamma.o: /usr/include/machine/types.h /usr/include/i386/types.h
-calculate_gamma.o: /usr/include/sys/_types/_u_int8_t.h
-calculate_gamma.o: /usr/include/sys/_types/_u_int16_t.h
-calculate_gamma.o: /usr/include/sys/_types/_u_int32_t.h
-calculate_gamma.o: /usr/include/sys/_types/_u_int64_t.h
-calculate_gamma.o: /usr/include/sys/_types/_dev_t.h
-calculate_gamma.o: /usr/include/sys/_types/_mode_t.h /usr/include/stdio.h
-calculate_gamma.o: /usr/include/sys/_types/_va_list.h
-calculate_gamma.o: /usr/include/sys/stdio.h /usr/include/sys/_types/_off_t.h
-calculate_gamma.o: /usr/include/sys/_types/_ssize_t.h
-calculate_gamma.o: /usr/include/secure/_stdio.h /usr/include/secure/_common.h
-calculate_gamma.o: /usr/include/math.h grackle_macros.h grackle_types.h
-calculate_gamma.o: grackle_chemistry_data.h phys_constants.h
-calculate_pressure.o: /usr/include/stdlib.h /usr/include/Availability.h
-calculate_pressure.o: /usr/include/AvailabilityInternal.h
-calculate_pressure.o: /usr/include/_types.h /usr/include/sys/_types.h
-calculate_pressure.o: /usr/include/sys/cdefs.h
-calculate_pressure.o: /usr/include/sys/_symbol_aliasing.h
-calculate_pressure.o: /usr/include/sys/_posix_availability.h
-calculate_pressure.o: /usr/include/machine/_types.h
-calculate_pressure.o: /usr/include/i386/_types.h
-calculate_pressure.o: /usr/include/sys/_pthread/_pthread_types.h
-calculate_pressure.o: /usr/include/sys/wait.h
-calculate_pressure.o: /usr/include/sys/_types/_pid_t.h
-calculate_pressure.o: /usr/include/sys/_types/_id_t.h
-calculate_pressure.o: /usr/include/sys/signal.h
-calculate_pressure.o: /usr/include/sys/appleapiopts.h
-calculate_pressure.o: /usr/include/machine/signal.h
-calculate_pressure.o: /usr/include/i386/signal.h
-calculate_pressure.o: /usr/include/machine/_mcontext.h
-calculate_pressure.o: /usr/include/i386/_mcontext.h
-calculate_pressure.o: /usr/include/mach/i386/_structs.h
-calculate_pressure.o: /usr/include/sys/_pthread/_pthread_attr_t.h
-calculate_pressure.o: /usr/include/sys/_types/_sigaltstack.h
-calculate_pressure.o: /usr/include/sys/_types/_ucontext.h
-calculate_pressure.o: /usr/include/sys/_types/_sigset_t.h
-calculate_pressure.o: /usr/include/sys/_types/_size_t.h
-calculate_pressure.o: /usr/include/sys/_types/_uid_t.h
-calculate_pressure.o: /usr/include/sys/resource.h /usr/include/stdint.h
-calculate_pressure.o: /usr/include/sys/_types/_int8_t.h
-calculate_pressure.o: /usr/include/sys/_types/_int16_t.h
-calculate_pressure.o: /usr/include/sys/_types/_int32_t.h
-calculate_pressure.o: /usr/include/sys/_types/_int64_t.h
-calculate_pressure.o: /usr/include/_types/_uint8_t.h
-calculate_pressure.o: /usr/include/_types/_uint16_t.h
-calculate_pressure.o: /usr/include/_types/_uint32_t.h
-calculate_pressure.o: /usr/include/_types/_uint64_t.h
-calculate_pressure.o: /usr/include/sys/_types/_intptr_t.h
-calculate_pressure.o: /usr/include/sys/_types/_uintptr_t.h
-calculate_pressure.o: /usr/include/_types/_intmax_t.h
-calculate_pressure.o: /usr/include/_types/_uintmax_t.h
-calculate_pressure.o: /usr/include/sys/_types/_timeval.h
-calculate_pressure.o: /usr/include/machine/endian.h
-calculate_pressure.o: /usr/include/i386/endian.h /usr/include/sys/_endian.h
-calculate_pressure.o: /usr/include/libkern/_OSByteOrder.h
-calculate_pressure.o: /usr/include/libkern/i386/_OSByteOrder.h
-calculate_pressure.o: /usr/include/alloca.h
-calculate_pressure.o: /usr/include/sys/_types/_ct_rune_t.h
-calculate_pressure.o: /usr/include/sys/_types/_rune_t.h
-calculate_pressure.o: /usr/include/sys/_types/_wchar_t.h
-calculate_pressure.o: /usr/include/sys/_types/_null.h
-calculate_pressure.o: /usr/include/machine/types.h /usr/include/i386/types.h
-calculate_pressure.o: /usr/include/sys/_types/_u_int8_t.h
-calculate_pressure.o: /usr/include/sys/_types/_u_int16_t.h
-calculate_pressure.o: /usr/include/sys/_types/_u_int32_t.h
-calculate_pressure.o: /usr/include/sys/_types/_u_int64_t.h
-calculate_pressure.o: /usr/include/sys/_types/_dev_t.h
-calculate_pressure.o: /usr/include/sys/_types/_mode_t.h /usr/include/stdio.h
-calculate_pressure.o: /usr/include/sys/_types/_va_list.h
-calculate_pressure.o: /usr/include/sys/stdio.h
-calculate_pressure.o: /usr/include/sys/_types/_off_t.h
-calculate_pressure.o: /usr/include/sys/_types/_ssize_t.h
-calculate_pressure.o: /usr/include/secure/_stdio.h
-calculate_pressure.o: /usr/include/secure/_common.h /usr/include/math.h
-calculate_pressure.o: grackle_macros.h grackle_types.h
-calculate_pressure.o: grackle_chemistry_data.h phys_constants.h
-calculate_temperature.o: /usr/include/stdlib.h /usr/include/Availability.h
-calculate_temperature.o: /usr/include/AvailabilityInternal.h
-calculate_temperature.o: /usr/include/_types.h /usr/include/sys/_types.h
-calculate_temperature.o: /usr/include/sys/cdefs.h
-calculate_temperature.o: /usr/include/sys/_symbol_aliasing.h
-calculate_temperature.o: /usr/include/sys/_posix_availability.h
-calculate_temperature.o: /usr/include/machine/_types.h
-calculate_temperature.o: /usr/include/i386/_types.h
-calculate_temperature.o: /usr/include/sys/_pthread/_pthread_types.h
-calculate_temperature.o: /usr/include/sys/wait.h
-calculate_temperature.o: /usr/include/sys/_types/_pid_t.h
-calculate_temperature.o: /usr/include/sys/_types/_id_t.h
-calculate_temperature.o: /usr/include/sys/signal.h
-calculate_temperature.o: /usr/include/sys/appleapiopts.h
-calculate_temperature.o: /usr/include/machine/signal.h
-calculate_temperature.o: /usr/include/i386/signal.h
-calculate_temperature.o: /usr/include/machine/_mcontext.h
-calculate_temperature.o: /usr/include/i386/_mcontext.h
-calculate_temperature.o: /usr/include/mach/i386/_structs.h
-calculate_temperature.o: /usr/include/sys/_pthread/_pthread_attr_t.h
-calculate_temperature.o: /usr/include/sys/_types/_sigaltstack.h
-calculate_temperature.o: /usr/include/sys/_types/_ucontext.h
-calculate_temperature.o: /usr/include/sys/_types/_sigset_t.h
-calculate_temperature.o: /usr/include/sys/_types/_size_t.h
-calculate_temperature.o: /usr/include/sys/_types/_uid_t.h
-calculate_temperature.o: /usr/include/sys/resource.h /usr/include/stdint.h
-calculate_temperature.o: /usr/include/sys/_types/_int8_t.h
-calculate_temperature.o: /usr/include/sys/_types/_int16_t.h
-calculate_temperature.o: /usr/include/sys/_types/_int32_t.h
-calculate_temperature.o: /usr/include/sys/_types/_int64_t.h
-calculate_temperature.o: /usr/include/_types/_uint8_t.h
-calculate_temperature.o: /usr/include/_types/_uint16_t.h
-calculate_temperature.o: /usr/include/_types/_uint32_t.h
-calculate_temperature.o: /usr/include/_types/_uint64_t.h
-calculate_temperature.o: /usr/include/sys/_types/_intptr_t.h
-calculate_temperature.o: /usr/include/sys/_types/_uintptr_t.h
-calculate_temperature.o: /usr/include/_types/_intmax_t.h
-calculate_temperature.o: /usr/include/_types/_uintmax_t.h
-calculate_temperature.o: /usr/include/sys/_types/_timeval.h
-calculate_temperature.o: /usr/include/machine/endian.h
-calculate_temperature.o: /usr/include/i386/endian.h
-calculate_temperature.o: /usr/include/sys/_endian.h
-calculate_temperature.o: /usr/include/libkern/_OSByteOrder.h
-calculate_temperature.o: /usr/include/libkern/i386/_OSByteOrder.h
+calculate_cooling_time.o: /usr/include/bits/stdlib-float.h
+calculate_cooling_time.o: /usr/include/stdio.h /usr/include/libio.h
+calculate_cooling_time.o: /usr/include/_G_config.h /usr/include/wchar.h
+calculate_cooling_time.o: /usr/include/bits/stdio_lim.h
+calculate_cooling_time.o: /usr/include/bits/sys_errlist.h /usr/include/math.h
+calculate_cooling_time.o: /usr/include/bits/huge_val.h
+calculate_cooling_time.o: /usr/include/bits/huge_valf.h
+calculate_cooling_time.o: /usr/include/bits/huge_vall.h
+calculate_cooling_time.o: /usr/include/bits/inf.h /usr/include/bits/nan.h
+calculate_cooling_time.o: /usr/include/bits/mathdef.h
+calculate_cooling_time.o: /usr/include/bits/mathcalls.h grackle_macros.h
+calculate_cooling_time.o: grackle_types.h grackle_chemistry_data.h
+calculate_cooling_time.o: phys_constants.h
+calculate_gamma.o: /usr/include/stdlib.h /usr/include/features.h
+calculate_gamma.o: /usr/include/stdc-predef.h /usr/include/sys/cdefs.h
+calculate_gamma.o: /usr/include/bits/wordsize.h /usr/include/gnu/stubs.h
+calculate_gamma.o: /usr/include/bits/waitflags.h
+calculate_gamma.o: /usr/include/bits/waitstatus.h /usr/include/endian.h
+calculate_gamma.o: /usr/include/bits/endian.h /usr/include/bits/byteswap.h
+calculate_gamma.o: /usr/include/bits/types.h /usr/include/bits/typesizes.h
+calculate_gamma.o: /usr/include/bits/byteswap-16.h /usr/include/sys/types.h
+calculate_gamma.o: /usr/include/time.h /usr/include/sys/select.h
+calculate_gamma.o: /usr/include/bits/select.h /usr/include/bits/sigset.h
+calculate_gamma.o: /usr/include/bits/time.h /usr/include/sys/sysmacros.h
+calculate_gamma.o: /usr/include/bits/pthreadtypes.h /usr/include/alloca.h
+calculate_gamma.o: /usr/include/bits/stdlib-float.h /usr/include/stdio.h
+calculate_gamma.o: /usr/include/libio.h /usr/include/_G_config.h
+calculate_gamma.o: /usr/include/wchar.h /usr/include/bits/stdio_lim.h
+calculate_gamma.o: /usr/include/bits/sys_errlist.h /usr/include/math.h
+calculate_gamma.o: /usr/include/bits/huge_val.h /usr/include/bits/huge_valf.h
+calculate_gamma.o: /usr/include/bits/huge_vall.h /usr/include/bits/inf.h
+calculate_gamma.o: /usr/include/bits/nan.h /usr/include/bits/mathdef.h
+calculate_gamma.o: /usr/include/bits/mathcalls.h grackle_macros.h
+calculate_gamma.o: grackle_types.h grackle_chemistry_data.h phys_constants.h
+calculate_pressure.o: /usr/include/stdlib.h /usr/include/features.h
+calculate_pressure.o: /usr/include/stdc-predef.h /usr/include/sys/cdefs.h
+calculate_pressure.o: /usr/include/bits/wordsize.h /usr/include/gnu/stubs.h
+calculate_pressure.o: /usr/include/bits/waitflags.h
+calculate_pressure.o: /usr/include/bits/waitstatus.h /usr/include/endian.h
+calculate_pressure.o: /usr/include/bits/endian.h /usr/include/bits/byteswap.h
+calculate_pressure.o: /usr/include/bits/types.h /usr/include/bits/typesizes.h
+calculate_pressure.o: /usr/include/bits/byteswap-16.h
+calculate_pressure.o: /usr/include/sys/types.h /usr/include/time.h
+calculate_pressure.o: /usr/include/sys/select.h /usr/include/bits/select.h
+calculate_pressure.o: /usr/include/bits/sigset.h /usr/include/bits/time.h
+calculate_pressure.o: /usr/include/sys/sysmacros.h
+calculate_pressure.o: /usr/include/bits/pthreadtypes.h /usr/include/alloca.h
+calculate_pressure.o: /usr/include/bits/stdlib-float.h /usr/include/stdio.h
+calculate_pressure.o: /usr/include/libio.h /usr/include/_G_config.h
+calculate_pressure.o: /usr/include/wchar.h /usr/include/bits/stdio_lim.h
+calculate_pressure.o: /usr/include/bits/sys_errlist.h /usr/include/math.h
+calculate_pressure.o: /usr/include/bits/huge_val.h
+calculate_pressure.o: /usr/include/bits/huge_valf.h
+calculate_pressure.o: /usr/include/bits/huge_vall.h /usr/include/bits/inf.h
+calculate_pressure.o: /usr/include/bits/nan.h /usr/include/bits/mathdef.h
+calculate_pressure.o: /usr/include/bits/mathcalls.h grackle_macros.h
+calculate_pressure.o: grackle_types.h grackle_chemistry_data.h
+calculate_pressure.o: phys_constants.h
+calculate_temperature.o: /usr/include/stdlib.h /usr/include/features.h
+calculate_temperature.o: /usr/include/stdc-predef.h /usr/include/sys/cdefs.h
+calculate_temperature.o: /usr/include/bits/wordsize.h
+calculate_temperature.o: /usr/include/gnu/stubs.h
+calculate_temperature.o: /usr/include/bits/waitflags.h
+calculate_temperature.o: /usr/include/bits/waitstatus.h /usr/include/endian.h
+calculate_temperature.o: /usr/include/bits/endian.h
+calculate_temperature.o: /usr/include/bits/byteswap.h
+calculate_temperature.o: /usr/include/bits/types.h
+calculate_temperature.o: /usr/include/bits/typesizes.h
+calculate_temperature.o: /usr/include/bits/byteswap-16.h
+calculate_temperature.o: /usr/include/sys/types.h /usr/include/time.h
+calculate_temperature.o: /usr/include/sys/select.h /usr/include/bits/select.h
+calculate_temperature.o: /usr/include/bits/sigset.h /usr/include/bits/time.h
+calculate_temperature.o: /usr/include/sys/sysmacros.h
+calculate_temperature.o: /usr/include/bits/pthreadtypes.h
 calculate_temperature.o: /usr/include/alloca.h
-calculate_temperature.o: /usr/include/sys/_types/_ct_rune_t.h
-calculate_temperature.o: /usr/include/sys/_types/_rune_t.h
-calculate_temperature.o: /usr/include/sys/_types/_wchar_t.h
-calculate_temperature.o: /usr/include/sys/_types/_null.h
-calculate_temperature.o: /usr/include/machine/types.h
-calculate_temperature.o: /usr/include/i386/types.h
-calculate_temperature.o: /usr/include/sys/_types/_u_int8_t.h
-calculate_temperature.o: /usr/include/sys/_types/_u_int16_t.h
-calculate_temperature.o: /usr/include/sys/_types/_u_int32_t.h
-calculate_temperature.o: /usr/include/sys/_types/_u_int64_t.h
-calculate_temperature.o: /usr/include/sys/_types/_dev_t.h
-calculate_temperature.o: /usr/include/sys/_types/_mode_t.h
-calculate_temperature.o: /usr/include/stdio.h
-calculate_temperature.o: /usr/include/sys/_types/_va_list.h
-calculate_temperature.o: /usr/include/sys/stdio.h
-calculate_temperature.o: /usr/include/sys/_types/_off_t.h
-calculate_temperature.o: /usr/include/sys/_types/_ssize_t.h
-calculate_temperature.o: /usr/include/secure/_stdio.h
-calculate_temperature.o: /usr/include/secure/_common.h /usr/include/math.h
-calculate_temperature.o: grackle_macros.h grackle_types.h
-calculate_temperature.o: grackle_chemistry_data.h phys_constants.h
-initialize_UVbackground_data.o: /usr/include/stdlib.h
-initialize_UVbackground_data.o: /usr/include/Availability.h
-initialize_UVbackground_data.o: /usr/include/AvailabilityInternal.h
-initialize_UVbackground_data.o: /usr/include/_types.h
-initialize_UVbackground_data.o: /usr/include/sys/_types.h
-initialize_UVbackground_data.o: /usr/include/sys/cdefs.h
-initialize_UVbackground_data.o: /usr/include/sys/_symbol_aliasing.h
-initialize_UVbackground_data.o: /usr/include/sys/_posix_availability.h
-initialize_UVbackground_data.o: /usr/include/machine/_types.h
-initialize_UVbackground_data.o: /usr/include/i386/_types.h
-initialize_UVbackground_data.o: /usr/include/sys/_pthread/_pthread_types.h
-initialize_UVbackground_data.o: /usr/include/sys/wait.h
-initialize_UVbackground_data.o: /usr/include/sys/_types/_pid_t.h
-initialize_UVbackground_data.o: /usr/include/sys/_types/_id_t.h
-initialize_UVbackground_data.o: /usr/include/sys/signal.h
-initialize_UVbackground_data.o: /usr/include/sys/appleapiopts.h
-initialize_UVbackground_data.o: /usr/include/machine/signal.h
-initialize_UVbackground_data.o: /usr/include/i386/signal.h
-initialize_UVbackground_data.o: /usr/include/machine/_mcontext.h
-initialize_UVbackground_data.o: /usr/include/i386/_mcontext.h
-initialize_UVbackground_data.o: /usr/include/mach/i386/_structs.h
-initialize_UVbackground_data.o: /usr/include/sys/_pthread/_pthread_attr_t.h
-initialize_UVbackground_data.o: /usr/include/sys/_types/_sigaltstack.h
-initialize_UVbackground_data.o: /usr/include/sys/_types/_ucontext.h
-initialize_UVbackground_data.o: /usr/include/sys/_types/_sigset_t.h
-initialize_UVbackground_data.o: /usr/include/sys/_types/_size_t.h
-initialize_UVbackground_data.o: /usr/include/sys/_types/_uid_t.h
-initialize_UVbackground_data.o: /usr/include/sys/resource.h
-initialize_UVbackground_data.o: /usr/include/stdint.h
-initialize_UVbackground_data.o: /usr/include/sys/_types/_int8_t.h
-initialize_UVbackground_data.o: /usr/include/sys/_types/_int16_t.h
-initialize_UVbackground_data.o: /usr/include/sys/_types/_int32_t.h
-initialize_UVbackground_data.o: /usr/include/sys/_types/_int64_t.h
-initialize_UVbackground_data.o: /usr/include/_types/_uint8_t.h
-initialize_UVbackground_data.o: /usr/include/_types/_uint16_t.h
-initialize_UVbackground_data.o: /usr/include/_types/_uint32_t.h
-initialize_UVbackground_data.o: /usr/include/_types/_uint64_t.h
-initialize_UVbackground_data.o: /usr/include/sys/_types/_intptr_t.h
-initialize_UVbackground_data.o: /usr/include/sys/_types/_uintptr_t.h
-initialize_UVbackground_data.o: /usr/include/_types/_intmax_t.h
-initialize_UVbackground_data.o: /usr/include/_types/_uintmax_t.h
-initialize_UVbackground_data.o: /usr/include/sys/_types/_timeval.h
-initialize_UVbackground_data.o: /usr/include/machine/endian.h
-initialize_UVbackground_data.o: /usr/include/i386/endian.h
-initialize_UVbackground_data.o: /usr/include/sys/_endian.h
-initialize_UVbackground_data.o: /usr/include/libkern/_OSByteOrder.h
-initialize_UVbackground_data.o: /usr/include/libkern/i386/_OSByteOrder.h
-initialize_UVbackground_data.o: /usr/include/alloca.h
-initialize_UVbackground_data.o: /usr/include/sys/_types/_ct_rune_t.h
-initialize_UVbackground_data.o: /usr/include/sys/_types/_rune_t.h
-initialize_UVbackground_data.o: /usr/include/sys/_types/_wchar_t.h
-initialize_UVbackground_data.o: /usr/include/sys/_types/_null.h
-initialize_UVbackground_data.o: /usr/include/machine/types.h
-initialize_UVbackground_data.o: /usr/include/i386/types.h
-initialize_UVbackground_data.o: /usr/include/sys/_types/_u_int8_t.h
-initialize_UVbackground_data.o: /usr/include/sys/_types/_u_int16_t.h
-initialize_UVbackground_data.o: /usr/include/sys/_types/_u_int32_t.h
-initialize_UVbackground_data.o: /usr/include/sys/_types/_u_int64_t.h
-initialize_UVbackground_data.o: /usr/include/sys/_types/_dev_t.h
-initialize_UVbackground_data.o: /usr/include/sys/_types/_mode_t.h
-initialize_UVbackground_data.o: /usr/include/math.h /usr/local/include/hdf5.h
-initialize_UVbackground_data.o: /usr/local/include/H5public.h
-initialize_UVbackground_data.o: /usr/local/include/H5pubconf.h
-initialize_UVbackground_data.o: /usr/local/include/H5version.h
-initialize_UVbackground_data.o: /usr/include/sys/types.h
-initialize_UVbackground_data.o: /usr/include/sys/_types/_blkcnt_t.h
-initialize_UVbackground_data.o: /usr/include/sys/_types/_blksize_t.h
-initialize_UVbackground_data.o: /usr/include/sys/_types/_gid_t.h
-initialize_UVbackground_data.o: /usr/include/sys/_types/_in_addr_t.h
-initialize_UVbackground_data.o: /usr/include/sys/_types/_in_port_t.h
-initialize_UVbackground_data.o: /usr/include/sys/_types/_ino_t.h
-initialize_UVbackground_data.o: /usr/include/sys/_types/_ino64_t.h
-initialize_UVbackground_data.o: /usr/include/sys/_types/_key_t.h
-initialize_UVbackground_data.o: /usr/include/sys/_types/_nlink_t.h
-initialize_UVbackground_data.o: /usr/include/sys/_types/_off_t.h
-initialize_UVbackground_data.o: /usr/include/sys/_types/_clock_t.h
-initialize_UVbackground_data.o: /usr/include/sys/_types/_ssize_t.h
-initialize_UVbackground_data.o: /usr/include/sys/_types/_time_t.h
-initialize_UVbackground_data.o: /usr/include/sys/_types/_useconds_t.h
-initialize_UVbackground_data.o: /usr/include/sys/_types/_suseconds_t.h
-initialize_UVbackground_data.o: /usr/include/sys/_types/_rsize_t.h
-initialize_UVbackground_data.o: /usr/include/sys/_types/_errno_t.h
-initialize_UVbackground_data.o: /usr/include/sys/_types/_fd_def.h
-initialize_UVbackground_data.o: /usr/include/sys/_types/_fd_setsize.h
-initialize_UVbackground_data.o: /usr/include/sys/_types/_fd_set.h
-initialize_UVbackground_data.o: /usr/include/sys/_types/_fd_clr.h
-initialize_UVbackground_data.o: /usr/include/sys/_types/_fd_zero.h
-initialize_UVbackground_data.o: /usr/include/sys/_types/_fd_isset.h
-initialize_UVbackground_data.o: /usr/include/sys/_types/_fd_copy.h
-initialize_UVbackground_data.o: /usr/include/sys/_pthread/_pthread_cond_t.h
-initialize_UVbackground_data.o: /usr/include/sys/_pthread/_pthread_condattr_t.h
-initialize_UVbackground_data.o: /usr/include/sys/_pthread/_pthread_mutex_t.h
-initialize_UVbackground_data.o: /usr/include/sys/_pthread/_pthread_mutexattr_t.h
-initialize_UVbackground_data.o: /usr/include/sys/_pthread/_pthread_once_t.h
-initialize_UVbackground_data.o: /usr/include/sys/_pthread/_pthread_rwlock_t.h
-initialize_UVbackground_data.o: /usr/include/sys/_pthread/_pthread_rwlockattr_t.h
-initialize_UVbackground_data.o: /usr/include/sys/_pthread/_pthread_t.h
-initialize_UVbackground_data.o: /usr/include/sys/_pthread/_pthread_key_t.h
-initialize_UVbackground_data.o: /usr/include/sys/_types/_fsblkcnt_t.h
-initialize_UVbackground_data.o: /usr/include/sys/_types/_fsfilcnt_t.h
-initialize_UVbackground_data.o: /usr/include/limits.h
-initialize_UVbackground_data.o: /usr/include/machine/limits.h
-initialize_UVbackground_data.o: /usr/include/i386/limits.h
-initialize_UVbackground_data.o: /usr/include/i386/_limits.h
-initialize_UVbackground_data.o: /usr/include/sys/syslimits.h
-initialize_UVbackground_data.o: /usr/include/inttypes.h /usr/include/stddef.h
-initialize_UVbackground_data.o: /usr/include/sys/_types/_offsetof.h
-initialize_UVbackground_data.o: /usr/include/sys/_types/_ptrdiff_t.h
-initialize_UVbackground_data.o: /usr/include/sys/_types/_wint_t.h
-initialize_UVbackground_data.o: /usr/local/include/mpi.h
-initialize_UVbackground_data.o: /usr/local/include/mpi_portable_platform.h
-initialize_UVbackground_data.o: /usr/local/include/H5api_adpt.h
-initialize_UVbackground_data.o: /usr/local/include/H5Apublic.h
-initialize_UVbackground_data.o: /usr/local/include/H5Ipublic.h
-initialize_UVbackground_data.o: /usr/local/include/H5Opublic.h
-initialize_UVbackground_data.o: /usr/local/include/H5Lpublic.h
-initialize_UVbackground_data.o: /usr/local/include/H5Tpublic.h
-initialize_UVbackground_data.o: /usr/local/include/H5ACpublic.h
-initialize_UVbackground_data.o: /usr/local/include/H5Cpublic.h
-initialize_UVbackground_data.o: /usr/local/include/H5Dpublic.h
-initialize_UVbackground_data.o: /usr/local/include/H5Epublic.h
-initialize_UVbackground_data.o: /usr/include/stdio.h
-initialize_UVbackground_data.o: /usr/include/sys/_types/_va_list.h
-initialize_UVbackground_data.o: /usr/include/sys/stdio.h
-initialize_UVbackground_data.o: /usr/include/secure/_stdio.h
-initialize_UVbackground_data.o: /usr/include/secure/_common.h
-initialize_UVbackground_data.o: /usr/local/include/H5Epubgen.h
-initialize_UVbackground_data.o: /usr/local/include/H5Fpublic.h
-initialize_UVbackground_data.o: /usr/local/include/H5FDpublic.h
-initialize_UVbackground_data.o: /usr/local/include/H5Gpublic.h
-initialize_UVbackground_data.o: /usr/local/include/H5MMpublic.h
-initialize_UVbackground_data.o: /usr/local/include/H5Ppublic.h
-initialize_UVbackground_data.o: /usr/local/include/H5Zpublic.h
-initialize_UVbackground_data.o: /usr/local/include/H5PLpublic.h
-initialize_UVbackground_data.o: /usr/local/include/H5Rpublic.h
-initialize_UVbackground_data.o: /usr/local/include/H5Spublic.h
-initialize_UVbackground_data.o: /usr/local/include/H5FDcore.h
-initialize_UVbackground_data.o: /usr/local/include/H5FDdirect.h
-initialize_UVbackground_data.o: /usr/local/include/H5FDfamily.h
-initialize_UVbackground_data.o: /usr/local/include/H5FDlog.h
-initialize_UVbackground_data.o: /usr/local/include/H5FDmpi.h
-initialize_UVbackground_data.o: /usr/local/include/H5FDmpio.h
-initialize_UVbackground_data.o: /usr/local/include/H5FDmulti.h
-initialize_UVbackground_data.o: /usr/local/include/H5FDsec2.h
-initialize_UVbackground_data.o: /usr/local/include/H5FDstdio.h
-initialize_UVbackground_data.o: grackle_macros.h grackle_types.h
-initialize_UVbackground_data.o: grackle_chemistry_data.h
-initialize_chemistry_data.o: /usr/include/stdlib.h
-initialize_chemistry_data.o: /usr/include/Availability.h
-initialize_chemistry_data.o: /usr/include/AvailabilityInternal.h
-initialize_chemistry_data.o: /usr/include/_types.h /usr/include/sys/_types.h
+calculate_temperature.o: /usr/include/bits/stdlib-float.h
+calculate_temperature.o: /usr/include/stdio.h /usr/include/libio.h
+calculate_temperature.o: /usr/include/_G_config.h /usr/include/wchar.h
+calculate_temperature.o: /usr/include/bits/stdio_lim.h
+calculate_temperature.o: /usr/include/bits/sys_errlist.h /usr/include/math.h
+calculate_temperature.o: /usr/include/bits/huge_val.h
+calculate_temperature.o: /usr/include/bits/huge_valf.h
+calculate_temperature.o: /usr/include/bits/huge_vall.h
+calculate_temperature.o: /usr/include/bits/inf.h /usr/include/bits/nan.h
+calculate_temperature.o: /usr/include/bits/mathdef.h
+calculate_temperature.o: /usr/include/bits/mathcalls.h grackle_macros.h
+calculate_temperature.o: grackle_types.h grackle_chemistry_data.h
+calculate_temperature.o: phys_constants.h
+initialize_chemistry_data.o: /usr/include/stdlib.h /usr/include/features.h
+initialize_chemistry_data.o: /usr/include/stdc-predef.h
 initialize_chemistry_data.o: /usr/include/sys/cdefs.h
-initialize_chemistry_data.o: /usr/include/sys/_symbol_aliasing.h
-initialize_chemistry_data.o: /usr/include/sys/_posix_availability.h
-initialize_chemistry_data.o: /usr/include/machine/_types.h
-initialize_chemistry_data.o: /usr/include/i386/_types.h
-initialize_chemistry_data.o: /usr/include/sys/_pthread/_pthread_types.h
-initialize_chemistry_data.o: /usr/include/sys/wait.h
-initialize_chemistry_data.o: /usr/include/sys/_types/_pid_t.h
-initialize_chemistry_data.o: /usr/include/sys/_types/_id_t.h
-initialize_chemistry_data.o: /usr/include/sys/signal.h
-initialize_chemistry_data.o: /usr/include/sys/appleapiopts.h
-initialize_chemistry_data.o: /usr/include/machine/signal.h
-initialize_chemistry_data.o: /usr/include/i386/signal.h
-initialize_chemistry_data.o: /usr/include/machine/_mcontext.h
-initialize_chemistry_data.o: /usr/include/i386/_mcontext.h
-initialize_chemistry_data.o: /usr/include/mach/i386/_structs.h
-initialize_chemistry_data.o: /usr/include/sys/_pthread/_pthread_attr_t.h
-initialize_chemistry_data.o: /usr/include/sys/_types/_sigaltstack.h
-initialize_chemistry_data.o: /usr/include/sys/_types/_ucontext.h
-initialize_chemistry_data.o: /usr/include/sys/_types/_sigset_t.h
-initialize_chemistry_data.o: /usr/include/sys/_types/_size_t.h
-initialize_chemistry_data.o: /usr/include/sys/_types/_uid_t.h
-initialize_chemistry_data.o: /usr/include/sys/resource.h
-initialize_chemistry_data.o: /usr/include/stdint.h
-initialize_chemistry_data.o: /usr/include/sys/_types/_int8_t.h
-initialize_chemistry_data.o: /usr/include/sys/_types/_int16_t.h
-initialize_chemistry_data.o: /usr/include/sys/_types/_int32_t.h
-initialize_chemistry_data.o: /usr/include/sys/_types/_int64_t.h
-initialize_chemistry_data.o: /usr/include/_types/_uint8_t.h
-initialize_chemistry_data.o: /usr/include/_types/_uint16_t.h
-initialize_chemistry_data.o: /usr/include/_types/_uint32_t.h
-initialize_chemistry_data.o: /usr/include/_types/_uint64_t.h
-initialize_chemistry_data.o: /usr/include/sys/_types/_intptr_t.h
-initialize_chemistry_data.o: /usr/include/sys/_types/_uintptr_t.h
-initialize_chemistry_data.o: /usr/include/_types/_intmax_t.h
-initialize_chemistry_data.o: /usr/include/_types/_uintmax_t.h
-initialize_chemistry_data.o: /usr/include/sys/_types/_timeval.h
-initialize_chemistry_data.o: /usr/include/machine/endian.h
-initialize_chemistry_data.o: /usr/include/i386/endian.h
-initialize_chemistry_data.o: /usr/include/sys/_endian.h
-initialize_chemistry_data.o: /usr/include/libkern/_OSByteOrder.h
-initialize_chemistry_data.o: /usr/include/libkern/i386/_OSByteOrder.h
+initialize_chemistry_data.o: /usr/include/bits/wordsize.h
+initialize_chemistry_data.o: /usr/include/gnu/stubs.h
+initialize_chemistry_data.o: /usr/include/bits/waitflags.h
+initialize_chemistry_data.o: /usr/include/bits/waitstatus.h
+initialize_chemistry_data.o: /usr/include/endian.h /usr/include/bits/endian.h
+initialize_chemistry_data.o: /usr/include/bits/byteswap.h
+initialize_chemistry_data.o: /usr/include/bits/types.h
+initialize_chemistry_data.o: /usr/include/bits/typesizes.h
+initialize_chemistry_data.o: /usr/include/bits/byteswap-16.h
+initialize_chemistry_data.o: /usr/include/sys/types.h /usr/include/time.h
+initialize_chemistry_data.o: /usr/include/sys/select.h
+initialize_chemistry_data.o: /usr/include/bits/select.h
+initialize_chemistry_data.o: /usr/include/bits/sigset.h
+initialize_chemistry_data.o: /usr/include/bits/time.h
+initialize_chemistry_data.o: /usr/include/sys/sysmacros.h
+initialize_chemistry_data.o: /usr/include/bits/pthreadtypes.h
 initialize_chemistry_data.o: /usr/include/alloca.h
-initialize_chemistry_data.o: /usr/include/sys/_types/_ct_rune_t.h
-initialize_chemistry_data.o: /usr/include/sys/_types/_rune_t.h
-initialize_chemistry_data.o: /usr/include/sys/_types/_wchar_t.h
-initialize_chemistry_data.o: /usr/include/sys/_types/_null.h
-initialize_chemistry_data.o: /usr/include/machine/types.h
-initialize_chemistry_data.o: /usr/include/i386/types.h
-initialize_chemistry_data.o: /usr/include/sys/_types/_u_int8_t.h
-initialize_chemistry_data.o: /usr/include/sys/_types/_u_int16_t.h
-initialize_chemistry_data.o: /usr/include/sys/_types/_u_int32_t.h
-initialize_chemistry_data.o: /usr/include/sys/_types/_u_int64_t.h
-initialize_chemistry_data.o: /usr/include/sys/_types/_dev_t.h
-initialize_chemistry_data.o: /usr/include/sys/_types/_mode_t.h
-initialize_chemistry_data.o: /usr/include/string.h
-initialize_chemistry_data.o: /usr/include/sys/_types/_rsize_t.h
-initialize_chemistry_data.o: /usr/include/sys/_types/_errno_t.h
-initialize_chemistry_data.o: /usr/include/sys/_types/_ssize_t.h
-initialize_chemistry_data.o: /usr/include/strings.h
-initialize_chemistry_data.o: /usr/include/secure/_string.h
-initialize_chemistry_data.o: /usr/include/secure/_common.h
-initialize_chemistry_data.o: /usr/include/stdio.h
-initialize_chemistry_data.o: /usr/include/sys/_types/_va_list.h
-initialize_chemistry_data.o: /usr/include/sys/stdio.h
-initialize_chemistry_data.o: /usr/include/sys/_types/_off_t.h
-initialize_chemistry_data.o: /usr/include/secure/_stdio.h /usr/include/time.h
-initialize_chemistry_data.o: /usr/include/sys/_types/_clock_t.h
-initialize_chemistry_data.o: /usr/include/sys/_types/_time_t.h
-initialize_chemistry_data.o: /usr/include/sys/_types/_timespec.h
-initialize_chemistry_data.o: /usr/include/math.h grackle_macros.h
+initialize_chemistry_data.o: /usr/include/bits/stdlib-float.h
+initialize_chemistry_data.o: /usr/include/string.h /usr/include/xlocale.h
+initialize_chemistry_data.o: /usr/include/stdio.h /usr/include/libio.h
+initialize_chemistry_data.o: /usr/include/_G_config.h /usr/include/wchar.h
+initialize_chemistry_data.o: /usr/include/bits/stdio_lim.h
+initialize_chemistry_data.o: /usr/include/bits/sys_errlist.h
+initialize_chemistry_data.o: /usr/include/math.h /usr/include/bits/huge_val.h
+initialize_chemistry_data.o: /usr/include/bits/huge_valf.h
+initialize_chemistry_data.o: /usr/include/bits/huge_vall.h
+initialize_chemistry_data.o: /usr/include/bits/inf.h /usr/include/bits/nan.h
+initialize_chemistry_data.o: /usr/include/bits/mathdef.h
+initialize_chemistry_data.o: /usr/include/bits/mathcalls.h grackle_macros.h
 initialize_chemistry_data.o: grackle_types.h grackle_chemistry_data.h
 initialize_chemistry_data.o: phys_constants.h
-initialize_cloudy_data.o: /usr/include/stdlib.h /usr/include/Availability.h
-initialize_cloudy_data.o: /usr/include/AvailabilityInternal.h
-initialize_cloudy_data.o: /usr/include/_types.h /usr/include/sys/_types.h
-initialize_cloudy_data.o: /usr/include/sys/cdefs.h
-initialize_cloudy_data.o: /usr/include/sys/_symbol_aliasing.h
-initialize_cloudy_data.o: /usr/include/sys/_posix_availability.h
-initialize_cloudy_data.o: /usr/include/machine/_types.h
-initialize_cloudy_data.o: /usr/include/i386/_types.h
-initialize_cloudy_data.o: /usr/include/sys/_pthread/_pthread_types.h
-initialize_cloudy_data.o: /usr/include/sys/wait.h
-initialize_cloudy_data.o: /usr/include/sys/_types/_pid_t.h
-initialize_cloudy_data.o: /usr/include/sys/_types/_id_t.h
-initialize_cloudy_data.o: /usr/include/sys/signal.h
-initialize_cloudy_data.o: /usr/include/sys/appleapiopts.h
-initialize_cloudy_data.o: /usr/include/machine/signal.h
-initialize_cloudy_data.o: /usr/include/i386/signal.h
-initialize_cloudy_data.o: /usr/include/machine/_mcontext.h
-initialize_cloudy_data.o: /usr/include/i386/_mcontext.h
-initialize_cloudy_data.o: /usr/include/mach/i386/_structs.h
-initialize_cloudy_data.o: /usr/include/sys/_pthread/_pthread_attr_t.h
-initialize_cloudy_data.o: /usr/include/sys/_types/_sigaltstack.h
-initialize_cloudy_data.o: /usr/include/sys/_types/_ucontext.h
-initialize_cloudy_data.o: /usr/include/sys/_types/_sigset_t.h
-initialize_cloudy_data.o: /usr/include/sys/_types/_size_t.h
-initialize_cloudy_data.o: /usr/include/sys/_types/_uid_t.h
-initialize_cloudy_data.o: /usr/include/sys/resource.h /usr/include/stdint.h
-initialize_cloudy_data.o: /usr/include/sys/_types/_int8_t.h
-initialize_cloudy_data.o: /usr/include/sys/_types/_int16_t.h
-initialize_cloudy_data.o: /usr/include/sys/_types/_int32_t.h
-initialize_cloudy_data.o: /usr/include/sys/_types/_int64_t.h
-initialize_cloudy_data.o: /usr/include/_types/_uint8_t.h
-initialize_cloudy_data.o: /usr/include/_types/_uint16_t.h
-initialize_cloudy_data.o: /usr/include/_types/_uint32_t.h
-initialize_cloudy_data.o: /usr/include/_types/_uint64_t.h
-initialize_cloudy_data.o: /usr/include/sys/_types/_intptr_t.h
-initialize_cloudy_data.o: /usr/include/sys/_types/_uintptr_t.h
-initialize_cloudy_data.o: /usr/include/_types/_intmax_t.h
-initialize_cloudy_data.o: /usr/include/_types/_uintmax_t.h
-initialize_cloudy_data.o: /usr/include/sys/_types/_timeval.h
-initialize_cloudy_data.o: /usr/include/machine/endian.h
-initialize_cloudy_data.o: /usr/include/i386/endian.h
-initialize_cloudy_data.o: /usr/include/sys/_endian.h
-initialize_cloudy_data.o: /usr/include/libkern/_OSByteOrder.h
-initialize_cloudy_data.o: /usr/include/libkern/i386/_OSByteOrder.h
+initialize_cloudy_data.o: /usr/include/stdlib.h /usr/include/features.h
+initialize_cloudy_data.o: /usr/include/stdc-predef.h /usr/include/sys/cdefs.h
+initialize_cloudy_data.o: /usr/include/bits/wordsize.h
+initialize_cloudy_data.o: /usr/include/gnu/stubs.h
+initialize_cloudy_data.o: /usr/include/bits/waitflags.h
+initialize_cloudy_data.o: /usr/include/bits/waitstatus.h
+initialize_cloudy_data.o: /usr/include/endian.h /usr/include/bits/endian.h
+initialize_cloudy_data.o: /usr/include/bits/byteswap.h
+initialize_cloudy_data.o: /usr/include/bits/types.h
+initialize_cloudy_data.o: /usr/include/bits/typesizes.h
+initialize_cloudy_data.o: /usr/include/bits/byteswap-16.h
+initialize_cloudy_data.o: /usr/include/sys/types.h /usr/include/time.h
+initialize_cloudy_data.o: /usr/include/sys/select.h
+initialize_cloudy_data.o: /usr/include/bits/select.h
+initialize_cloudy_data.o: /usr/include/bits/sigset.h /usr/include/bits/time.h
+initialize_cloudy_data.o: /usr/include/sys/sysmacros.h
+initialize_cloudy_data.o: /usr/include/bits/pthreadtypes.h
 initialize_cloudy_data.o: /usr/include/alloca.h
-initialize_cloudy_data.o: /usr/include/sys/_types/_ct_rune_t.h
-initialize_cloudy_data.o: /usr/include/sys/_types/_rune_t.h
-initialize_cloudy_data.o: /usr/include/sys/_types/_wchar_t.h
-initialize_cloudy_data.o: /usr/include/sys/_types/_null.h
-initialize_cloudy_data.o: /usr/include/machine/types.h
-initialize_cloudy_data.o: /usr/include/i386/types.h
-initialize_cloudy_data.o: /usr/include/sys/_types/_u_int8_t.h
-initialize_cloudy_data.o: /usr/include/sys/_types/_u_int16_t.h
-initialize_cloudy_data.o: /usr/include/sys/_types/_u_int32_t.h
-initialize_cloudy_data.o: /usr/include/sys/_types/_u_int64_t.h
-initialize_cloudy_data.o: /usr/include/sys/_types/_dev_t.h
-initialize_cloudy_data.o: /usr/include/sys/_types/_mode_t.h
-initialize_cloudy_data.o: /usr/include/math.h /usr/local/include/hdf5.h
-initialize_cloudy_data.o: /usr/local/include/H5public.h
-initialize_cloudy_data.o: /usr/local/include/H5pubconf.h
-initialize_cloudy_data.o: /usr/local/include/H5version.h
-initialize_cloudy_data.o: /usr/include/sys/types.h
-initialize_cloudy_data.o: /usr/include/sys/_types/_blkcnt_t.h
-initialize_cloudy_data.o: /usr/include/sys/_types/_blksize_t.h
-initialize_cloudy_data.o: /usr/include/sys/_types/_gid_t.h
-initialize_cloudy_data.o: /usr/include/sys/_types/_in_addr_t.h
-initialize_cloudy_data.o: /usr/include/sys/_types/_in_port_t.h
-initialize_cloudy_data.o: /usr/include/sys/_types/_ino_t.h
-initialize_cloudy_data.o: /usr/include/sys/_types/_ino64_t.h
-initialize_cloudy_data.o: /usr/include/sys/_types/_key_t.h
-initialize_cloudy_data.o: /usr/include/sys/_types/_nlink_t.h
-initialize_cloudy_data.o: /usr/include/sys/_types/_off_t.h
-initialize_cloudy_data.o: /usr/include/sys/_types/_clock_t.h
-initialize_cloudy_data.o: /usr/include/sys/_types/_ssize_t.h
-initialize_cloudy_data.o: /usr/include/sys/_types/_time_t.h
-initialize_cloudy_data.o: /usr/include/sys/_types/_useconds_t.h
-initialize_cloudy_data.o: /usr/include/sys/_types/_suseconds_t.h
-initialize_cloudy_data.o: /usr/include/sys/_types/_rsize_t.h
-initialize_cloudy_data.o: /usr/include/sys/_types/_errno_t.h
-initialize_cloudy_data.o: /usr/include/sys/_types/_fd_def.h
-initialize_cloudy_data.o: /usr/include/sys/_types/_fd_setsize.h
-initialize_cloudy_data.o: /usr/include/sys/_types/_fd_set.h
-initialize_cloudy_data.o: /usr/include/sys/_types/_fd_clr.h
-initialize_cloudy_data.o: /usr/include/sys/_types/_fd_zero.h
-initialize_cloudy_data.o: /usr/include/sys/_types/_fd_isset.h
-initialize_cloudy_data.o: /usr/include/sys/_types/_fd_copy.h
-initialize_cloudy_data.o: /usr/include/sys/_pthread/_pthread_cond_t.h
-initialize_cloudy_data.o: /usr/include/sys/_pthread/_pthread_condattr_t.h
-initialize_cloudy_data.o: /usr/include/sys/_pthread/_pthread_mutex_t.h
-initialize_cloudy_data.o: /usr/include/sys/_pthread/_pthread_mutexattr_t.h
-initialize_cloudy_data.o: /usr/include/sys/_pthread/_pthread_once_t.h
-initialize_cloudy_data.o: /usr/include/sys/_pthread/_pthread_rwlock_t.h
-initialize_cloudy_data.o: /usr/include/sys/_pthread/_pthread_rwlockattr_t.h
-initialize_cloudy_data.o: /usr/include/sys/_pthread/_pthread_t.h
-initialize_cloudy_data.o: /usr/include/sys/_pthread/_pthread_key_t.h
-initialize_cloudy_data.o: /usr/include/sys/_types/_fsblkcnt_t.h
-initialize_cloudy_data.o: /usr/include/sys/_types/_fsfilcnt_t.h
-initialize_cloudy_data.o: /usr/include/limits.h /usr/include/machine/limits.h
-initialize_cloudy_data.o: /usr/include/i386/limits.h
-initialize_cloudy_data.o: /usr/include/i386/_limits.h
-initialize_cloudy_data.o: /usr/include/sys/syslimits.h
-initialize_cloudy_data.o: /usr/include/inttypes.h /usr/include/stddef.h
-initialize_cloudy_data.o: /usr/include/sys/_types/_offsetof.h
-initialize_cloudy_data.o: /usr/include/sys/_types/_ptrdiff_t.h
-initialize_cloudy_data.o: /usr/include/sys/_types/_wint_t.h
-initialize_cloudy_data.o: /usr/local/include/mpi.h
-initialize_cloudy_data.o: /usr/local/include/mpi_portable_platform.h
-initialize_cloudy_data.o: /usr/local/include/H5api_adpt.h
-initialize_cloudy_data.o: /usr/local/include/H5Apublic.h
-initialize_cloudy_data.o: /usr/local/include/H5Ipublic.h
-initialize_cloudy_data.o: /usr/local/include/H5Opublic.h
-initialize_cloudy_data.o: /usr/local/include/H5Lpublic.h
-initialize_cloudy_data.o: /usr/local/include/H5Tpublic.h
-initialize_cloudy_data.o: /usr/local/include/H5ACpublic.h
-initialize_cloudy_data.o: /usr/local/include/H5Cpublic.h
-initialize_cloudy_data.o: /usr/local/include/H5Dpublic.h
-initialize_cloudy_data.o: /usr/local/include/H5Epublic.h /usr/include/stdio.h
-initialize_cloudy_data.o: /usr/include/sys/_types/_va_list.h
-initialize_cloudy_data.o: /usr/include/sys/stdio.h
-initialize_cloudy_data.o: /usr/include/secure/_stdio.h
-initialize_cloudy_data.o: /usr/include/secure/_common.h
-initialize_cloudy_data.o: /usr/local/include/H5Epubgen.h
-initialize_cloudy_data.o: /usr/local/include/H5Fpublic.h
-initialize_cloudy_data.o: /usr/local/include/H5FDpublic.h
-initialize_cloudy_data.o: /usr/local/include/H5Gpublic.h
-initialize_cloudy_data.o: /usr/local/include/H5MMpublic.h
-initialize_cloudy_data.o: /usr/local/include/H5Ppublic.h
-initialize_cloudy_data.o: /usr/local/include/H5Zpublic.h
-initialize_cloudy_data.o: /usr/local/include/H5PLpublic.h
-initialize_cloudy_data.o: /usr/local/include/H5Rpublic.h
-initialize_cloudy_data.o: /usr/local/include/H5Spublic.h
-initialize_cloudy_data.o: /usr/local/include/H5FDcore.h
-initialize_cloudy_data.o: /usr/local/include/H5FDdirect.h
-initialize_cloudy_data.o: /usr/local/include/H5FDfamily.h
-initialize_cloudy_data.o: /usr/local/include/H5FDlog.h
-initialize_cloudy_data.o: /usr/local/include/H5FDmpi.h
-initialize_cloudy_data.o: /usr/local/include/H5FDmpio.h
-initialize_cloudy_data.o: /usr/local/include/H5FDmulti.h
-initialize_cloudy_data.o: /usr/local/include/H5FDsec2.h
-initialize_cloudy_data.o: /usr/local/include/H5FDstdio.h grackle_macros.h
-initialize_cloudy_data.o: grackle_types.h grackle_chemistry_data.h
+initialize_cloudy_data.o: /usr/include/bits/stdlib-float.h
+initialize_cloudy_data.o: /usr/include/math.h /usr/include/bits/huge_val.h
+initialize_cloudy_data.o: /usr/include/bits/huge_valf.h
+initialize_cloudy_data.o: /usr/include/bits/huge_vall.h
+initialize_cloudy_data.o: /usr/include/bits/inf.h /usr/include/bits/nan.h
+initialize_cloudy_data.o: /usr/include/bits/mathdef.h
+initialize_cloudy_data.o: /usr/include/bits/mathcalls.h
+initialize_cloudy_data.o: /cineca/prod/opt/libraries/hdf5/1.8.17/intelmpi--2017--binary/include/hdf5.h
+initialize_cloudy_data.o: /cineca/prod/opt/libraries/hdf5/1.8.17/intelmpi--2017--binary/include/H5public.h
+initialize_cloudy_data.o: /cineca/prod/opt/libraries/hdf5/1.8.17/intelmpi--2017--binary/include/H5pubconf.h
+initialize_cloudy_data.o: /cineca/prod/opt/libraries/hdf5/1.8.17/intelmpi--2017--binary/include/H5version.h
+initialize_cloudy_data.o: /usr/include/limits.h
+initialize_cloudy_data.o: /usr/include/bits/posix1_lim.h
+initialize_cloudy_data.o: /usr/include/bits/local_lim.h
+initialize_cloudy_data.o: /usr/include/linux/limits.h
+initialize_cloudy_data.o: /usr/include/bits/posix2_lim.h
+initialize_cloudy_data.o: /usr/include/stdint.h /usr/include/bits/wchar.h
+initialize_cloudy_data.o: /usr/include/inttypes.h
+initialize_cloudy_data.o: /cineca/prod/opt/libraries/hdf5/1.8.17/intelmpi--2017--binary/include/H5api_adpt.h
+initialize_cloudy_data.o: /cineca/prod/opt/libraries/hdf5/1.8.17/intelmpi--2017--binary/include/H5Apublic.h
+initialize_cloudy_data.o: /cineca/prod/opt/libraries/hdf5/1.8.17/intelmpi--2017--binary/include/H5Ipublic.h
+initialize_cloudy_data.o: /cineca/prod/opt/libraries/hdf5/1.8.17/intelmpi--2017--binary/include/H5Opublic.h
+initialize_cloudy_data.o: /cineca/prod/opt/libraries/hdf5/1.8.17/intelmpi--2017--binary/include/H5Lpublic.h
+initialize_cloudy_data.o: /cineca/prod/opt/libraries/hdf5/1.8.17/intelmpi--2017--binary/include/H5Tpublic.h
+initialize_cloudy_data.o: /cineca/prod/opt/libraries/hdf5/1.8.17/intelmpi--2017--binary/include/H5ACpublic.h
+initialize_cloudy_data.o: /cineca/prod/opt/libraries/hdf5/1.8.17/intelmpi--2017--binary/include/H5Cpublic.h
+initialize_cloudy_data.o: /cineca/prod/opt/libraries/hdf5/1.8.17/intelmpi--2017--binary/include/H5Dpublic.h
+initialize_cloudy_data.o: /cineca/prod/opt/libraries/hdf5/1.8.17/intelmpi--2017--binary/include/H5Epublic.h
+initialize_cloudy_data.o: /usr/include/stdio.h /usr/include/libio.h
+initialize_cloudy_data.o: /usr/include/_G_config.h /usr/include/wchar.h
+initialize_cloudy_data.o: /usr/include/bits/stdio_lim.h
+initialize_cloudy_data.o: /usr/include/bits/sys_errlist.h
+initialize_cloudy_data.o: /cineca/prod/opt/libraries/hdf5/1.8.17/intelmpi--2017--binary/include/H5Epubgen.h
+initialize_cloudy_data.o: /cineca/prod/opt/libraries/hdf5/1.8.17/intelmpi--2017--binary/include/H5Fpublic.h
+initialize_cloudy_data.o: /cineca/prod/opt/libraries/hdf5/1.8.17/intelmpi--2017--binary/include/H5FDpublic.h
+initialize_cloudy_data.o: /cineca/prod/opt/libraries/hdf5/1.8.17/intelmpi--2017--binary/include/H5Gpublic.h
+initialize_cloudy_data.o: /cineca/prod/opt/libraries/hdf5/1.8.17/intelmpi--2017--binary/include/H5MMpublic.h
+initialize_cloudy_data.o: /cineca/prod/opt/libraries/hdf5/1.8.17/intelmpi--2017--binary/include/H5Ppublic.h
+initialize_cloudy_data.o: /cineca/prod/opt/libraries/hdf5/1.8.17/intelmpi--2017--binary/include/H5Zpublic.h
+initialize_cloudy_data.o: /cineca/prod/opt/libraries/hdf5/1.8.17/intelmpi--2017--binary/include/H5PLpublic.h
+initialize_cloudy_data.o: /cineca/prod/opt/libraries/hdf5/1.8.17/intelmpi--2017--binary/include/H5Rpublic.h
+initialize_cloudy_data.o: /cineca/prod/opt/libraries/hdf5/1.8.17/intelmpi--2017--binary/include/H5Spublic.h
+initialize_cloudy_data.o: /cineca/prod/opt/libraries/hdf5/1.8.17/intelmpi--2017--binary/include/H5FDcore.h
+initialize_cloudy_data.o: /cineca/prod/opt/libraries/hdf5/1.8.17/intelmpi--2017--binary/include/H5FDfamily.h
+initialize_cloudy_data.o: /cineca/prod/opt/libraries/hdf5/1.8.17/intelmpi--2017--binary/include/H5FDlog.h
+initialize_cloudy_data.o: /cineca/prod/opt/libraries/hdf5/1.8.17/intelmpi--2017--binary/include/H5FDmpi.h
+initialize_cloudy_data.o: /cineca/prod/opt/libraries/hdf5/1.8.17/intelmpi--2017--binary/include/H5FDmpio.h
+initialize_cloudy_data.o: /cineca/prod/opt/libraries/hdf5/1.8.17/intelmpi--2017--binary/include/H5FDmulti.h
+initialize_cloudy_data.o: /cineca/prod/opt/libraries/hdf5/1.8.17/intelmpi--2017--binary/include/H5FDsec2.h
+initialize_cloudy_data.o: /cineca/prod/opt/libraries/hdf5/1.8.17/intelmpi--2017--binary/include/H5FDstdio.h
+initialize_cloudy_data.o: /cineca/prod/opt/libraries/hdf5/1.8.17/intelmpi--2017--binary/include/H5FDdirect.h
+initialize_cloudy_data.o: grackle_macros.h grackle_types.h
+initialize_cloudy_data.o: grackle_chemistry_data.h
+initialize_UVbackground_data.o: /usr/include/stdlib.h /usr/include/features.h
+initialize_UVbackground_data.o: /usr/include/stdc-predef.h
+initialize_UVbackground_data.o: /usr/include/sys/cdefs.h
+initialize_UVbackground_data.o: /usr/include/bits/wordsize.h
+initialize_UVbackground_data.o: /usr/include/gnu/stubs.h
+initialize_UVbackground_data.o: /usr/include/bits/waitflags.h
+initialize_UVbackground_data.o: /usr/include/bits/waitstatus.h
+initialize_UVbackground_data.o: /usr/include/endian.h
+initialize_UVbackground_data.o: /usr/include/bits/endian.h
+initialize_UVbackground_data.o: /usr/include/bits/byteswap.h
+initialize_UVbackground_data.o: /usr/include/bits/types.h
+initialize_UVbackground_data.o: /usr/include/bits/typesizes.h
+initialize_UVbackground_data.o: /usr/include/bits/byteswap-16.h
+initialize_UVbackground_data.o: /usr/include/sys/types.h /usr/include/time.h
+initialize_UVbackground_data.o: /usr/include/sys/select.h
+initialize_UVbackground_data.o: /usr/include/bits/select.h
+initialize_UVbackground_data.o: /usr/include/bits/sigset.h
+initialize_UVbackground_data.o: /usr/include/bits/time.h
+initialize_UVbackground_data.o: /usr/include/sys/sysmacros.h
+initialize_UVbackground_data.o: /usr/include/bits/pthreadtypes.h
+initialize_UVbackground_data.o: /usr/include/alloca.h
+initialize_UVbackground_data.o: /usr/include/bits/stdlib-float.h
+initialize_UVbackground_data.o: /usr/include/math.h
+initialize_UVbackground_data.o: /usr/include/bits/huge_val.h
+initialize_UVbackground_data.o: /usr/include/bits/huge_valf.h
+initialize_UVbackground_data.o: /usr/include/bits/huge_vall.h
+initialize_UVbackground_data.o: /usr/include/bits/inf.h
+initialize_UVbackground_data.o: /usr/include/bits/nan.h
+initialize_UVbackground_data.o: /usr/include/bits/mathdef.h
+initialize_UVbackground_data.o: /usr/include/bits/mathcalls.h
+initialize_UVbackground_data.o: /cineca/prod/opt/libraries/hdf5/1.8.17/intelmpi--2017--binary/include/hdf5.h
+initialize_UVbackground_data.o: /cineca/prod/opt/libraries/hdf5/1.8.17/intelmpi--2017--binary/include/H5public.h
+initialize_UVbackground_data.o: /cineca/prod/opt/libraries/hdf5/1.8.17/intelmpi--2017--binary/include/H5pubconf.h
+initialize_UVbackground_data.o: /cineca/prod/opt/libraries/hdf5/1.8.17/intelmpi--2017--binary/include/H5version.h
+initialize_UVbackground_data.o: /usr/include/limits.h
+initialize_UVbackground_data.o: /usr/include/bits/posix1_lim.h
+initialize_UVbackground_data.o: /usr/include/bits/local_lim.h
+initialize_UVbackground_data.o: /usr/include/linux/limits.h
+initialize_UVbackground_data.o: /usr/include/bits/posix2_lim.h
+initialize_UVbackground_data.o: /usr/include/stdint.h
+initialize_UVbackground_data.o: /usr/include/bits/wchar.h
+initialize_UVbackground_data.o: /usr/include/inttypes.h
+initialize_UVbackground_data.o: /cineca/prod/opt/libraries/hdf5/1.8.17/intelmpi--2017--binary/include/H5api_adpt.h
+initialize_UVbackground_data.o: /cineca/prod/opt/libraries/hdf5/1.8.17/intelmpi--2017--binary/include/H5Apublic.h
+initialize_UVbackground_data.o: /cineca/prod/opt/libraries/hdf5/1.8.17/intelmpi--2017--binary/include/H5Ipublic.h
+initialize_UVbackground_data.o: /cineca/prod/opt/libraries/hdf5/1.8.17/intelmpi--2017--binary/include/H5Opublic.h
+initialize_UVbackground_data.o: /cineca/prod/opt/libraries/hdf5/1.8.17/intelmpi--2017--binary/include/H5Lpublic.h
+initialize_UVbackground_data.o: /cineca/prod/opt/libraries/hdf5/1.8.17/intelmpi--2017--binary/include/H5Tpublic.h
+initialize_UVbackground_data.o: /cineca/prod/opt/libraries/hdf5/1.8.17/intelmpi--2017--binary/include/H5ACpublic.h
+initialize_UVbackground_data.o: /cineca/prod/opt/libraries/hdf5/1.8.17/intelmpi--2017--binary/include/H5Cpublic.h
+initialize_UVbackground_data.o: /cineca/prod/opt/libraries/hdf5/1.8.17/intelmpi--2017--binary/include/H5Dpublic.h
+initialize_UVbackground_data.o: /cineca/prod/opt/libraries/hdf5/1.8.17/intelmpi--2017--binary/include/H5Epublic.h
+initialize_UVbackground_data.o: /usr/include/stdio.h /usr/include/libio.h
+initialize_UVbackground_data.o: /usr/include/_G_config.h /usr/include/wchar.h
+initialize_UVbackground_data.o: /usr/include/bits/stdio_lim.h
+initialize_UVbackground_data.o: /usr/include/bits/sys_errlist.h
+initialize_UVbackground_data.o: /cineca/prod/opt/libraries/hdf5/1.8.17/intelmpi--2017--binary/include/H5Epubgen.h
+initialize_UVbackground_data.o: /cineca/prod/opt/libraries/hdf5/1.8.17/intelmpi--2017--binary/include/H5Fpublic.h
+initialize_UVbackground_data.o: /cineca/prod/opt/libraries/hdf5/1.8.17/intelmpi--2017--binary/include/H5FDpublic.h
+initialize_UVbackground_data.o: /cineca/prod/opt/libraries/hdf5/1.8.17/intelmpi--2017--binary/include/H5Gpublic.h
+initialize_UVbackground_data.o: /cineca/prod/opt/libraries/hdf5/1.8.17/intelmpi--2017--binary/include/H5MMpublic.h
+initialize_UVbackground_data.o: /cineca/prod/opt/libraries/hdf5/1.8.17/intelmpi--2017--binary/include/H5Ppublic.h
+initialize_UVbackground_data.o: /cineca/prod/opt/libraries/hdf5/1.8.17/intelmpi--2017--binary/include/H5Zpublic.h
+initialize_UVbackground_data.o: /cineca/prod/opt/libraries/hdf5/1.8.17/intelmpi--2017--binary/include/H5PLpublic.h
+initialize_UVbackground_data.o: /cineca/prod/opt/libraries/hdf5/1.8.17/intelmpi--2017--binary/include/H5Rpublic.h
+initialize_UVbackground_data.o: /cineca/prod/opt/libraries/hdf5/1.8.17/intelmpi--2017--binary/include/H5Spublic.h
+initialize_UVbackground_data.o: /cineca/prod/opt/libraries/hdf5/1.8.17/intelmpi--2017--binary/include/H5FDcore.h
+initialize_UVbackground_data.o: /cineca/prod/opt/libraries/hdf5/1.8.17/intelmpi--2017--binary/include/H5FDfamily.h
+initialize_UVbackground_data.o: /cineca/prod/opt/libraries/hdf5/1.8.17/intelmpi--2017--binary/include/H5FDlog.h
+initialize_UVbackground_data.o: /cineca/prod/opt/libraries/hdf5/1.8.17/intelmpi--2017--binary/include/H5FDmpi.h
+initialize_UVbackground_data.o: /cineca/prod/opt/libraries/hdf5/1.8.17/intelmpi--2017--binary/include/H5FDmpio.h
+initialize_UVbackground_data.o: /cineca/prod/opt/libraries/hdf5/1.8.17/intelmpi--2017--binary/include/H5FDmulti.h
+initialize_UVbackground_data.o: /cineca/prod/opt/libraries/hdf5/1.8.17/intelmpi--2017--binary/include/H5FDsec2.h
+initialize_UVbackground_data.o: /cineca/prod/opt/libraries/hdf5/1.8.17/intelmpi--2017--binary/include/H5FDstdio.h
+initialize_UVbackground_data.o: /cineca/prod/opt/libraries/hdf5/1.8.17/intelmpi--2017--binary/include/H5FDdirect.h
+initialize_UVbackground_data.o: grackle_macros.h grackle_types.h
+initialize_UVbackground_data.o: grackle_chemistry_data.h
 set_default_chemistry_parameters.o: /usr/include/string.h
-set_default_chemistry_parameters.o: /usr/include/_types.h
-set_default_chemistry_parameters.o: /usr/include/sys/_types.h
+set_default_chemistry_parameters.o: /usr/include/features.h
+set_default_chemistry_parameters.o: /usr/include/stdc-predef.h
 set_default_chemistry_parameters.o: /usr/include/sys/cdefs.h
-set_default_chemistry_parameters.o: /usr/include/sys/_symbol_aliasing.h
-set_default_chemistry_parameters.o: /usr/include/sys/_posix_availability.h
-set_default_chemistry_parameters.o: /usr/include/machine/_types.h
-set_default_chemistry_parameters.o: /usr/include/i386/_types.h
-set_default_chemistry_parameters.o: /usr/include/sys/_pthread/_pthread_types.h
-set_default_chemistry_parameters.o: /usr/include/Availability.h
-set_default_chemistry_parameters.o: /usr/include/AvailabilityInternal.h
-set_default_chemistry_parameters.o: /usr/include/sys/_types/_size_t.h
-set_default_chemistry_parameters.o: /usr/include/sys/_types/_null.h
-set_default_chemistry_parameters.o: /usr/include/sys/_types/_rsize_t.h
-set_default_chemistry_parameters.o: /usr/include/sys/_types/_errno_t.h
-set_default_chemistry_parameters.o: /usr/include/sys/_types/_ssize_t.h
-set_default_chemistry_parameters.o: /usr/include/strings.h
-set_default_chemistry_parameters.o: /usr/include/secure/_string.h
-set_default_chemistry_parameters.o: /usr/include/secure/_common.h
+set_default_chemistry_parameters.o: /usr/include/bits/wordsize.h
+set_default_chemistry_parameters.o: /usr/include/gnu/stubs.h
+set_default_chemistry_parameters.o: /usr/include/xlocale.h
 set_default_chemistry_parameters.o: /usr/include/stdio.h
-set_default_chemistry_parameters.o: /usr/include/sys/_types/_va_list.h
-set_default_chemistry_parameters.o: /usr/include/sys/stdio.h
-set_default_chemistry_parameters.o: /usr/include/sys/_types/_off_t.h
-set_default_chemistry_parameters.o: /usr/include/secure/_stdio.h
-set_default_chemistry_parameters.o: /usr/include/math.h grackle_macros.h
-set_default_chemistry_parameters.o: grackle_types.h grackle_chemistry_data.h
-solve_chemistry.o: /usr/include/stdio.h /usr/include/sys/cdefs.h
-solve_chemistry.o: /usr/include/sys/_symbol_aliasing.h
-solve_chemistry.o: /usr/include/sys/_posix_availability.h
-solve_chemistry.o: /usr/include/Availability.h
-solve_chemistry.o: /usr/include/AvailabilityInternal.h /usr/include/_types.h
-solve_chemistry.o: /usr/include/sys/_types.h /usr/include/machine/_types.h
-solve_chemistry.o: /usr/include/i386/_types.h
-solve_chemistry.o: /usr/include/sys/_pthread/_pthread_types.h
-solve_chemistry.o: /usr/include/sys/_types/_va_list.h
-solve_chemistry.o: /usr/include/sys/_types/_size_t.h
-solve_chemistry.o: /usr/include/sys/_types/_null.h /usr/include/sys/stdio.h
-solve_chemistry.o: /usr/include/sys/_types/_off_t.h
-solve_chemistry.o: /usr/include/sys/_types/_ssize_t.h
-solve_chemistry.o: /usr/include/secure/_stdio.h /usr/include/secure/_common.h
-solve_chemistry.o: /usr/include/math.h grackle_macros.h grackle_types.h
-solve_chemistry.o: grackle_chemistry_data.h phys_constants.h
-update_UVbackground_rates.o: /usr/include/string.h /usr/include/_types.h
-update_UVbackground_rates.o: /usr/include/sys/_types.h
+set_default_chemistry_parameters.o: /usr/include/bits/types.h
+set_default_chemistry_parameters.o: /usr/include/bits/typesizes.h
+set_default_chemistry_parameters.o: /usr/include/libio.h
+set_default_chemistry_parameters.o: /usr/include/_G_config.h
+set_default_chemistry_parameters.o: /usr/include/wchar.h
+set_default_chemistry_parameters.o: /usr/include/bits/stdio_lim.h
+set_default_chemistry_parameters.o: /usr/include/bits/sys_errlist.h
+set_default_chemistry_parameters.o: /usr/include/math.h
+set_default_chemistry_parameters.o: /usr/include/bits/huge_val.h
+set_default_chemistry_parameters.o: /usr/include/bits/huge_valf.h
+set_default_chemistry_parameters.o: /usr/include/bits/huge_vall.h
+set_default_chemistry_parameters.o: /usr/include/bits/inf.h
+set_default_chemistry_parameters.o: /usr/include/bits/nan.h
+set_default_chemistry_parameters.o: /usr/include/bits/mathdef.h
+set_default_chemistry_parameters.o: /usr/include/bits/mathcalls.h
+set_default_chemistry_parameters.o: grackle_macros.h grackle_types.h
+set_default_chemistry_parameters.o: grackle_chemistry_data.h
+solve_chemistry.o: /usr/include/stdio.h /usr/include/features.h
+solve_chemistry.o: /usr/include/stdc-predef.h /usr/include/sys/cdefs.h
+solve_chemistry.o: /usr/include/bits/wordsize.h /usr/include/gnu/stubs.h
+solve_chemistry.o: /usr/include/bits/types.h /usr/include/bits/typesizes.h
+solve_chemistry.o: /usr/include/libio.h /usr/include/_G_config.h
+solve_chemistry.o: /usr/include/wchar.h /usr/include/bits/stdio_lim.h
+solve_chemistry.o: /usr/include/bits/sys_errlist.h /usr/include/math.h
+solve_chemistry.o: /usr/include/bits/huge_val.h /usr/include/bits/huge_valf.h
+solve_chemistry.o: /usr/include/bits/huge_vall.h /usr/include/bits/inf.h
+solve_chemistry.o: /usr/include/bits/nan.h /usr/include/bits/mathdef.h
+solve_chemistry.o: /usr/include/bits/mathcalls.h grackle_macros.h
+solve_chemistry.o: grackle_types.h grackle_chemistry_data.h phys_constants.h
+update_UVbackground_rates.o: /usr/include/string.h /usr/include/features.h
+update_UVbackground_rates.o: /usr/include/stdc-predef.h
 update_UVbackground_rates.o: /usr/include/sys/cdefs.h
-update_UVbackground_rates.o: /usr/include/sys/_symbol_aliasing.h
-update_UVbackground_rates.o: /usr/include/sys/_posix_availability.h
-update_UVbackground_rates.o: /usr/include/machine/_types.h
-update_UVbackground_rates.o: /usr/include/i386/_types.h
-update_UVbackground_rates.o: /usr/include/sys/_pthread/_pthread_types.h
-update_UVbackground_rates.o: /usr/include/Availability.h
-update_UVbackground_rates.o: /usr/include/AvailabilityInternal.h
-update_UVbackground_rates.o: /usr/include/sys/_types/_size_t.h
-update_UVbackground_rates.o: /usr/include/sys/_types/_null.h
-update_UVbackground_rates.o: /usr/include/sys/_types/_rsize_t.h
-update_UVbackground_rates.o: /usr/include/sys/_types/_errno_t.h
-update_UVbackground_rates.o: /usr/include/sys/_types/_ssize_t.h
-update_UVbackground_rates.o: /usr/include/strings.h
-update_UVbackground_rates.o: /usr/include/secure/_string.h
-update_UVbackground_rates.o: /usr/include/secure/_common.h
-update_UVbackground_rates.o: /usr/include/stdio.h
-update_UVbackground_rates.o: /usr/include/sys/_types/_va_list.h
-update_UVbackground_rates.o: /usr/include/sys/stdio.h
-update_UVbackground_rates.o: /usr/include/sys/_types/_off_t.h
-update_UVbackground_rates.o: /usr/include/secure/_stdio.h
-update_UVbackground_rates.o: /usr/include/stdlib.h /usr/include/sys/wait.h
-update_UVbackground_rates.o: /usr/include/sys/_types/_pid_t.h
-update_UVbackground_rates.o: /usr/include/sys/_types/_id_t.h
-update_UVbackground_rates.o: /usr/include/sys/signal.h
-update_UVbackground_rates.o: /usr/include/sys/appleapiopts.h
-update_UVbackground_rates.o: /usr/include/machine/signal.h
-update_UVbackground_rates.o: /usr/include/i386/signal.h
-update_UVbackground_rates.o: /usr/include/machine/_mcontext.h
-update_UVbackground_rates.o: /usr/include/i386/_mcontext.h
-update_UVbackground_rates.o: /usr/include/mach/i386/_structs.h
-update_UVbackground_rates.o: /usr/include/sys/_pthread/_pthread_attr_t.h
-update_UVbackground_rates.o: /usr/include/sys/_types/_sigaltstack.h
-update_UVbackground_rates.o: /usr/include/sys/_types/_ucontext.h
-update_UVbackground_rates.o: /usr/include/sys/_types/_sigset_t.h
-update_UVbackground_rates.o: /usr/include/sys/_types/_uid_t.h
-update_UVbackground_rates.o: /usr/include/sys/resource.h
-update_UVbackground_rates.o: /usr/include/stdint.h
-update_UVbackground_rates.o: /usr/include/sys/_types/_int8_t.h
-update_UVbackground_rates.o: /usr/include/sys/_types/_int16_t.h
-update_UVbackground_rates.o: /usr/include/sys/_types/_int32_t.h
-update_UVbackground_rates.o: /usr/include/sys/_types/_int64_t.h
-update_UVbackground_rates.o: /usr/include/_types/_uint8_t.h
-update_UVbackground_rates.o: /usr/include/_types/_uint16_t.h
-update_UVbackground_rates.o: /usr/include/_types/_uint32_t.h
-update_UVbackground_rates.o: /usr/include/_types/_uint64_t.h
-update_UVbackground_rates.o: /usr/include/sys/_types/_intptr_t.h
-update_UVbackground_rates.o: /usr/include/sys/_types/_uintptr_t.h
-update_UVbackground_rates.o: /usr/include/_types/_intmax_t.h
-update_UVbackground_rates.o: /usr/include/_types/_uintmax_t.h
-update_UVbackground_rates.o: /usr/include/sys/_types/_timeval.h
-update_UVbackground_rates.o: /usr/include/machine/endian.h
-update_UVbackground_rates.o: /usr/include/i386/endian.h
-update_UVbackground_rates.o: /usr/include/sys/_endian.h
-update_UVbackground_rates.o: /usr/include/libkern/_OSByteOrder.h
-update_UVbackground_rates.o: /usr/include/libkern/i386/_OSByteOrder.h
+update_UVbackground_rates.o: /usr/include/bits/wordsize.h
+update_UVbackground_rates.o: /usr/include/gnu/stubs.h /usr/include/xlocale.h
+update_UVbackground_rates.o: /usr/include/stdio.h /usr/include/bits/types.h
+update_UVbackground_rates.o: /usr/include/bits/typesizes.h
+update_UVbackground_rates.o: /usr/include/libio.h /usr/include/_G_config.h
+update_UVbackground_rates.o: /usr/include/wchar.h
+update_UVbackground_rates.o: /usr/include/bits/stdio_lim.h
+update_UVbackground_rates.o: /usr/include/bits/sys_errlist.h
+update_UVbackground_rates.o: /usr/include/stdlib.h
+update_UVbackground_rates.o: /usr/include/bits/waitflags.h
+update_UVbackground_rates.o: /usr/include/bits/waitstatus.h
+update_UVbackground_rates.o: /usr/include/endian.h /usr/include/bits/endian.h
+update_UVbackground_rates.o: /usr/include/bits/byteswap.h
+update_UVbackground_rates.o: /usr/include/bits/byteswap-16.h
+update_UVbackground_rates.o: /usr/include/sys/types.h /usr/include/time.h
+update_UVbackground_rates.o: /usr/include/sys/select.h
+update_UVbackground_rates.o: /usr/include/bits/select.h
+update_UVbackground_rates.o: /usr/include/bits/sigset.h
+update_UVbackground_rates.o: /usr/include/bits/time.h
+update_UVbackground_rates.o: /usr/include/sys/sysmacros.h
+update_UVbackground_rates.o: /usr/include/bits/pthreadtypes.h
 update_UVbackground_rates.o: /usr/include/alloca.h
-update_UVbackground_rates.o: /usr/include/sys/_types/_ct_rune_t.h
-update_UVbackground_rates.o: /usr/include/sys/_types/_rune_t.h
-update_UVbackground_rates.o: /usr/include/sys/_types/_wchar_t.h
-update_UVbackground_rates.o: /usr/include/machine/types.h
-update_UVbackground_rates.o: /usr/include/i386/types.h
-update_UVbackground_rates.o: /usr/include/sys/_types/_u_int8_t.h
-update_UVbackground_rates.o: /usr/include/sys/_types/_u_int16_t.h
-update_UVbackground_rates.o: /usr/include/sys/_types/_u_int32_t.h
-update_UVbackground_rates.o: /usr/include/sys/_types/_u_int64_t.h
-update_UVbackground_rates.o: /usr/include/sys/_types/_dev_t.h
-update_UVbackground_rates.o: /usr/include/sys/_types/_mode_t.h
-update_UVbackground_rates.o: /usr/include/math.h grackle_macros.h
+update_UVbackground_rates.o: /usr/include/bits/stdlib-float.h
+update_UVbackground_rates.o: /usr/include/math.h /usr/include/bits/huge_val.h
+update_UVbackground_rates.o: /usr/include/bits/huge_valf.h
+update_UVbackground_rates.o: /usr/include/bits/huge_vall.h
+update_UVbackground_rates.o: /usr/include/bits/inf.h /usr/include/bits/nan.h
+update_UVbackground_rates.o: /usr/include/bits/mathdef.h
+update_UVbackground_rates.o: /usr/include/bits/mathcalls.h grackle_macros.h
 update_UVbackground_rates.o: grackle_types.h grackle_chemistry_data.h
 
 calc_rates_g.o: phys_const.def grackle_fortran_types.def
