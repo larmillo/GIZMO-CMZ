@@ -319,6 +319,10 @@ void GravAccel_CMZ()
 		if((P[i].Pos[0] - All.xx0) < 0) P[i].GravAccel[0] = - P[i].GravAccel[0];
 		if((P[i].Pos[1] - All.yy0) < 0) P[i].GravAccel[1] = - P[i].GravAccel[1];
 		if((P[i].Pos[2] - All.zz0) < 0) P[i].GravAccel[2] = - P[i].GravAccel[2];
+
+#ifdef TWODIMS
+		P[i].GravAccel[2] = 0;
+#endif		
 		
 		//if(fabs(P[i].GravAccel[0]) > 1e-4) printf("Accel: %e %e %e %e %e %e \n", P[i].Pos[0], P[i].Pos[1],P[i].Pos[2],P[i].GravAccel[0], P[i].GravAccel[1], P[i].GravAccel[2]);
 		//if(fabs(P[i].GravAccel[0]) > 1e-4) printf("Accel: %e %d %d %d %e %e %e %e \n", P[i].Pos[0], x, y, z,All.accx[x][y][z],All.accx[x+1][y][z],All.accx[x][y+1][z],All.accx[x][y][z+1]);
@@ -382,6 +386,9 @@ void GravAccel_CMZ()
 		
 		if((P[i].Pos[2] - All.xx0) > 0) P[i].GravAccel[2] += interp1_z + (interp2_z - interp1_z)/All.deltaz * (dp[2] - All.zz0 - z * All.deltaz);
 		if((P[i].Pos[2] - All.zz0) < 0) P[i].GravAccel[2] -= interp1_z + (interp2_z - interp1_z)/All.deltaz * (dp[2] - All.zz0 - z * All.deltaz);
+#ifdef TWODIMS
+		P[i].GravAccel[2] = 0;
+#endif		
 
 	}
 	
