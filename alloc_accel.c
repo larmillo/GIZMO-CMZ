@@ -37,7 +37,7 @@ double*** Allocate_matrix3D(const int dim1,const int dim2, const int dim3)
 
 void allocate_acc()
 {
-    hid_t   file, dataset_bdh, dataset_bar, dataspace_bdh, dataspace_bar, datatype;
+    hid_t   file, dataset_pot, dataspace_pot, datatype;
 	hid_t   dataset_x, dataset_y, dataset_z, dataspace_x, dataspace_y, dataspace_z;
     size_t      size;                    /* size of the data element stored in file */
     hsize_t     dims_out[3];             /* dataset dimensions */
@@ -47,21 +47,20 @@ void allocate_acc()
 
     // Open the file and the dataset //
  
-    file = H5Fopen("MWpotential.h5", H5F_ACC_RDONLY, H5P_DEFAULT);
+    //file = H5Fopen("MWpotential.h5", H5F_ACC_RDONLY, H5P_DEFAULT);
+	file = H5Fopen("PotentialSormani.h5", H5F_ACC_RDONLY, H5P_DEFAULT);
 	
-    dataset_bdh = H5Dopen(file, "/Potentials/BULGE_DISK_HALO");
-    dataspace_bdh = H5Dget_space(dataset_bdh);
-    dataset_bar = H5Dopen(file, "/Potentials/BAR");
-    dataspace_bar = H5Dget_space(dataset_bar);
+    dataset_pot = H5Dopen(file, "/Potentials/PotentialSormani");
+    dataspace_pot = H5Dget_space(dataset_pot);
 
     //Get datatype, size, rank and dimensions //
-    datatype  = H5Dget_type(dataset_bdh);     
+    datatype  = H5Dget_type(dataset_pot);     
 
     size  = H5Tget_size(datatype);
     printf(" Data size is %d \n", (int)size);
 
-    rank      = H5Sget_simple_extent_ndims(dataspace_bdh);
-    status_n  = H5Sget_simple_extent_dims(dataspace_bdh, dims_out, NULL);
+    rank      = H5Sget_simple_extent_ndims(dataspace_pot);
+    status_n  = H5Sget_simple_extent_dims(dataspace_pot, dims_out, NULL);
     printf("Reading file MWpotential: rank %d, dimensions %lu x %lu x %lu\n", rank,
       (unsigned long)(dims_out[0]), (unsigned long)(dims_out[1]), (unsigned long)(dims_out[2]));  
 	  
@@ -70,10 +69,8 @@ void allocate_acc()
 	Nz = dims_out[2];
 	
     double (*potential_tot)[Ny][Nz] = malloc(Nx*sizeof(*potential_tot));
-	double (*potential_bar)[Ny][Nz] = malloc(Nx*sizeof(*potential_bar));
 
-    status += H5Dread(dataset_bdh, datatype, dataspace_bdh, dataspace_bdh, H5P_DEFAULT, potential_tot);
-    status += H5Dread(dataset_bar, datatype, dataspace_bar, dataspace_bar, H5P_DEFAULT, potential_bar); 
+    status += H5Dread(dataset_pot, datatype, dataspace_pot, dataspace_pot, H5P_DEFAULT, potential_tot);
 	
     dataset_x = H5Dopen(file, "/Potentials/Coord_X");
     dataspace_x = H5Dget_space(dataset_x);
@@ -107,9 +104,6 @@ void allocate_acc()
 	All.accx = Allocate_matrix3D(Nx, Ny, Nz);
 	All.accy = Allocate_matrix3D(Nx, Ny, Nz);
 	All.accz = Allocate_matrix3D(Nx, Ny, Nz);
-	All.accx_bar = Allocate_matrix3D(Nx, Ny, Nz);
-	All.accy_bar = Allocate_matrix3D(Nx, Ny, Nz);
-	All.accz_bar = Allocate_matrix3D(Nx, Ny, Nz);	
 	
 	/*Conversion in unit code*/
 	
@@ -128,13 +122,19 @@ void allocate_acc()
 		{
 			for(int i=0; i < Nx; i++)
 			{
-				potential_tot[i-1][j][k]*=1e10/(All.UnitVelocity_in_cm_per_s * All.UnitVelocity_in_cm_per_s);
-				potential_bar[i-1][j][k]*=1e10/(All.UnitVelocity_in_cm_per_s * All.UnitVelocity_in_cm_per_s);
+				potential_tot[i][j][k]*=1e10/(All.UnitVelocity_in_cm_per_s * All.UnitVelocity_in_cm_per_s);
 			}
 		}
 	}
 	
+	for(int i=0; i < Nx; i++)
+	{
+		printf("%e %e %d \n", potential_tot[i][0][1],(All.UnitVelocity_in_cm_per_s * All.UnitVelocity_in_cm_per_s), Nx);
+	}
+	
 	//////////////////////////
+	
+	double central_acc = 0; //Acceleration in the inner 10 pc region
 	
 	for(int k=0; k < Nz; k++)
 	{
@@ -142,8 +142,8 @@ void allocate_acc()
 		{
 			for(int i=1; i < Nx-1; i++)
 			{
-				All.accx[i][j][k] = -(potential_tot[i+1][j][k]-potential_tot[i-1][j][k])/(2*All.deltax);
-				All.accx_bar[i][j][k] = -(potential_bar[i+1][j][k]-potential_bar[i-1][j][k])/(2*All.deltax);
+				if (j == 0 && k ==0 && i == 1) All.accx[i][j][k] = -(potential_tot[2][j][k]-potential_tot[1][j][k])/(All.deltax);
+				else All.accx[i][j][k] = -(potential_tot[i+1][j][k]-potential_tot[i-1][j][k])/(2*All.deltax);
 			}
 		}
 	}
@@ -152,10 +152,9 @@ void allocate_acc()
 	{
 		for(int j=0; j < Ny; j++)
 		{
-			All.accx[0][j][k] = -(potential_tot[1][j][k]-potential_tot[0][j][k])/(All.deltax);
-			All.accx_bar[0][j][k] = -(potential_bar[1][j][k]-potential_bar[0][j][k])/(All.deltax);
+			if (j == 0 && k ==0) All.accx[0][j][k] = central_acc;
+			else All.accx[0][j][k] = -(potential_tot[1][j][k]-potential_tot[0][j][k])/(All.deltax);
 			All.accx[Nx-1][j][k] = -(potential_tot[Nx-1][j][k]-potential_tot[Nx-2][j][k])/(All.deltax);
-			All.accx_bar[Nx-1][j][k] = -(potential_bar[Nx-1][j][k]-potential_bar[Nx-2][j][k])/(All.deltax);
 		}
 	}
 	
@@ -166,8 +165,8 @@ void allocate_acc()
 		{
 			for(int i=0; i < Nx; i++)
 			{
-				All.accy[i][j][k] = -(potential_tot[i][j+1][k]-potential_tot[i][j-1][k])/(2*All.deltay);
-				All.accy_bar[i][j][k] = -(potential_bar[i][j+1][k]-potential_bar[i][j-1][k])/(2*All.deltay);
+				if (j == 1 && k ==0 && i == 0) All.accy[i][j][k] = -(potential_tot[i][2][k]-potential_tot[i][1][k])/(All.deltay);
+				else All.accy[i][j][k] = -(potential_tot[i][j+1][k]-potential_tot[i][j-1][k])/(2*All.deltay);
 			}
 		}
 	}
@@ -176,10 +175,9 @@ void allocate_acc()
 	{		
 		for(int i=0; i < Nx; i++)
 		{
-			All.accy[i][0][k] = -(potential_tot[i][1][k]-potential_tot[i][0][k])/(All.deltay);
-			All.accy_bar[i][0][k] = -(potential_bar[i][1][k]-potential_bar[i][0][k])/(All.deltay);
+			if (i == 0 && k ==0) All.accy[i][0][k] = central_acc;
+			else All.accy[i][0][k] = -(potential_tot[i][1][k]-potential_tot[i][0][k])/(All.deltay);
 			All.accy[i][Ny-1][k] = -(potential_tot[i][Ny-1][k]-potential_tot[i][Ny-2][k])/(All.deltay);
-			All.accy_bar[i][Ny-1][k] = -(potential_bar[i][Ny-1][k]-potential_bar[i][Ny-2][k])/(All.deltay);
 		}
 	}
 	
@@ -189,8 +187,8 @@ void allocate_acc()
 		{
 			for(int i=0; i < Nx; i++)
 			{
-				All.accz[i][j][k] = -(potential_tot[i][j][k+1]-potential_tot[i][j][k-1])/(2*All.deltaz);
-				All.accz_bar[i][j][k] = -(potential_bar[i][j][k+1]-potential_bar[i][j][k-1])/(2*All.deltaz);
+				if (j == 0 && k ==1 && i == 0) All.accz[i][j][k] = -(potential_tot[i][j][2]-potential_tot[i][j][1])/(All.deltaz);
+				else All.accz[i][j][k] = -(potential_tot[i][j][k+1]-potential_tot[i][j][k-1])/(2*All.deltaz);
 			}
 		}
 	}
@@ -199,10 +197,9 @@ void allocate_acc()
 	{
 		for(int i=0; i < Nx; i++)
 		{
-			All.accz[i][j][0] = -(potential_tot[i][j][1]-potential_tot[i][j][0])/(All.deltaz);
-			All.accz_bar[i][j][0] = -(potential_bar[i][j][1]-potential_bar[i][j][0])/(All.deltaz);
+			if (i == 0 && j ==0) All.accz[i][j][0] = central_acc;
+			else All.accz[i][j][0] = -(potential_tot[i][j][1]-potential_tot[i][j][0])/(All.deltaz);
 			All.accz[i][j][Nz-1] = -(potential_tot[i][j][Nz-1]-potential_tot[i][j][Nz-2])/(All.deltaz);
-			All.accz_bar[i][j][Nz-1] = -(potential_bar[i][j][Nz-1]-potential_bar[i][j][Nz-2])/(All.deltaz);
 		}
 	}
 	
@@ -213,6 +210,6 @@ void allocate_acc()
 	free(YY);
 	free(ZZ);
 	free(potential_tot);
-	free(potential_bar);
+
 }
 #endif

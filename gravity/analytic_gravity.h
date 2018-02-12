@@ -256,37 +256,31 @@ void GravAccel_KeplerianTestProblem()
 #ifdef ANALYTIC_GRAVITY
 void GravAccel_CMZ()
 {
-	double dp[3], interp1_x, interp2_x, interp3_x, interp4_x, interp1_y, interp2_y, interp1_z, interp2_z;
-	double abar_x, abar_y, abar_tot, theta, omega, vrot, R;
+	double dp[3], interp1_x, interp2_x, interp1_y, interp2_y, interp1_z, interp2_z;
+	double a_x, a_y, omega, vrot;
 	int x,y,z,i;
 	double t=All.Time;
 	
-	vrot = 40*(1e5/All.UnitVelocity_in_cm_per_s)*(All.UnitLength_in_cm/CM_PER_KPC); //from km s^-1 kpc^-1 to unit code
+	vrot = 40.*(1e5/All.UnitVelocity_in_cm_per_s)*(All.UnitLength_in_cm/CM_PER_KPC); //from km s^-1 kpc^-1 to unit code
 	
     for(i = FirstActiveParticle; i >= 0; i = NextActiveParticle[i])
 	{
-		//Static potential//
+		//Potential//
 		
-		dp[0]=fabs(P[i].Pos[0]);
-		dp[1]=fabs(P[i].Pos[0]);
+		omega = vrot*t; //rotation angle
+		omega *= PI_VAL/180;//radiant	
+		dp[0]=fabs(P[i].Pos[0]*cos(omega)+P[i].Pos[1]*sin(omega)); 
+		dp[1]=fabs(P[i].Pos[1]*cos(omega)-P[i].Pos[0]*sin(omega)); 
 		dp[2]=fabs(P[i].Pos[0]);
-	
+		
    		x = (int) ((dp[0] - All.xx0) / All.deltax);
     	x = DMAX(x, 0);
     
     	y = (int) ((dp[1] - All.yy0) / All.deltay);
     	y = DMAX(y, 0);
-    
-		z = (int) ((dp[2] - All.zz0) / All.deltaz);
-    	z = DMAX(z, 0);
 		
-		/*interp1_x = All.accx[x][y][z] + (All.accx[x+1][y][z]-All.accx[x][y][z])*(dp[0] - All.xx0 - x * All.deltax)/All.deltax;
-		interp2_x = All.accx[x][y+1][z] + (All.accx[x+1][y+1][z]-All.accx[x][y+1][z])*(dp[0] - All.xx0 - x * All.deltax)/All.deltax;
-		interp3_x = All.accx[x][y][z+1] + (All.accx[x+1][y][z+1]-All.accx[x][y][z+1])*(dp[0] - All.xx0 - x * All.deltax)/All.deltax;
-		interp4_x = All.accx[x][y+1][z+1] + (All.accx[x+1][y+1][z+1]-All.accx[x][y+1][z+1])*(dp[0] - All.xx0 - x * All.deltax)/All.deltax;
-		interp1_y = interp1_x + (interp2_x-interp1_x)*(dp[1] - All.yy0 - y * All.deltay)/All.deltay;
-		interp2_y = interp3_x + (interp4_x-interp3_x)*(dp[1] - All.yy0 - y * All.deltay)/All.deltay;*/
-				
+		z = (int) ((dp[2] - All.zz0) / All.deltaz);
+		z = DMAX(z, 0);
 		
 	    interp1_x = All.accx[x][y][z] + (All.accx[x+1][y][z]-All.accx[x][y][z])/All.deltax * (dp[0] - All.xx0 - x * All.deltax) + 
 			(All.accx[x][y+1][z] - All.accx[x][y][z] + (All.accx[x+1][y+1][z]-All.accx[x][y+1][z])/All.deltax * (dp[0] - All.xx0 - x * All.deltax) 
@@ -312,84 +306,17 @@ void GravAccel_CMZ()
 			(All.accz[x][y+1][z+1] - All.accx[x][y][z+1] + (All.accz[x+1][y+1][z+1]-All.accz[x][y+1][z+1])/All.deltax * (dp[0] - All.xx0 - x * All.deltax) 
 				- (All.accz[x+1][y][z+1]-All.accz[x][y][z+1])/All.deltax * (dp[0] - All.xx0 - x * All.deltax))/All.deltay * (dp[1] - All.yy0 - y * All.deltay);
 		
-		P[i].GravAccel[0] = interp1_x + (interp2_x - interp1_x)/All.deltaz * (dp[2] - All.zz0 - z * All.deltaz);
-		P[i].GravAccel[1] = interp1_y + (interp2_y - interp1_y)/All.deltaz * (dp[2] - All.zz0 - z * All.deltaz);
-		P[i].GravAccel[2] = interp1_z + (interp2_z - interp1_z)/All.deltaz * (dp[2] - All.zz0 - z * All.deltaz);
+		a_x = interp1_x + (interp2_x - interp1_x)/All.deltaz * (dp[2] - All.zz0 - z * All.deltaz);
+		a_y = interp1_y + (interp2_y - interp1_y)/All.deltaz * (dp[2] - All.zz0 - z * All.deltaz);
 		
-		if((P[i].Pos[0] - All.xx0) < 0) P[i].GravAccel[0] = - P[i].GravAccel[0];
-		if((P[i].Pos[1] - All.yy0) < 0) P[i].GravAccel[1] = - P[i].GravAccel[1];
-		if((P[i].Pos[2] - All.zz0) < 0) P[i].GravAccel[2] = - P[i].GravAccel[2];
-
-#ifdef TWODIMS
-		P[i].GravAccel[2] = 0;
-#endif		
+		if((P[i].Pos[0]*cos(omega)+P[i].Pos[1]*sin(omega) - All.xx0) < 0) a_x = - a_x;
+		if((P[i].Pos[1]*cos(omega)-P[i].Pos[0]*sin(omega) - All.yy0) < 0) a_y = - a_y; 
 		
-		//if(fabs(P[i].GravAccel[0]) > 1e-4) printf("Accel: %e %e %e %e %e %e \n", P[i].Pos[0], P[i].Pos[1],P[i].Pos[2],P[i].GravAccel[0], P[i].GravAccel[1], P[i].GravAccel[2]);
-		//if(fabs(P[i].GravAccel[0]) > 1e-4) printf("Accel: %e %d %d %d %e %e %e %e \n", P[i].Pos[0], x, y, z,All.accx[x][y][z],All.accx[x+1][y][z],All.accx[x][y+1][z],All.accx[x][y][z+1]);
-		//if((dp[2] - All.zz0) < 0) P[i].GravAccel[2] = - P[i].GravAccel[2];
-		//printf("Sono qui");
-		//Bar potential//
-		
-		omega = vrot*t; //rotation angle
-		omega *= PI_VAL/180;//radiant	
-		dp[0]=fabs(P[i].Pos[0]*cos(omega)+P[i].Pos[1]*sin(omega)); 
-		dp[1]=fabs(P[i].Pos[1]*cos(omega)-P[i].Pos[0]*sin(omega)); 
-		
-   		x = (int) ((dp[0] - All.xx0) / All.deltax);
-    	x = DMAX(x, 0);
-    
-    	y = (int) ((dp[1] - All.yy0) / All.deltay);
-    	y = DMAX(y, 0);
-		
-	    interp1_x = All.accx_bar[x][y][z] + (All.accx_bar[x+1][y][z]-All.accx_bar[x][y][z])/All.deltax * (dp[0] - All.xx0 - x * All.deltax) + 
-			(All.accx_bar[x][y+1][z] - All.accx_bar[x][y][z] + (All.accx_bar[x+1][y+1][z]-All.accx_bar[x][y+1][z])/All.deltax * (dp[0] - All.xx0 - x * All.deltax) 
-				- (All.accx_bar[x+1][y][z]-All.accx_bar[x][y][z])/All.deltax * (dp[0] - All.xx0 - x * All.deltax))/All.deltay * (dp[1] - All.yy0 - y * All.deltay);
-	
-		interp2_x = All.accx_bar[x][y][z+1] + (All.accx_bar[x+1][y][z+1]-All.accx_bar[x][y][z+1])/All.deltax * (dp[0] - All.xx0 - x * All.deltax) + 
-			(All.accx_bar[x][y+1][z+1] - All.accx_bar[x][y][z+1] + (All.accx_bar[x+1][y+1][z+1]-All.accx_bar[x][y+1][z+1])/All.deltax * (dp[0] - All.xx0 - x * All.deltax) 
-				- (All.accx_bar[x+1][y][z+1]-All.accx_bar[x][y][z+1])/All.deltax * (dp[0] - All.xx0 - x * All.deltax))/All.deltay * (dp[1] - All.yy0 - y * All.deltay);
-		
-	    interp1_y = All.accy_bar[x][y][z] + (All.accy_bar[x+1][y][z]-All.accy_bar[x][y][z])/All.deltax * (dp[0] - All.xx0 - x * All.deltax) + 
-			(All.accy_bar[x][y+1][z] - All.accy_bar[x][y][z] + (All.accy_bar[x+1][y+1][z]-All.accy_bar[x][y+1][z])/All.deltax * (dp[0] - All.xx0 - x * All.deltax) 
-				- (All.accy_bar[x+1][y][z]-All.accy_bar[x][y][z])/All.deltax * (dp[0] - All.xx0 - x * All.deltax))/All.deltay * (dp[1] - All.yy0 - y * All.deltay);
-	
-		interp2_y = All.accy_bar[x][y][z+1] + (All.accy_bar[x+1][y][z+1]-All.accy_bar[x][y][z+1])/All.deltax * (dp[0] - All.xx0 - x * All.deltax) + 
-			(All.accy_bar[x][y+1][z+1] - All.accy_bar[x][y][z+1] + (All.accy_bar[x+1][y+1][z+1]-All.accy_bar[x][y+1][z+1])/All.deltax * (dp[0] - All.xx0 - x * All.deltax) 
-				- (All.accy_bar[x+1][y][z+1]-All.accy_bar[x][y][z+1])/All.deltax * (dp[0] - All.xx0 - x * All.deltax))/All.deltay * (dp[1] - All.yy0 - y * All.deltay);
-		
-	    interp1_z = All.accz_bar[x][y][z] + (All.accz_bar[x+1][y][z]-All.accz_bar[x][y][z])/All.deltax * (dp[0] - All.xx0 - x * All.deltax) + 
-			(All.accz_bar[x][y+1][z] - All.accz_bar[x][y][z] + (All.accz_bar[x+1][y+1][z]-All.accz_bar[x][y+1][z])/All.deltax * (dp[0] - All.xx0 - x * All.deltax) 
-				- (All.accz_bar[x+1][y][z]-All.accz_bar[x][y][z])/All.deltax * (dp[0] - All.xx0 - x * All.deltax))/All.deltay * (dp[1] - All.yy0 - y * All.deltay);
-	
-		interp2_z = All.accz_bar[x][y][z+1] + (All.accz_bar[x+1][y][z+1]-All.accz_bar[x][y][z+1])/All.deltax * (dp[0] - All.xx0 - x * All.deltax) + 
-			(All.accz_bar[x][y+1][z+1] - All.accx_bar[x][y][z+1] + (All.accz_bar[x+1][y+1][z+1]-All.accz_bar[x][y+1][z+1])/All.deltax * (dp[0] - All.xx0 - x * All.deltax) 
-				- (All.accz_bar[x+1][y][z+1]-All.accz_bar[x][y][z+1])/All.deltax * (dp[0] - All.xx0 - x * All.deltax))/All.deltay * (dp[1] - All.yy0 - y * All.deltay);
-		
-		abar_x = interp1_x + (interp2_x - interp1_x)/All.deltaz * (dp[2] - All.zz0 - z * All.deltaz);
-		abar_y = interp1_y + (interp2_y - interp1_y)/All.deltaz * (dp[2] - All.zz0 - z * All.deltaz);
-		
-		if((P[i].Pos[0]*cos(omega)+P[i].Pos[1]*sin(omega) - All.xx0) < 0) abar_x = - abar_x;
-		if((P[i].Pos[1]*cos(omega)-P[i].Pos[0]*sin(omega) - All.yy0) < 0) abar_y = - abar_y; 
-		
-		P[i].GravAccel[0] += abar_x*cos(omega) - abar_y*sin(omega);
-		P[i].GravAccel[1] += abar_x*sin(omega) - abar_y*cos(omega);
-		 
-		
-		/*abar_tot = sqrt(abar_x*abar_x+abar_y*abar_y);
-		theta = fabs(atan(abar_y/abar_x));		
-		
-		if((dp[0] - All.xx0) < 0) P[i].GravAccel[0] -= abar_tot * cos(omega+theta); 
-		if((dp[1] - All.yy0) < 0) P[i].GravAccel[1] -= abar_tot * sin(omega+theta);
-		
-		if((dp[0] - All.xx0) > 0) P[i].GravAccel[0] += abar_tot * cos(omega+theta); 
-		if((dp[1] - All.xx0) > 0) P[i].GravAccel[1] += abar_tot * sin(omega+theta);*/
+		P[i].GravAccel[0] += a_x*cos(omega) - a_y*sin(omega);
+		P[i].GravAccel[1] += a_x*sin(omega) - a_y*cos(omega);
 		
 		if((P[i].Pos[2] - All.xx0) > 0) P[i].GravAccel[2] += interp1_z + (interp2_z - interp1_z)/All.deltaz * (dp[2] - All.zz0 - z * All.deltaz);
 		if((P[i].Pos[2] - All.zz0) < 0) P[i].GravAccel[2] -= interp1_z + (interp2_z - interp1_z)/All.deltaz * (dp[2] - All.zz0 - z * All.deltaz);
-#ifdef TWODIMS
-		P[i].GravAccel[2] = 0;
-#endif		
-
 	}
 	
 }
