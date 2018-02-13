@@ -145,6 +145,36 @@ endif
 endif
 
 
+#----------------------------
+ifeq ($(SYSTYPE),"Avatar")
+CC	 =  mpicc -std=c11
+CXX	 =  mpicxx -std=c++11
+FC	 =  mpif90 
+OPTIMIZE += -O3 -funroll-loops
+OPTIMIZE += -g -Wall # compiler warnings
+ifeq (OPENMP,$(findstring OPENMP,$(CONFIGVARS)))
+OPTIMIZE += -openmp
+endif
+GMP_INCL = #
+GMP_LIBS = #
+MKL_INCL = #
+MKL_LIBS = #
+GSL_INCL = -I/home/larmillo/libs/gsl-2.4/include
+GSL_LIBS = -L/home/larmillo/libs/gsl-2.4/lib -lgsl
+FFTW_INCL=
+FFTW_LIBS=
+HDF5INCL = -I/home/larmillo/libs/hdf5-1.10.1_openmpi3/include -DH5_USE_16_API
+HDF5LIB  = -L//home/larmillo/libs/hdf5-1.10.1_openmpi3/lib -lhdf5
+GRACKLEINCL = -I./grackle/include
+GRACKLELIBS = -L./grackle/lib -lgrackle 
+SLUGINCL = -I./slug2/src
+SLUGLIB = -L./slug2/src -lslug -lboost_system-mt -lboost_filesystem-mt -lboost_regex-mt
+MPICHLIB = #
+OPT     += #
+CXXFLAGS = $(CFLAGS)
+endif
+
+
 
 #----------------------------
 ifeq ($(SYSTYPE),"Marconi")

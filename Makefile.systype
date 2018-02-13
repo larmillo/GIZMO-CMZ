@@ -11,7 +11,8 @@
 #
 #############
 
-SYSTYPE="Marconi"
+SYSTYPE="Avatar"
+#SYSTYPE="Marconi"
 #SYSTYPE="Stampede"
 #SYSTYPE="Zwicky"
 #SYSTYPE="Wheeler"
