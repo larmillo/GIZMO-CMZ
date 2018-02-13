@@ -1,6 +1,6 @@
 
    MACHINE: Use apt-get to install csh libhdf5-serial-dev gfortran
-   MACHINE-NAME: marconi
+   MACHINE-NAME: avatar
 
    CONFIG_PRECISION  [precision-{32,64}]                     : 64
    CONFIG_OPT  [opt-{warn,debug,high,aggressive}]            : high

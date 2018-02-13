@@ -17,7 +17,7 @@ old_library='libgrackle.a'
 inherited_linker_flags=''
 
 # Libraries that this one depends upon.
-dependency_libs=' -L/cineca/prod/opt/libraries/hdf5/1.8.17/intelmpi--2017--binary//lib /cineca/prod/opt/libraries/hdf5/1.8.17/intelmpi--2017--binary//lib/libhdf5.la -L/cineca/prod/opt/libraries/zlib/1.2.8/gnu--6.1.0/lib -L/cineca/prod/opt/libraries/szip/2.1/gnu--6.1.0/lib /cineca/prod/opt/libraries/szip/2.1/gnu--6.1.0/lib/libsz.la -ldl -lm -lz -lgfortran'
+dependency_libs=' -L/home/larmillo/libs/hdf5-1.10.1_openmpi3/lib /home/larmillo/libs/hdf5-1.10.1_openmpi3/lib/libhdf5.la -ldl -lm -lz -lgfortran'
 
 # Names of additional weak libraries provided by this library
 weak_library_names=''
@@ -38,4 +38,4 @@ dlopen=''
 dlpreopen=''
 
 # Directory that this library needs to be installed in:
-libdir='/marconi/home/userexternal/mcanducc/GIZMO-CMZ/grackle/lib'
+libdir='/avatar/larmillo/GIZMO-CMZ/grackle/lib'

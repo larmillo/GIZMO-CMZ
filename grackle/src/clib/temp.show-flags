@@ -25,16 +25,16 @@ the full path of each command used inside of those.
 
 Report bugs to <which-bugs@gnu.org>.
 CPP = 
-CC  = /cineca/prod/opt/compilers/intel/pe-xe-2017/binary/impi/2017.3.196/bin64/mpiicc
-CXX = /cineca/prod/opt/compilers/intel/pe-xe-2017/binary/impi/2017.3.196/bin64/mpiicpc
-FC  = /cineca/prod/opt/compilers/intel/pe-xe-2017/binary/impi/2017.3.196/bin64/mpiifort
-F90 = /cineca/prod/opt/compilers/intel/pe-xe-2017/binary/impi/2017.3.196/bin64/mpiifort
-LD  = /cineca/prod/opt/compilers/intel/pe-xe-2017/binary/impi/2017.3.196/bin64/mpiicc
-LIBTOOL = /usr/bin/libtool
+CC  = /usr/local/openmpi3.0.0/bin/mpicc
+CXX = /usr/local/openmpi3.0.0/bin/mpicxx
+FC  = /usr/local/openmpi3.0.0/bin/mpif90
+F90 = /usr/local/openmpi3.0.0/bin/mpif90
+LD  = /usr/local/openmpi3.0.0/bin/mpicc
+LIBTOOL = /pkg/linux/anaconda/bin/libtool
 
 DEFINES = -DLINUX -DH5_USE_16_API -fPIC  -DCONFIG_BFLOAT_8
 
-INCLUDES = -I/cineca/prod/opt/libraries/hdf5/1.8.17/intelmpi--2017--binary//include     -I.
+INCLUDES = -I/home/larmillo/libs/hdf5-1.10.1_openmpi3/include     -I.
 
 CPPFLAGS = -P -traditional
 CFLAGS   =  -O2 
@@ -43,5 +43,5 @@ FFLAGS   = -fno-second-underscore -ffixed-line-length-132 -O2
 F90FLAGS = -fno-second-underscore -O2 
 LDFLAGS  =  
 
-LIBS     = -L/cineca/prod/opt/libraries/hdf5/1.8.17/intelmpi--2017--binary//lib -lhdf5 -lz  -lgfortran 
+LIBS     = -L/home/larmillo/libs/hdf5-1.10.1_openmpi3/lib -lhdf5 -lz  -lgfortran 
 

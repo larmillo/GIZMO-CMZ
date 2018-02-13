@@ -27,16 +27,16 @@ void auto_show_flags(FILE *fp) {
    fprintf (fp,"\n");
    fprintf (fp,"Report bugs to <which-bugs@gnu.org>.\n");
    fprintf (fp,"CPP = \n");
-   fprintf (fp,"CC  = /cineca/prod/opt/compilers/intel/pe-xe-2017/binary/impi/2017.3.196/bin64/mpiicc\n");
-   fprintf (fp,"CXX = /cineca/prod/opt/compilers/intel/pe-xe-2017/binary/impi/2017.3.196/bin64/mpiicpc\n");
-   fprintf (fp,"FC  = /cineca/prod/opt/compilers/intel/pe-xe-2017/binary/impi/2017.3.196/bin64/mpiifort\n");
-   fprintf (fp,"F90 = /cineca/prod/opt/compilers/intel/pe-xe-2017/binary/impi/2017.3.196/bin64/mpiifort\n");
-   fprintf (fp,"LD  = /cineca/prod/opt/compilers/intel/pe-xe-2017/binary/impi/2017.3.196/bin64/mpiicc\n");
-   fprintf (fp,"LIBTOOL = /usr/bin/libtool\n");
+   fprintf (fp,"CC  = /usr/local/openmpi3.0.0/bin/mpicc\n");
+   fprintf (fp,"CXX = /usr/local/openmpi3.0.0/bin/mpicxx\n");
+   fprintf (fp,"FC  = /usr/local/openmpi3.0.0/bin/mpif90\n");
+   fprintf (fp,"F90 = /usr/local/openmpi3.0.0/bin/mpif90\n");
+   fprintf (fp,"LD  = /usr/local/openmpi3.0.0/bin/mpicc\n");
+   fprintf (fp,"LIBTOOL = /pkg/linux/anaconda/bin/libtool\n");
    fprintf (fp,"\n");
    fprintf (fp,"DEFINES = -DLINUX -DH5_USE_16_API -fPIC  -DCONFIG_BFLOAT_8\n");
    fprintf (fp,"\n");
-   fprintf (fp,"INCLUDES = -I/cineca/prod/opt/libraries/hdf5/1.8.17/intelmpi--2017--binary//include     -I.\n");
+   fprintf (fp,"INCLUDES = -I/home/larmillo/libs/hdf5-1.10.1_openmpi3/include     -I.\n");
    fprintf (fp,"\n");
    fprintf (fp,"CPPFLAGS = -P -traditional\n");
    fprintf (fp,"CFLAGS   =  -O2 \n");
@@ -45,6 +45,6 @@ void auto_show_flags(FILE *fp) {
    fprintf (fp,"F90FLAGS = -fno-second-underscore -O2 \n");
    fprintf (fp,"LDFLAGS  =  \n");
    fprintf (fp,"\n");
-   fprintf (fp,"LIBS     = -L/cineca/prod/opt/libraries/hdf5/1.8.17/intelmpi--2017--binary//lib -lhdf5 -lz  -lgfortran \n");
+   fprintf (fp,"LIBS     = -L/home/larmillo/libs/hdf5-1.10.1_openmpi3/lib -lhdf5 -lz  -lgfortran \n");
    fprintf (fp,"\n");
 }

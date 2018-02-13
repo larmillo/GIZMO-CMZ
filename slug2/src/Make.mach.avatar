@@ -1,8 +1,10 @@
-# Machine-specific settings for generic gnu-linux
+# Machine-specific settings for CINECA MARCONI
 
 # Default is g++ / gcc compiler
-MACH_CXX          = icpc
-MACH_CC		  = icc
+MACH_CXX          = g++
+MACH_CC		  = gcc
+MACH_MPICXX       = mpicxx  
+MACH_MPICC        = mpicc  
 
 # Flag needed to specify c++11 standard
 MACH_C11FLAG      = -std=c++11
@@ -12,9 +14,9 @@ MACH_CXXLIB       = -lstdc++
 
 # Optimization flags; note that we omit -Wall because
 # g++ issues a ton of warnings about boost when -Wall is enabled
-MACH_CXXOPTFLAGS  = -O2 -fp-model precise  -ipo
+MACH_CXXOPTFLAGS  = -O2 
 MACH_COPTFLAGS	  = $(MACH_CXXOPTFLAGS)
-MACH_LDOPTFLAGS   = -O2 -fp-model precise  -ipo
+MACH_LDOPTFLAGS   = -O2 
 
 # Debug flags
 MACH_CXXDEBFLAGS  = -g
@@ -27,5 +29,16 @@ LIBSTAT_EXTENSION  = .a
 CLIBFLAGS	   = -fPIC
 DYNLIBFLAG	   = -shared
 
+# Libraries
+#BOOST_HDR_PATH =
+#BOOST_LIB_PATH =
+GSL_HDR_PATH   = /home/larmillo/libs/gsl-2.4/include
+GSL_LIB_PATH   = /home/larmillo/libs/gsl-2.4/lib
+FITS_HDR_PATH  = /usr/include/cfitsio
+FITS_LIB_PATH  = /usr/lib64
+INCFLAGS	+= -I$(BOOST_HDR_PATH) -I$(GSL_HDR_PATH) -I$(FITS_HDR_PATH)
+LDLIBFLAGS     += -L$(BOOST_LIB_PATH) -L$(GSL_LIB_PATH) -L$(FITS_LIB_PATH)
+
+
 # By default boost library names under linux do not have tags
-MACH_BOOST_TAG    =
+MACH_BOOST_TAG    = -mt
