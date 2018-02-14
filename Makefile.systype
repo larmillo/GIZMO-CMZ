@@ -11,12 +11,12 @@
 #
 #############
 
-SYSTYPE="Avatar"
+#SYSTYPE="Avatar"
 #SYSTYPE="Marconi"
 #SYSTYPE="Stampede"
 #SYSTYPE="Zwicky"
 #SYSTYPE="Wheeler"
-#SYSTYPE="MacBookPro"
+SYSTYPE="MacBookPro"
 #SYSTYPE="Quest"
 #SYSTYPE="Darter"
 #SYSTYPE="Comet"
