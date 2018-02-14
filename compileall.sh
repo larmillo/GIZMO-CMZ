@@ -18,25 +18,32 @@ then
     GRACKLE_DIR=${HOME}/GIZMO-CMZ/grackle
     SLUG_DIR=${HOME}/GIZMO-CMZ/slug2
     
-    echo Compiling grackle and slug for ${SYSTEM}
+    echo "Compiling grackle and slug for ${SYSTEM}"
+elif  [[ ${SYSTEM} == "avatar" ]]
+then 
+    echo "Compiling grackle and slug for ${SYSTEM}"
 elif  [[ ${SYSTEM} == "darwin" ]]
-    
+then 
+    echo "Compiling grackle and slug for ${SYSTEM}"
+else
+    echo -e "Usage: ./compileall.sh machinename \n\nmachinename=marconi,avatar,darwin"
 fi
 
-
-#GRACKLE_DIR=${PWD}/grackle
-#SLUG_DIR=${PWD}/GIZMO-CMZ/slug2
+GRACKLE_DIR=${PWD}/grackle
+SLUG_DIR=${PWD}/slug2
 
 # Compile grackle
-#cd ${GRACKLE_DIR}
-#./configure 
-#cd src/clib 
-#make machine-marconi
-#make clean 
-#make -j 24 
-#make install
+cd ${GRACKLE_DIR}
+./configure 
+cd src/clib 
+make machine-${SYSTEM}
+make clean 
+make -j 8 
+make install
+make clean
 
 # Compile slug
-#cd ${HOME}/GIZMO-CMZ/slug2
+cd ${SLUG_DIR}
+make clean
+make lib -j 8 MPI=ENABLE_MPI GSLVERSION=2 MACHINE=${SYSTEM} FITS=ENABLE_FITS
 #make clean
-#make lib -j 24 MPI=ENABLE_MPI GSLVERSION=2 MACHINE=marconi FITS=ENABLE_FITS

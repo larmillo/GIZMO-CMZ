@@ -1,4 +1,7 @@
 *.o
 grackle/lib/
 grackle/include/
+grackle/src/clib/temp.*
 *.so
+*.lo
+*.dylib
