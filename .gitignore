@@ -1,0 +1,4 @@
+*.o
+grackle/lib/
+grackle/include/
+*.so
