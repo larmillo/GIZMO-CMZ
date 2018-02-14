@@ -29,8 +29,9 @@ else
     echo -e "Usage: ./compileall.sh machinename \n\nmachinename=marconi,avatar,darwin"
 fi
 
-GRACKLE_DIR=${PWD}/grackle
-SLUG_DIR=${PWD}/slug2
+GIZMO_DIR=${PWD}
+GRACKLE_DIR=${GIZMO_DIR}/grackle
+SLUG_DIR=${GIZMO_DIR}/slug2
 
 # Compile grackle
 cd ${GRACKLE_DIR}
@@ -46,4 +47,9 @@ make clean
 cd ${SLUG_DIR}
 make clean
 make lib -j 8 MPI=ENABLE_MPI GSLVERSION=2 MACHINE=${SYSTEM} FITS=ENABLE_FITS
-#make clean
+mv src/libslug.* .
+make clean
+
+cd ${GIZMO_DIR}
+rm -rf lib
+ln -s ${SLUG_DIR}/lib lib

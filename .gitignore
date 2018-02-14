@@ -5,3 +5,4 @@ grackle/src/clib/temp.*
 *.so
 *.lo
 *.dylib
+./lib

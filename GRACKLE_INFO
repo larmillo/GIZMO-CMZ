@@ -1,11 +1,18 @@
-2018-01-11 17:40:29
+2018-02-14 18:02:48
 
 The Grackle Version 3.0
 Mercurial Branch   default
 Mercurial Revision 461945e5cd9c+
 
 Grackle build options:
-make[1]: *** No rule to make target `DEPEND'.  Stop.
+
+   MACHINE: Darwin (OSX) 
+   MACHINE-NAME: darwin
+
+   CONFIG_PRECISION  [precision-{32,64}]                     : 64
+   CONFIG_OPT  [opt-{warn,debug,high,aggressive}]            : high
+   CONFIG_OMP  [omp-{on,off}]                                : off
+
 Grackle build flags:
 
 CPP = /usr/bin/cpp

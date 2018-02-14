@@ -168,7 +168,7 @@ HDF5LIB  = -L//home/larmillo/libs/hdf5-1.10.1_openmpi3/lib -lhdf5
 GRACKLEINCL = -I./grackle/include
 GRACKLELIBS = -L./grackle/lib -lgrackle 
 SLUGINCL = -I./slug2/src
-SLUGLIB = -L./slug2/src -lslug -lboost_system-mt -lboost_filesystem-mt -lboost_regex-mt
+SLUGLIB = -L./slug2 -lslug -lboost_system-mt -lboost_filesystem-mt -lboost_regex-mt
 MPICHLIB = #
 OPT     += #
 CXXFLAGS = $(CFLAGS)
@@ -199,42 +199,10 @@ HDF5LIB  = -L/cineca/prod/opt/libraries/hdf5/1.8.17/intelmpi--2017--binary/lib -
 GRACKLEINCL = -I./grackle/include
 GRACKLELIBS = -L./grackle/lib -lgrackle -lifcore 
 SLUGINCL = -I./slug2/src 
-SLUGLIB = -L./slug2/src -lslug -lboost_system-mt -lboost_filesystem-mt -lboost_regex-mt
+SLUGLIB = -L./slug2 -lslug -lboost_system-mt -lboost_filesystem-mt -lboost_regex-mt
 MPICHLIB = #
 OPT     += #
 CXXFLAGS = $(CFLAGS) 
-endif
-
-#----------------------------------------------------------------------------------------------
-ifeq ($(SYSTYPE),"Stampede")
-CC       =  mpicc
-CXX      =  mpic++
-FC       =  mpif90 -nofor_main
-OPTIMIZE = -O3 -xhost -ipo -funroll-loops -no-prec-div -fp-model fast=2  # speed
-OPTIMIZE += -g -Wall # compiler warnings
-#OPTIMIZE += -parallel -openmp  # openmp (comment out this line if OPENMP not used)
-ifeq (OPENMP,$(findstring OPENMP,$(CONFIGVARS)))
-OPTIMIZE += -parallel -openmp  # openmp required compiler flags
-endif
-GMP_INCL = #
-GMP_LIBS = #
-MKL_INCL = -I$(TACC_MKL_INC)
-MKL_LIBS = -L$(TACC_MKL_LIB) -mkl=sequential
-##MKL_LIBS = -L$(TACC_MKL_LIB) -lm -lmkl_core -lmkl_sequential -lmkl_scalapack_lp64 -lmkl_intel_lp64 -lmkl_blacs_intelmpi_lp64
-GSL_INCL = -I$(TACC_GSL_INC)
-GSL_LIBS = -L$(TACC_GSL_LIB)
-FFTW_INCL= -I$(TACC_FFTW2_INC)
-FFTW_LIBS= -L$(TACC_FFTW2_LIB)
-HDF5INCL = -I$(TACC_HDF5_INC) -DH5_USE_16_API
-HDF5LIB  = -L$(TACC_HDF5_LIB) -lhdf5 -lz
-#MPICHLIB =
-OPT     += -DUSE_MPI_IN_PLACE
-## modules to load: 
-## module load intel mvapich2 gsl hdf5 fftw2
-##  -- performance is very similar with impi (intel-mpi) instead of mpavich2, 
-##   if preferred use that with MPICHLIB line uncommented
-## newest version of code needed for compatibility with calls in MPI-2 libraries
-##
 endif
 
 
@@ -263,7 +231,7 @@ HDF5LIB  = -L/usr/local/lib -lhdf5 -lz
 GRACKLEINCL = -I./grackle/include
 GRACKLELIBS = -L./grackle/lib -lgrackle -lhdf5
 SLUGINCL = -I/Users/larmillo/slug2/src
-SLUGLIB = -L/Users/larmillo/slug2/src -lslug -lboost_system-mt -lboost_filesystem-mt -lboost_regex-mt -lcfitsio
+SLUGLIB = -L/Users/larmillo/slug2 -lslug -lboost_system-mt -lboost_filesystem-mt -lboost_regex-mt -lcfitsio
 MPICHLIB = #
 OPT     += #
 CXXFLAGS = $(CFLAGS) -std=c++11
