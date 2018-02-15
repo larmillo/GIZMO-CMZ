@@ -1,1 +1,1 @@
-CONFIG_MACHINE = avatar
+CONFIG_MACHINE = darwin

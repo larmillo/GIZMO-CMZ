@@ -248,7 +248,7 @@ OUTPUT_ADDITIONAL_RUNINFO      # enables extended simulation output data (can sl
 SLUG
 STAR_FORMATION
 SN_FEEDBACK
-
+PHOTOIONIZATION
 
 
 

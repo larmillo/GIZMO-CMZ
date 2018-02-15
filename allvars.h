@@ -956,6 +956,7 @@ extern char DumpFlag;
 
 extern int NumPart;		/*!< number of particles on the LOCAL processor */
 extern int N_gas;		/*!< number of gas particles on the LOCAL processor  */
+
 #ifdef SLUG
 #define SEPARATE_STELLARDOMAINDECOMP
 #endif
@@ -1620,13 +1621,14 @@ extern ALIGN(32) struct particle_data
 #endif
 #ifdef SLUG	
 	slug_object *SlugOb;
-	int TagExp;
+	int TagExp; //Particle Task
 	size_t SlugOb_size;
 
     int Nsn_tot; //cumulative number of SNe	
 	int Nsn_timestep; //number of SNe in dt
 	MyDouble Mej; //ejecta mass in dt
 	MyDouble SlugMass; //Mass if Slug cluster
+	MyDouble N_photons;
 #endif	
 #ifdef SN_FEEDBACK
 	//MyDouble omegab_tot;
@@ -1638,7 +1640,15 @@ extern ALIGN(32) struct particle_data
 	MyDouble wb_tot;
 	MyDouble tocons[4];
 #endif		
-	
+	/*#ifdef PHOTOIONIZATION
+	double **HII_Rho;
+	double **HII_Energy;
+	double **HII_Distance;
+	double **HII_Mass;
+	int **HII_ParticleID;
+	int **HII_ParticleNum;
+	int *HII_NumParticles;
+#endif	*/
 }
  *P,				/*!< holds particle data on local processor */
  *DomainPartBuf;		/*!< buffer for particle data used in domain decomposition */
@@ -1708,7 +1718,10 @@ extern struct sph_particle_data
 #if (GRACKLE_CHEMISTRY>=2)
     MyDouble Gamma;
 #endif
-		
+
+#ifdef PHOTOIONIZATION
+	int HIIregion;
+#endif			
     /* matrix of the primitive variable gradients: rho, P, vx, vy, vz, B, phi */
     struct
     {

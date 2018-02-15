@@ -436,6 +436,10 @@ void *FB_evaluate_secondary(void *p);
 void Check_conservation(void);
 #endif
 
+#ifdef PHOTOIONIZATION
+void HII_region(void);
+#endif
+
 #ifdef ANALYTIC_GRAVITY
 void allocate_acc(void); 
 #endif

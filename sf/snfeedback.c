@@ -21,7 +21,6 @@ extern pthread_mutex_t mutex_partnodedrift;
 #endif
 
 #ifdef SN_FEEDBACK
-
 void SNproduction(void)
 {
 	double time_cluster, Cur_stellar_mass;
@@ -54,11 +53,11 @@ void SNproduction(void)
 			printf("Warning: Large fluctuation! relatTime = %e, |dm|/m = %e, prev_stellar_mass = %e, curr_stellar_mass = %e, Num = %d\n", time_cluster, fabs(P[i].Mej)/Cur_stellar_mass, P[i].SlugMass, Cur_stellar_mass, P[i].ID);
     	if (P[i].Mej < 0.0) P[i].Mej = 0.0;
 		P[i].SlugMass = Cur_stellar_mass;
-		
-		//get number of photons per second
 	}	
 }
+#endif
 
+#ifdef SN_FEEDBACK
 void Check_conservation(void)
 {
 	int i;

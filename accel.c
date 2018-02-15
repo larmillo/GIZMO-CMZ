@@ -159,7 +159,11 @@ void compute_stellar_feedback(void)
     radiation_pressure_winds_consolidated();
     CPU_Step[CPU_LOCALWIND] += measure_time();
 #endif
-    
+	
+#ifdef PHOTOIONIZATION
+	HII_region();
+#endif		
+
 #ifdef SN_FEEDBACK
 	omegab_calc();
 	//MPI_Barrier(MPI_COMM_WORLD);

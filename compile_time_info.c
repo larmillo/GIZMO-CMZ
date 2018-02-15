@@ -13,5 +13,6 @@ printf(
 "        SLUG\n"
 "        STAR_FORMATION\n"
 "        SN_FEEDBACK\n"
+"        PHOTOIONIZATION\n"
 "\n");
 }

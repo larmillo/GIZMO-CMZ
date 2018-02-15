@@ -857,6 +857,10 @@ OBJS    += sf/omegab_weights.o
 OBJS    += sf/wb_weights.o
 endif
 
+ifeq (PHOTOIONIZATION,$(findstring PHOTOIONIZATION,$(CONFIGVARS)))
+OBJS    += sf/photoionization.o
+endif
+
 ifeq (ANALYTIC_GRAVITY,$(findstring ANALYTIC_GRAVITY,$(CONFIGVARS)))
 OBJS    += alloc_accel.o
 endif

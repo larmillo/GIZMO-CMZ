@@ -657,11 +657,13 @@ integertime get_timestep(int p,		/*!< particle index */
     if(P[p].Type==0)
       {
 	double dt_cool = CallGrackle(SphP[p].InternalEnergyPred, SphP[p].Density, 0, &(SphP[p].Ne), p, 1);
-	//if(SphP[p].Density>1e-26) printf("GRACKLE_CHEMISTRY dt=(%g %g %g)\n", dt_cool, SphP[p].InternalEnergyPred, SphP[p].Density);
+	//if(SphP[p].Density>1e-26) 
+	//double T = CallGrackle(SphP[p].InternalEnergyPred, SphP[p].Density, 0, &(SphP[p].Ne), p, 2);
+	//printf("GRACKLE_CHEMISTRY dt=(%g %g %g)\n", dt_cool*All.UnitTime_in_s, dt*All.UnitTime_in_s, T);
        	dt_cool *= All.HubbleParam;
         if(dt_cool<0)
-            if(fabs(dt_cool)<0.1*dt)
-                dt=fabs(dt_cool);
+            if(fabs(0.1*dt_cool)<dt)
+                dt=fabs(0.1*dt_cool);
       }
 #endif    
     //if(SphP[p].Density<1e-26) printf("GRACKLE_CHEMISTRY dt=( %g %g)\n", SphP[p].InternalEnergyPred, SphP[p].Density);
