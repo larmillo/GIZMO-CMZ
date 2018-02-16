@@ -248,6 +248,7 @@ double CallGrackle(double u_old, double rho, double dt, double *ne_guess, int ta
     free(my_fields.x_velocity);
     free(my_fields.y_velocity);
     free(my_fields.z_velocity);
+	free(my_fields.metal_density);
 	
     return returnval;
 }
