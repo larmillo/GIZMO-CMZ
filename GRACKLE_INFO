@@ -1,4 +1,4 @@
-2018-02-15 15:21:36
+2018-02-15 16:07:41
 
 The Grackle Version 3.0
 Mercurial Branch   default
@@ -40,8 +40,8 @@ Grackle run-time parameters:
 use_grackle                       = 1
 with_radiative_cooling            = 1
 primordial_chemistry              = 0
-metal_cooling                     = 1
-UVbackground                      = 1
+metal_cooling                     = 0
+UVbackground                      = 0
 grackle_data_file                 = /Users/larmillo/Github/GIZMO-CMZ/grackle/input/CloudyData_UVB=HM2012.h5
 cmb_temperature_floor             = 1
 Gamma                             = 1.66667

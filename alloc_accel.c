@@ -127,10 +127,10 @@ void allocate_acc()
 		}
 	}
 	
-	for(int i=0; i < Nx; i++)
-	{
-		printf("%e %e %d \n", potential_tot[i][0][1],(All.UnitVelocity_in_cm_per_s * All.UnitVelocity_in_cm_per_s), Nx);
-	}
+	//for(int i=0; i < Nx; i++)
+	//{
+	//	printf("%e %e %d \n", potential_tot[i][0][1],(All.UnitVelocity_in_cm_per_s * All.UnitVelocity_in_cm_per_s), Nx);
+	//}
 	
 	//////////////////////////
 	

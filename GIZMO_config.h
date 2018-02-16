@@ -4,9 +4,6 @@
 #define GRACKLE 
 #define GRACKLE_CHEMISTRY 0
 #define GRACKLE_OPTS 
+#define ANALYTIC_GRAVITY 
 #define HAVE_HDF5 
 #define OUTPUT_ADDITIONAL_RUNINFO 
-#define SLUG 
-#define STAR_FORMATION 
-#define SN_FEEDBACK 
-#define PHOTOIONIZATION 
