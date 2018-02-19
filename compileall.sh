@@ -27,6 +27,7 @@ then
     echo "Compiling grackle and slug for ${SYSTEM}"
 else
     echo -e "Usage: ./compileall.sh machinename \n\nmachinename=marconi,avatar,darwin"
+    exit
 fi
 
 GIZMO_DIR=${PWD}
