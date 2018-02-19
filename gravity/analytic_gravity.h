@@ -271,7 +271,7 @@ void GravAccel_CMZ()
 		omega *= PI_VAL/180;//radiant	
 		dp[0]=fabs(P[i].Pos[0]*cos(omega)+P[i].Pos[1]*sin(omega)); 
 		dp[1]=fabs(P[i].Pos[1]*cos(omega)-P[i].Pos[0]*sin(omega)); 
-		dp[2]=fabs(P[i].Pos[0]);
+		dp[2]=fabs(P[i].Pos[2]);
 		
    		x = (int) ((dp[0] - All.xx0) / All.deltax);
     	x = DMAX(x, 0);
@@ -313,7 +313,7 @@ void GravAccel_CMZ()
 		if((P[i].Pos[1]*cos(omega)-P[i].Pos[0]*sin(omega) - All.yy0) < 0) a_y = - a_y; 
 		
 		P[i].GravAccel[0] += a_x*cos(omega) - a_y*sin(omega);
-		P[i].GravAccel[1] += a_x*sin(omega) - a_y*cos(omega);
+		P[i].GravAccel[1] += a_x*sin(omega) + a_y*cos(omega);
 		
 		if((P[i].Pos[2] - All.xx0) > 0) P[i].GravAccel[2] += interp1_z + (interp2_z - interp1_z)/All.deltaz * (dp[2] - All.zz0 - z * All.deltaz);
 		if((P[i].Pos[2] - All.zz0) < 0) P[i].GravAccel[2] -= interp1_z + (interp2_z - interp1_z)/All.deltaz * (dp[2] - All.zz0 - z * All.deltaz);
