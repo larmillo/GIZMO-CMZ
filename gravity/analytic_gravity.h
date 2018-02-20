@@ -303,7 +303,7 @@ void GravAccel_CMZ()
 				- (All.accz[x+1][y][z]-All.accz[x][y][z])/All.deltax * (dp[0] - All.xx0 - x * All.deltax))/All.deltay * (dp[1] - All.yy0 - y * All.deltay);
 	
 		interp2_z = All.accz[x][y][z+1] + (All.accz[x+1][y][z+1]-All.accz[x][y][z+1])/All.deltax * (dp[0] - All.xx0 - x * All.deltax) + 
-			(All.accz[x][y+1][z+1] - All.accx[x][y][z+1] + (All.accz[x+1][y+1][z+1]-All.accz[x][y+1][z+1])/All.deltax * (dp[0] - All.xx0 - x * All.deltax) 
+			(All.accz[x][y+1][z+1] - All.accz[x][y][z+1] + (All.accz[x+1][y+1][z+1]-All.accz[x][y+1][z+1])/All.deltax * (dp[0] - All.xx0 - x * All.deltax) 
 				- (All.accz[x+1][y][z+1]-All.accz[x][y][z+1])/All.deltax * (dp[0] - All.xx0 - x * All.deltax))/All.deltay * (dp[1] - All.yy0 - y * All.deltay);
 		
 		a_x = interp1_x + (interp2_x - interp1_x)/All.deltaz * (dp[2] - All.zz0 - z * All.deltaz);
