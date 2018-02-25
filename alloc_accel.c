@@ -94,6 +94,9 @@ void allocate_acc()
 	}
 	// End of reading file //
 	
+	All.Nx = Nx;
+	All.Ny = Ny;
+	All.Nz = Nz;		
 	All.deltax = XX[1]-XX[0];
 	All.deltay = YY[1]-YY[0];
 	All.deltaz = ZZ[1]-ZZ[0];

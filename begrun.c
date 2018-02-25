@@ -333,7 +333,7 @@ void begrun(void)
   All.TimeLastRestartFile = CPUThisRun;
   
 #ifdef ANALYTIC_GRAVITY
-	allocate_acc(); 
+ allocate_acc(); 	
 #endif	  
 
 #ifdef GENTRY_FB

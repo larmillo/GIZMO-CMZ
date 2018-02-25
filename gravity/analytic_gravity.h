@@ -282,6 +282,10 @@ void GravAccel_CMZ()
 		z = (int) ((dp[2] - All.zz0) / All.deltaz);
 		z = DMAX(z, 0);
 		
+		if (x >= All.Nx) x = All.Nx - 2	
+		if (y >= All.Ny) y = All.Ny - 2
+		if (z >= All.Nz) z = All.Nz - 2	
+	
 	    interp1_x = All.accx[x][y][z] + (All.accx[x+1][y][z]-All.accx[x][y][z])/All.deltax * (dp[0] - All.xx0 - x * All.deltax) + 
 			(All.accx[x][y+1][z] - All.accx[x][y][z] + (All.accx[x+1][y+1][z]-All.accx[x][y+1][z])/All.deltax * (dp[0] - All.xx0 - x * All.deltax) 
 				- (All.accx[x+1][y][z]-All.accx[x][y][z])/All.deltax * (dp[0] - All.xx0 - x * All.deltax))/All.deltay * (dp[1] - All.yy0 - y * All.deltay);
@@ -317,6 +321,7 @@ void GravAccel_CMZ()
 		
 		if((P[i].Pos[2] - All.zz0) > 0) P[i].GravAccel[2] += (interp1_z + (interp2_z - interp1_z)/All.deltaz * (dp[2] - All.zz0 - z * All.deltaz));
 		if((P[i].Pos[2] - All.zz0) < 0) P[i].GravAccel[2] -= (interp1_z + (interp2_z - interp1_z)/All.deltaz * (dp[2] - All.zz0 - z * All.deltaz));
+
 	}
 	
 }
