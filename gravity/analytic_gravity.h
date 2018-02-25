@@ -282,9 +282,9 @@ void GravAccel_CMZ()
 		z = (int) ((dp[2] - All.zz0) / All.deltaz);
 		z = DMAX(z, 0);
 		
-		if (x >= All.Nx) x = All.Nx - 2	
-		if (y >= All.Ny) y = All.Ny - 2
-		if (z >= All.Nz) z = All.Nz - 2	
+		if (x >= All.Nx) x = All.Nx - 2;	
+		if (y >= All.Ny) y = All.Ny - 2;
+		if (z >= All.Nz) z = All.Nz - 2;	
 	
 	    interp1_x = All.accx[x][y][z] + (All.accx[x+1][y][z]-All.accx[x][y][z])/All.deltax * (dp[0] - All.xx0 - x * All.deltax) + 
 			(All.accx[x][y+1][z] - All.accx[x][y][z] + (All.accx[x+1][y+1][z]-All.accx[x][y+1][z])/All.deltax * (dp[0] - All.xx0 - x * All.deltax) 
