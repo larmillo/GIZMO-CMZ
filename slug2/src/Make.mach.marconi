@@ -30,8 +30,8 @@ CLIBFLAGS	   = -fPIC
 DYNLIBFLAG	   = -shared
 
 # Libraries
-#BOOST_HDR_PATH =
-#BOOST_LIB_PATH =
+BOOST_HDR_PATH = /cineca/prod/opt/libraries/boost/1.61.0/intelmpi--2017--binary/include
+BOOST_LIB_PATH = /cineca/prod/opt/libraries/boost/1.61.0/intelmpi--2017--binary/lib
 GSL_HDR_PATH   = /cineca/prod/opt/libraries/gsl/2.2.1/intel--pe-xe-2017--binary/include
 #GSL_LIB_PATH   =
 FITS_HDR_PATH  = /cineca/prod/opt/libraries/cfitsio/3.390/intel--pe-xe-2017--binary/include/
@@ -41,4 +41,4 @@ LDLIBFLAGS     += -L$(BOOST_LIB_PATH) -L$(GSL_LIB_PATH) -L$(FITS_LIB_PATH)
 
 
 # By default boost library names under linux do not have tags
-MACH_BOOST_TAG    = -mt
+#MACH_BOOST_TAG    = -mt
