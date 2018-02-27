@@ -1487,12 +1487,10 @@ extern struct global_data_all_processes
 	double xx0, deltax;
 	double yy0, deltay;
 	double zz0, deltaz;
-	double*** accx; 
-	double*** accy;
-	double*** accz;
-	double*** accx_bar; 
-	double*** accy_bar;
-	double*** accz_bar;	
+	double ***potential_tot;
+//	double*** accx; 
+//	double*** accy;
+//	double*** accz;
 #endif		
 }
 All;

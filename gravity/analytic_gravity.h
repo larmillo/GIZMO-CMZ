@@ -285,30 +285,60 @@ void GravAccel_CMZ()
 		if (x >= All.Nx - 1) x = All.Nx - 2;	
 		if (y >= All.Ny - 1) y = All.Ny - 2;
 		if (z >= All.Nz - 1) z = All.Nz - 2;	
-	
-	    interp1_x = All.accx[x][y][z] + (All.accx[x+1][y][z]-All.accx[x][y][z])/All.deltax * (dp[0] - All.xx0 - x * All.deltax) + 
-			(All.accx[x][y+1][z] - All.accx[x][y][z] + (All.accx[x+1][y+1][z]-All.accx[x][y+1][z])/All.deltax * (dp[0] - All.xx0 - x * All.deltax) 
-				- (All.accx[x+1][y][z]-All.accx[x][y][z])/All.deltax * (dp[0] - All.xx0 - x * All.deltax))/All.deltay * (dp[1] - All.yy0 - y * All.deltay);
-	
-		interp2_x = All.accx[x][y][z+1] + (All.accx[x+1][y][z+1]-All.accx[x][y][z+1])/All.deltax * (dp[0] - All.xx0 - x * All.deltax) + 
-			(All.accx[x][y+1][z+1] - All.accx[x][y][z+1] + (All.accx[x+1][y+1][z+1]-All.accx[x][y+1][z+1])/All.deltax * (dp[0] - All.xx0 - x * All.deltax) 
-				- (All.accx[x+1][y][z+1]-All.accx[x][y][z+1])/All.deltax * (dp[0] - All.xx0 - x * All.deltax))/All.deltay * (dp[1] - All.yy0 - y * All.deltay);
 		
-	    interp1_y = All.accy[x][y][z] + (All.accy[x+1][y][z]-All.accy[x][y][z])/All.deltax * (dp[0] - All.xx0 - x * All.deltax) + 
-			(All.accy[x][y+1][z] - All.accy[x][y][z] + (All.accy[x+1][y+1][z]-All.accy[x][y+1][z])/All.deltax * (dp[0] - All.xx0 - x * All.deltax) 
-				- (All.accy[x+1][y][z]-All.accy[x][y][z])/All.deltax * (dp[0] - All.xx0 - x * All.deltax))/All.deltay * (dp[1] - All.yy0 - y * All.deltay);
-	
-		interp2_y = All.accy[x][y][z+1] + (All.accy[x+1][y][z+1]-All.accy[x][y][z+1])/All.deltax * (dp[0] - All.xx0 - x * All.deltax) + 
-			(All.accy[x][y+1][z+1] - All.accy[x][y][z+1] + (All.accy[x+1][y+1][z+1]-All.accy[x][y+1][z+1])/All.deltax * (dp[0] - All.xx0 - x * All.deltax) 
-				- (All.accy[x+1][y][z+1]-All.accy[x][y][z+1])/All.deltax * (dp[0] - All.xx0 - x * All.deltax))/All.deltay * (dp[1] - All.yy0 - y * All.deltay);
+		double accx[2][2][2];
+		double accy[2][2][2];
+		double accz[2][2][2];
 		
-	    interp1_z = All.accz[x][y][z] + (All.accz[x+1][y][z]-All.accz[x][y][z])/All.deltax * (dp[0] - All.xx0 - x * All.deltax) + 
-			(All.accz[x][y+1][z] - All.accz[x][y][z] + (All.accz[x+1][y+1][z]-All.accz[x][y+1][z])/All.deltax * (dp[0] - All.xx0 - x * All.deltax) 
-				- (All.accz[x+1][y][z]-All.accz[x][y][z])/All.deltax * (dp[0] - All.xx0 - x * All.deltax))/All.deltay * (dp[1] - All.yy0 - y * All.deltay);
+		for(int k=0; k < 2; k++)
+		{
+			for(int j=0; j < 2; j++)
+			{
+				for(int m=0; m < 2; m++)
+				{
+					int l = x + i;
+					if (x + m == 0) accx[m][j][k] = 0;
+					if (x + m == 1) accx[m][j][k] = -(All.potential_tot[x+m+1][y+j][z+k]-All.potential_tot[x+m][y+j][z+k])/(All.deltax);
+					if (x + m == All.Nx -1) accx[m][j][k] = -(All.potential_tot[x+m][y+j][z+k]-All.potential_tot[x+m-1][y+j][z+k])/(All.deltax);
+					if (x + m > 1 &&  x + m < All.Nx -1) accx[m][j][k] = -(All.potential_tot[x+m+1][y+j][z+k]-All.potential_tot[x+m-1][y+j][z+k])/(2*All.deltax);
+					
+					if (y + j == 0) accy[m][j][k] = 0;
+					if (y + j == 1) accy[m][j][k] = -(All.potential_tot[x+m][y+j+1][z+k]-All.potential_tot[x+m][y+j][z+k])/(All.deltay);
+					if (y + j == All.Ny-1) accy[m][j][k] = -(All.potential_tot[x+m][y+j][z+k]-All.potential_tot[x+m][y+j-1][z+k])/(All.deltay);
+					if (y + j > 1 && y + j < All.Ny-1) accy[m][j][k] = -(All.potential_tot[x+m][y+j+1][z+k]-All.potential_tot[x+m][y+j-1][z+k])/(2*All.deltay);
+					
+					if (z + k == 0) accz[m][j][k] = 0;
+					if (z + k == 1) accz[m][j][k] = -(All.potential_tot[x+m][y+j][z+k+1]-All.potential_tot[x+m][y+j][z+k])/(All.deltaz);
+					if (z + k == All.Nz-1) accz[m][j][k] = -(All.potential_tot[x+m][y+j][z+k]-All.potential_tot[x+m][y+j][z+k-1])/(All.deltaz);
+					if (z + k > 1 && z + k < All.Nz-1) accz[m][j][k] = -(All.potential_tot[x+m][y+j][z+k+1]-All.potential_tot[x+m][y+j][z+k-1])/(2*All.deltaz);
+				}
+			}
+		}
+		
 	
-		interp2_z = All.accz[x][y][z+1] + (All.accz[x+1][y][z+1]-All.accz[x][y][z+1])/All.deltax * (dp[0] - All.xx0 - x * All.deltax) + 
-			(All.accz[x][y+1][z+1] - All.accz[x][y][z+1] + (All.accz[x+1][y+1][z+1]-All.accz[x][y+1][z+1])/All.deltax * (dp[0] - All.xx0 - x * All.deltax) 
-				- (All.accz[x+1][y][z+1]-All.accz[x][y][z+1])/All.deltax * (dp[0] - All.xx0 - x * All.deltax))/All.deltay * (dp[1] - All.yy0 - y * All.deltay);
+	    interp1_x = accx[0][0][0] + (accx[1][0][0]-accx[0][0][0])/All.deltax * (dp[0] - All.xx0 - x * All.deltax) + 
+			(accx[0][1][0] - accx[0][0][0] + (accx[1][1][0]-accx[0][1][0])/All.deltax * (dp[0] - All.xx0 - x * All.deltax) 
+				- (accx[1][0][0]-accx[0][0][0])/All.deltax * (dp[0] - All.xx0 - x * All.deltax))/All.deltay * (dp[1] - All.yy0 - y * All.deltay);
+	
+		interp2_x = accx[0][0][1] + (accx[1][0][1]-accx[0][0][1])/All.deltax * (dp[0] - All.xx0 - x * All.deltax) + 
+			(accx[0][1][1] - accx[0][0][1] + (accx[1][1][1]-accx[0][1][1])/All.deltax * (dp[0] - All.xx0 - x * All.deltax) 
+				- (accx[1][0][1]-accx[0][0][1])/All.deltax * (dp[0] - All.xx0 - x * All.deltax))/All.deltay * (dp[1] - All.yy0 - y * All.deltay);
+		
+	    interp1_y = accy[0][0][0] + (accy[1][0][0]-accy[0][0][0])/All.deltax * (dp[0] - All.xx0 - x * All.deltax) + 
+			(accy[0][1][0] - accy[0][0][0] + (accy[1][1][0]-accy[0][1][0])/All.deltax * (dp[0] - All.xx0 - x * All.deltax) 
+				- (accy[1][0][0]-accy[0][0][0])/All.deltax * (dp[0] - All.xx0 - x * All.deltax))/All.deltay * (dp[1] - All.yy0 - y * All.deltay);
+	
+		interp2_y = accy[0][0][1] + (accy[1][0][1]-accy[0][0][1])/All.deltax * (dp[0] - All.xx0 - x * All.deltax) + 
+			(accy[0][1][1] - accy[0][0][1] + (accy[1][1][1]-accy[0][1][1])/All.deltax * (dp[0] - All.xx0 - x * All.deltax) 
+				- (accy[1][0][1]-accy[0][0][1])/All.deltax * (dp[0] - All.xx0 - x * All.deltax))/All.deltay * (dp[1] - All.yy0 - y * All.deltay);
+		
+	    interp1_z = accz[0][0][0] + (accz[1][0][0]-accz[0][0][0])/All.deltax * (dp[0] - All.xx0 - x * All.deltax) + 
+			(accz[0][1][0] - accz[0][0][0] + (accz[1][1][0]-accz[0][1][0])/All.deltax * (dp[0] - All.xx0 - x * All.deltax) 
+				- (accz[1][0][0]-accz[0][0][0])/All.deltax * (dp[0] - All.xx0 - x * All.deltax))/All.deltay * (dp[1] - All.yy0 - y * All.deltay);
+	
+		interp2_z = accz[0][0][1] + (accz[1][0][1]-accz[0][0][1])/All.deltax * (dp[0] - All.xx0 - x * All.deltax) + 
+			(accz[0][1][1] - accz[0][0][1] + (accz[1][1][1]-accz[0][1][1])/All.deltax * (dp[0] - All.xx0 - x * All.deltax) 
+				- (accz[1][0][1]-accz[0][0][1])/All.deltax * (dp[0] - All.xx0 - x * All.deltax))/All.deltay * (dp[1] - All.yy0 - y * All.deltay);
 		
 		a_x = interp1_x + (interp2_x - interp1_x)/All.deltaz * (dp[2] - All.zz0 - z * All.deltaz);
 		a_y = interp1_y + (interp2_y - interp1_y)/All.deltaz * (dp[2] - All.zz0 - z * All.deltaz);

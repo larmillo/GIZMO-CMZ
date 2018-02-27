@@ -201,7 +201,7 @@ GRACKLELIBS = -L./grackle/lib -lgrackle -lifcore
 SLUGINCL = -I./slug2/src 
 SLUGLIB = -L./slug2 -lslug -lboost_system-mt -lboost_filesystem-mt -lboost_regex-mt
 MPICHLIB = #
-OPT     += #
+OPT     += -DUSE_MPI_IN_PLACE
 CXXFLAGS = $(CFLAGS) 
 endif
 
