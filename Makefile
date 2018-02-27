@@ -189,20 +189,20 @@ endif
 GMP_INCL = #
 GMP_LIBS = #
 MKL_INCL = #
-MKL_LIBS = # 
-GSL_INCL = -I/usr/local/include
-GSL_LIBS = -L/usr/local/lib
-FFTW_INCL= -I/usr/local/include
-FFTW_LIBS= -L/usr/local/lib
-HDF5INCL = -I/usr/local/include -DH5_USE_16_API
-HDF5LIB  = -L/usr/local/lib -lhdf5 -lz
+MKL_LIBS = #
+GSL_INCL = -I/cineca/prod/opt/libraries/gsl/2.2.1/intel--pe-xe-2017--binary/include
+GSL_LIBS = -L/cineca/prod/opt/libraries/gsl/2.2.1/intel--pe-xe-2017--binary/lib
+FFTW_INCL= 
+FFTW_LIBS= 
+HDF5INCL = -I/cineca/prod/opt/libraries/hdf5/1.8.17/intelmpi--2017--binary/include -DH5_USE_16_API
+HDF5LIB  = -L/cineca/prod/opt/libraries/hdf5/1.8.17/intelmpi--2017--binary/lib -lhdf5 -lz
 GRACKLEINCL = -I./grackle/include
-GRACKLELIBS = -L./grackle/lib -lgrackle -lhdf5
-SLUGINCL = -I/Users/larmillo/slug2/src
-SLUGLIB = -L/Users/larmillo/slug2 -lslug -lboost_system-mt -lboost_filesystem-mt -lboost_regex-mt -lcfitsio
+GRACKLELIBS = -L./grackle/lib -lgrackle -lifcore 
+SLUGINCL = -I./slug2/src 
+SLUGLIB = -L./slug2 -lslug -lboost_system-mt -lboost_filesystem-mt -lboost_regex-mt
 MPICHLIB = #
 OPT     += -DUSE_MPI_IN_PLACE
-CXXFLAGS = $(CFLAGS) -std=c++11
+CXXFLAGS = $(CFLAGS) 
 endif
 
 
