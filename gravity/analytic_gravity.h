@@ -254,6 +254,12 @@ void GravAccel_KeplerianTestProblem()
     }
 }
 #ifdef ANALYTIC_GRAVITY
+double Potential(x,y,z)
+{
+	//printf("%d %d %d %e \n",x,y,z, All.potential_tot[z+y*All.Nz+x*All.Nz*All.Ny]);
+	return All.potential_tot[z+y*All.Nz+x*All.Nz*All.Ny];
+}
+	
 void GravAccel_CMZ()
 {
 	double dp[3], interp1_x, interp2_x, interp1_y, interp2_y, interp1_z, interp2_z;
@@ -298,19 +304,19 @@ void GravAccel_CMZ()
 				{
 					int l = x + i;
 					if (x + m == 0) accx[m][j][k] = 0;
-					if (x + m == 1) accx[m][j][k] = -(All.potential_tot[x+m+1][y+j][z+k]-All.potential_tot[x+m][y+j][z+k])/(All.deltax);
-					if (x + m == All.Nx -1) accx[m][j][k] = -(All.potential_tot[x+m][y+j][z+k]-All.potential_tot[x+m-1][y+j][z+k])/(All.deltax);
-					if (x + m > 1 &&  x + m < All.Nx -1) accx[m][j][k] = -(All.potential_tot[x+m+1][y+j][z+k]-All.potential_tot[x+m-1][y+j][z+k])/(2*All.deltax);
+					if (x + m == 1) accx[m][j][k] = -(Potential(x+m+1,y+j,z+k)-Potential(x+m,y+j,z+k))/(All.deltax);
+					if (x + m == All.Nx -1) accx[m][j][k] = -(Potential(x+m,y+j,z+k)-Potential(x+m-1,y+j,z+k))/(All.deltax);
+					if (x + m > 1 &&  x + m < All.Nx -1) accx[m][j][k] = -(Potential(x+m+1,y+j,z+k)-Potential(x+m-1,y+j,z+k))/(2*All.deltax);
 					
 					if (y + j == 0) accy[m][j][k] = 0;
-					if (y + j == 1) accy[m][j][k] = -(All.potential_tot[x+m][y+j+1][z+k]-All.potential_tot[x+m][y+j][z+k])/(All.deltay);
-					if (y + j == All.Ny-1) accy[m][j][k] = -(All.potential_tot[x+m][y+j][z+k]-All.potential_tot[x+m][y+j-1][z+k])/(All.deltay);
-					if (y + j > 1 && y + j < All.Ny-1) accy[m][j][k] = -(All.potential_tot[x+m][y+j+1][z+k]-All.potential_tot[x+m][y+j-1][z+k])/(2*All.deltay);
+					if (y + j == 1) accy[m][j][k] = -(Potential(x+m,y+j+1,z+k)-Potential(x+m,y+j,z+k))/(All.deltay);
+					if (y + j == All.Ny-1) accy[m][j][k] = -(Potential(x+m,y+j,z+k)-Potential(x+m,y+j-1,z+k))/(All.deltay);
+					if (y + j > 1 && y + j < All.Ny-1) accy[m][j][k] = -(Potential(x+m,y+j+1,z+k)-Potential(x+m,y+j-1,z+k))/(2*All.deltay);
 					
 					if (z + k == 0) accz[m][j][k] = 0;
-					if (z + k == 1) accz[m][j][k] = -(All.potential_tot[x+m][y+j][z+k+1]-All.potential_tot[x+m][y+j][z+k])/(All.deltaz);
-					if (z + k == All.Nz-1) accz[m][j][k] = -(All.potential_tot[x+m][y+j][z+k]-All.potential_tot[x+m][y+j][z+k-1])/(All.deltaz);
-					if (z + k > 1 && z + k < All.Nz-1) accz[m][j][k] = -(All.potential_tot[x+m][y+j][z+k+1]-All.potential_tot[x+m][y+j][z+k-1])/(2*All.deltaz);
+					if (z + k == 1) accz[m][j][k] = -(Potential(x+m,y+j,z+k+1)-Potential(x+m,y+j,z+k))/(All.deltaz);
+					if (z + k == All.Nz-1) accz[m][j][k] = -(Potential(x+m,y+j,z+k)-Potential(x+m,y+j,z+k-1))/(All.deltaz);
+					if (z + k > 1 && z + k < All.Nz-1) accz[m][j][k] = -(Potential(x+m,y+j,z+k+1)-Potential(x+m,y+j,z+k-1))/(2*All.deltaz);
 				}
 			}
 		}
@@ -352,6 +358,7 @@ void GravAccel_CMZ()
 		if((P[i].Pos[2] - All.zz0) > 0) P[i].GravAccel[2] += (interp1_z + (interp2_z - interp1_z)/All.deltaz * (dp[2] - All.zz0 - z * All.deltaz));
 		if((P[i].Pos[2] - All.zz0) < 0) P[i].GravAccel[2] -= (interp1_z + (interp2_z - interp1_z)/All.deltaz * (dp[2] - All.zz0 - z * All.deltaz));
 
+        //printf("%e %e %e %e %e %e \n",P[i].Pos[0],P[i].Pos[1],P[i].Pos[2],P[i].GravAccel[0],P[i].GravAccel[1],P[i].GravAccel[2]);
 	}
 	
 }

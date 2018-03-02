@@ -67,10 +67,12 @@ void allocate_acc()
 	Nx = dims_out[0];
 	Ny = dims_out[1];
 	Nz = dims_out[2];
-	
-    All.potential_tot [Ny][Nz] = malloc(Nx*sizeof(*All.potential_tot));
+
+    All.potential_tot = malloc(Nx*Ny*Nz*sizeof(double));
 
     status += H5Dread(dataset_pot, datatype, dataspace_pot, dataspace_pot, H5P_DEFAULT, All.potential_tot);
+
+	//printf("arriva qui! %e \n", All.potential_tot[100][100][100]);
 	
     dataset_x = H5Dopen(file, "/Potentials/Coord_X");
     dataspace_x = H5Dget_space(dataset_x);
@@ -104,10 +106,6 @@ void allocate_acc()
 	All.yy0 = YY[0];
 	All.zz0 = ZZ[0]; 
 	
-	/*All.accx = Allocate_matrix3D(Nx, Ny, Nz);
-	All.accy = Allocate_matrix3D(Nx, Ny, Nz);
-	All.accz = Allocate_matrix3D(Nx, Ny, Nz);*/
-	
 	/*Conversion in unit code*/
 	
 	All.deltax *= CM_PER_KPC/All.UnitLength_in_cm;
@@ -119,100 +117,11 @@ void allocate_acc()
 	
 	printf("Step and first values: %e %e %e %e %e %e \n", All.deltax,All.deltay,All.deltaz,All.xx0,All.yy0,All.zz0);
 	
-	for(int k=0; k < Nz; k++)
-	{
-		for(int j=0; j < Ny; j++)
-		{
-			for(int i=0; i < Nx; i++)
-			{
-				All.potential_tot[i][j][k]*=1e10/(All.UnitVelocity_in_cm_per_s * All.UnitVelocity_in_cm_per_s);
-			}
-		}
-	}
-	
-	//for(int i=0; i < Nx; i++)
-	//{
-	//	printf("%e %e %d \n", potential_tot[i][0][1],(All.UnitVelocity_in_cm_per_s * All.UnitVelocity_in_cm_per_s), Nx);
-	//}
-	
-	//////////////////////////
-	
-	/*double central_acc = 0; //Acceleration in the inner 10 pc region
-	
-	for(int k=0; k < Nz; k++)
-	{
-		for(int j=0; j < Ny; j++)
-		{
-			for(int i=1; i < Nx-1; i++)
-			{
-				if (j == 0 && k ==0 && i == 1) All.accx[i][j][k] = -(potential_tot[2][j][k]-potential_tot[1][j][k])/(All.deltax);
-				else All.accx[i][j][k] = -(potential_tot[i+1][j][k]-potential_tot[i-1][j][k])/(2*All.deltax);
-			}
-		}
-	}
-	
-	for(int k=0; k < Nz; k++)
-	{
-		for(int j=0; j < Ny; j++)
-		{
-			if (j == 0 && k ==0) All.accx[0][j][k] = central_acc;
-			else All.accx[0][j][k] = -(potential_tot[1][j][k]-potential_tot[0][j][k])/(All.deltax);
-			All.accx[Nx-1][j][k] = -(potential_tot[Nx-1][j][k]-potential_tot[Nx-2][j][k])/(All.deltax);
-		}
-	}
-	
-	
-	for(int k=0; k < Nz; k++)
-	{
-		for(int j=1; j < Ny-1; j++)
-		{
-			for(int i=0; i < Nx; i++)
-			{
-				if (j == 1 && k ==0 && i == 0) All.accy[i][j][k] = -(potential_tot[i][2][k]-potential_tot[i][1][k])/(All.deltay);
-				else All.accy[i][j][k] = -(potential_tot[i][j+1][k]-potential_tot[i][j-1][k])/(2*All.deltay);
-			}
-		}
-	}
-	
-	for(int k=0; k < Nz; k++)
-	{		
-		for(int i=0; i < Nx; i++)
-		{
-			if (i == 0 && k ==0) All.accy[i][0][k] = central_acc;
-			else All.accy[i][0][k] = -(potential_tot[i][1][k]-potential_tot[i][0][k])/(All.deltay);
-			All.accy[i][Ny-1][k] = -(potential_tot[i][Ny-1][k]-potential_tot[i][Ny-2][k])/(All.deltay);
-		}
-	}
-	
-	for(int k=1; k < Nz-1; k++)
-	{
-		for(int j=0; j < Ny; j++)
-		{
-			for(int i=0; i < Nx; i++)
-			{
-				if (j == 0 && k ==1 && i == 0) All.accz[i][j][k] = -(potential_tot[i][j][2]-potential_tot[i][j][1])/(All.deltaz);
-				else All.accz[i][j][k] = -(potential_tot[i][j][k+1]-potential_tot[i][j][k-1])/(2*All.deltaz);
-			}
-		}
-	}
-	
-    for(int j=0; j < Ny; j++)
-	{
-		for(int i=0; i < Nx; i++)
-		{
-			if (i == 0 && j ==0) All.accz[i][j][0] = central_acc;
-			else All.accz[i][j][0] = -(potential_tot[i][j][1]-potential_tot[i][j][0])/(All.deltaz);
-			All.accz[i][j][Nz-1] = -(potential_tot[i][j][Nz-1]-potential_tot[i][j][Nz-2])/(All.deltaz);
-		}
-	}*/
-	
-	//printf("Accel: %e %e %e %e %e %e \n", All.accx[0][6][6], All.accx[1][6][6], All.accx[2][6][6], potential_tot[0][6][6], potential_tot[1][6][6], potential_tot[2][6][6]);
-	
+	for(int i=0; i < Nx*Ny*Nz; i++) All.potential_tot[i]*=1e10/(All.UnitVelocity_in_cm_per_s * All.UnitVelocity_in_cm_per_s);
 		
 	free(XX);
 	free(YY);
 	free(ZZ);
 	//free(potential_tot);
-
 }
 #endif
