@@ -441,7 +441,8 @@ void HII_region(void);
 #endif
 
 #ifdef ANALYTIC_GRAVITY
-void allocate_acc(void); 
+void allocate_acc_finegrid(void); 
+void allocate_acc_coarsegrid(void); 
 #endif
 	
 #if defined(TURB_DRIVING)

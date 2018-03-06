@@ -1487,11 +1487,12 @@ extern struct global_data_all_processes
 	double xx0, deltax;
 	double yy0, deltay;
 	double zz0, deltaz;
-	double* potential_tot;
-	
-//	double*** accx; 
-//	double*** accy;
-//	double*** accz;
+	int coarse_Nx, coarse_Ny, coarse_Nz;
+	double coarse_deltax;
+	double coarse_deltay;
+	double coarse_deltaz;
+	double* coarse_potential;
+	double* potential;
 #endif		
 }
 All;
