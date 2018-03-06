@@ -278,9 +278,13 @@ void GravAccel_CMZ()
 		//Potential//
 		double dx,dy,dz;
 		
-		double limiterx = (All.Nx) * All.deltax;
-		double limitery = (All.Ny) * All.deltay;
-		double limiterz = (All.Nz) * All.deltaz;
+		double limiterx = (All.coarse_Nx-1) * All.coarse_deltax;
+		double limitery = (All.coarse_Ny-1) * All.coarse_deltay;
+		double limiterz = (All.coarse_Nz-1) * All.coarse_deltaz;
+		
+		double inner_limiterx = (All.Nx) * All.deltax;
+		double inner_limitery = (All.Ny) * All.deltay;
+		double inner_limiterz = (All.Nz) * All.deltaz;
 		
 		omega = vrot*t; //rotation angle
 		omega *= PI_VAL/180.;//radiant	
@@ -293,7 +297,11 @@ void GravAccel_CMZ()
 		double accy[2][2][2];
 		double accz[2][2][2];
 		
-		if (dp[0] < limiterx && dp[1] < limitery && dp[2] < limiterz) //extrapolation between (All.Nx - 1) * All.deltax and limiter
+		//printf("%e %e %e %e %e %e \n", limiterx, limitery, limiterz, inner_limiterx, inner_limitery, inner_limiterz);
+		
+		if (dp[0] > limiterx || dp[1] > limitery || dp[2] > limiterz) continue; //gravity = 0 beyond 20 kpc
+		
+		if (dp[0] < inner_limiterx && dp[1] < inner_limitery && dp[2] < inner_limiterz) //extrapolation between (All.Nx - 1) * All.deltax and inner_limiter
 		{	
 	   		x = (int) ((dp[0] - All.xx0) / All.deltax);
 	    	x = DMAX(x, 0);
@@ -303,6 +311,12 @@ void GravAccel_CMZ()
 		
 			z = (int) ((dp[2] - All.zz0) / All.deltaz);
 			z = DMAX(z, 0);
+			
+			if ((x > All.Nx) || (y > All.Ny) || (z > All.Nz)) 
+			{
+				printf("The code is trying to calculate gravitational acceleration outside the inner grid \n");
+				exit(0);
+			}
 			
 			if (x >= All.Nx - 1) x = All.Nx - 2;	
 			if (y >= All.Ny - 1) y = All.Ny - 2;
@@ -334,15 +348,6 @@ void GravAccel_CMZ()
 					}
 				}
 			}
-			
-	   		x = (int) ((dp[0] - All.xx0) / All.deltax);
-	    	x = DMAX(x, 0);
-    
-	    	y = (int) ((dp[1] - All.yy0) / All.deltay);
-	    	y = DMAX(y, 0);
-		
-			z = (int) ((dp[2] - All.zz0) / All.deltaz);
-			z = DMAX(z, 0);
 	 	}
 		else
 		{
@@ -354,6 +359,13 @@ void GravAccel_CMZ()
 		
 			z = (int) ((dp[2] - All.zz0) / All.coarse_deltaz);
 			z = DMAX(z, 0);
+			
+			if ((x > All.coarse_Nx - 1) || (y > All.coarse_Ny - 1) || (z > All.coarse_Nz - 1)) 
+			{
+				printf("The code is trying to calculate gravitational acceleration outside 20 kpc \n");
+				exit(0);
+			}	
+
 			
 			for(int k=0; k < 2; k++)
 			{
