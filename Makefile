@@ -153,7 +153,7 @@ FC	 =  mpif90
 OPTIMIZE += -O3 -funroll-loops
 OPTIMIZE += -g -Wall # compiler warnings
 ifeq (OPENMP,$(findstring OPENMP,$(CONFIGVARS)))
-OPTIMIZE += -qopenmp
+OPTIMIZE += -openmp
 endif
 GMP_INCL = #
 GMP_LIBS = #
@@ -184,7 +184,7 @@ FC	 =  mpiifort -nofor_main
 OPTIMIZE += -O3 -funroll-loops
 OPTIMIZE += -g -Wall # compiler warnings
 ifeq (OPENMP,$(findstring OPENMP,$(CONFIGVARS)))
-OPTIMIZE += -openmp 
+OPTIMIZE += -qopenmp 
 endif
 GMP_INCL = #
 GMP_LIBS = #
