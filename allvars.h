@@ -1830,11 +1830,6 @@ extern struct sph_particle_data
     MyFloat Zeta_BulkViscosity;         /*!< bulk viscosity coefficient */
 #endif
 
-    
-    
-    
-    
-    
 #ifdef EOS_GENERAL
     MyFloat SoundSpeed;                   /* Sound speed */
 #ifdef EOS_CARRIES_TEMPERATURE
@@ -1854,6 +1849,9 @@ extern struct sph_particle_data
 #endif
     
 #if defined(COOLING) && defined(GRACKLE)
+
+	MyDouble cool_time;
+
 #if (GRACKLE_CHEMISTRY >= 1)
     gr_float grHI;
     gr_float grHII;

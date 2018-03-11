@@ -654,7 +654,10 @@ integertime get_timestep(int p,		/*!< particle index */
 #endif
     
 #if defined(GRACKLE) && defined(COOLING)
-    if(P[p].Type==0)
+	//printf("GRACKLE_CHEMISTRY dt=(%g %g)\n",  SphP[p].cool_time*All.UnitTime_in_s, dt*All.UnitTime_in_s);
+    if(P[p].Type==0) dt = DMIN(dt, SphP[p].cool_time);	
+	
+    /*if(P[p].Type==0)
       {
 	double dt_cool = CallGrackle(SphP[p].InternalEnergyPred, SphP[p].Density, 0, &(SphP[p].Ne), p, 1);
 	//if(SphP[p].Density>1e-26) 
@@ -664,8 +667,8 @@ integertime get_timestep(int p,		/*!< particle index */
         if(dt_cool<0)
             if(fabs(0.1*dt_cool)<dt)
                 dt=fabs(0.1*dt_cool);
-      }
-#endif    
+      }*/ 
+#endif	    
     //if(SphP[p].Density<1e-26) printf("GRACKLE_CHEMISTRY dt=( %g %g)\n", SphP[p].InternalEnergyPred, SphP[p].Density);
     /* convert the physical timestep to dloga if needed. Note: If comoving integration has not been selected, All.cf_hubble_a=1. */
     dt *= All.cf_hubble_a;
