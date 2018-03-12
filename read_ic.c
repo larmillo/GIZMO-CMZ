@@ -917,6 +917,9 @@ void read_file(char *fname, int readTask, int lastTask)
 #ifdef EOS_CARRIES_YE
                    && blocknr != IO_EOSYE
 #endif
+#ifdef GRACKLE_OPTS
+                   && blocknr != IO_Z
+#endif					   
                    )
                                 continue;	/* ignore all other blocks in initial conditions */
             
