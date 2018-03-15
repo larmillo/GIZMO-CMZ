@@ -1493,6 +1493,12 @@ extern struct global_data_all_processes
 	double coarse_deltaz;
 	double* coarse_potential;
 	double* potential;
+#ifdef GRADUAL_NO_AXISYMMETRIC_POTENTIAL
+	double* potential_bar;
+	double* potential_symbar;
+	double* coarse_potential_bar;
+	double* coarse_potential_symbar;
+#endif		
 #endif		
 }
 All;

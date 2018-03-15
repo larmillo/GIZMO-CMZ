@@ -10,6 +10,7 @@ printf(
 "        GRACKLE_OPTS\n"
 "        NOGRAVITY\n"
 "        ANALYTIC_GRAVITY\n"
+"        GRADUAL_NO_AXISYMMETRIC_POTENTIAL\n"
 "        HAVE_HDF5\n"
 "        OUTPUT_ADDITIONAL_RUNINFO\n"
 "\n");

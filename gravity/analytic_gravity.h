@@ -254,14 +254,28 @@ void GravAccel_KeplerianTestProblem()
     }
 }
 #ifdef ANALYTIC_GRAVITY
-double Potential(x,y,z)
+double Potential(x,y,z,t)
 {
+#ifdef GRADUAL_NO_AXISYMMETRIC_POTENTIAL
+	double tgrow = 150.;
+	double lambda = t / tgrow;
+	return All.potential[z+y*All.Nz+x*All.Nz*All.Ny] + lambda*All.potential_bar[z+y*All.Nz+x*All.Nz*All.Ny] 
+		+ (1.-lambda)*All.potential_symbar[z+y*All.Nz+x*All.Nz*All.Ny];
+#else
 	return All.potential[z+y*All.Nz+x*All.Nz*All.Ny];
+#endif		
 }
 
-double CoarsePotential(x,y,z)
+double CoarsePotential(x,y,z,t)
 {
+#ifdef GRADUAL_NO_AXISYMMETRIC_POTENTIAL
+	double tgrow = 150.;
+	double lambda = t / tgrow;
+	return All.coarse_potential[z+y*All.Nz+x*All.Nz*All.Ny] + lambda*All.coarse_potential_bar[z+y*All.Nz+x*All.Nz*All.Ny] 
+		+ (1.-lambda)*All.coarse_potential_symbar[z+y*All.Nz+x*All.Nz*All.Ny];
+#else
 	return All.coarse_potential[z+y*All.coarse_Nz+x*All.coarse_Nz*All.coarse_Ny];
+#endif	
 }
 	
 void GravAccel_CMZ()
@@ -329,21 +343,21 @@ void GravAccel_CMZ()
 					for(int m=0; m < 2; m++)
 					{
 						if (x + m == 0) accx[m][j][k] = 0;
-						if (x + m == 1) accx[m][j][k] = -(Potential(x+m+1,y+j,z+k)-Potential(x+m,y+j,z+k))/(All.deltax);
-						if (x + m == All.Nx -1) accx[m][j][k] = -(Potential(x+m,y+j,z+k)-Potential(x+m-1,y+j,z+k))/(All.deltax);
-						if (x + m > 1 &&  x + m < All.Nx -1) accx[m][j][k] = -(Potential(x+m+1,y+j,z+k)-Potential(x+m-1,y+j,z+k))/(2*All.deltax);
+						if (x + m == 1) accx[m][j][k] = -(Potential(x+m+1,y+j,z+k,t)-Potential(x+m,y+j,z+k,t))/(All.deltax);
+						if (x + m == All.Nx -1) accx[m][j][k] = -(Potential(x+m,y+j,z+k,t)-Potential(x+m-1,y+j,z+k,t))/(All.deltax);
+						if (x + m > 1 &&  x + m < All.Nx -1) accx[m][j][k] = -(Potential(x+m+1,y+j,z+k,t)-Potential(x+m-1,y+j,z+k,t))/(2*All.deltax);
 						dx = All.deltax;
 					
 						if (y + j == 0) accy[m][j][k] = 0;
-						if (y + j == 1) accy[m][j][k] = -(Potential(x+m,y+j+1,z+k)-Potential(x+m,y+j,z+k))/(All.deltay);
-						if (y + j == All.Ny-1) accy[m][j][k] = -(Potential(x+m,y+j,z+k)-Potential(x+m,y+j-1,z+k))/(All.deltay);
-						if (y + j > 1 && y + j < All.Ny-1) accy[m][j][k] = -(Potential(x+m,y+j+1,z+k)-Potential(x+m,y+j-1,z+k))/(2*All.deltay);
+						if (y + j == 1) accy[m][j][k] = -(Potential(x+m,y+j+1,z+k,t)-Potential(x+m,y+j,z+k,t))/(All.deltay);
+						if (y + j == All.Ny-1) accy[m][j][k] = -(Potential(x+m,y+j,z+k,t)-Potential(x+m,y+j-1,z+k,t))/(All.deltay);
+						if (y + j > 1 && y + j < All.Ny-1) accy[m][j][k] = -(Potential(x+m,y+j+1,z+k,t)-Potential(x+m,y+j-1,z+k,t))/(2*All.deltay);
 						dy = All.deltay;
 					
 						if (z + k == 0) accz[m][j][k] = 0;
-						if (z + k == 1) accz[m][j][k] = -(Potential(x+m,y+j,z+k+1)-Potential(x+m,y+j,z+k))/(All.deltaz);
-						if (z + k == All.Nz-1) accz[m][j][k] = -(Potential(x+m,y+j,z+k)-Potential(x+m,y+j,z+k-1))/(All.deltaz);
-						if (z + k > 1 && z + k < All.Nz-1) accz[m][j][k] = -(Potential(x+m,y+j,z+k+1)-Potential(x+m,y+j,z+k-1))/(2*All.deltaz);
+						if (z + k == 1) accz[m][j][k] = -(Potential(x+m,y+j,z+k+1,t)-Potential(x+m,y+j,z+k,t))/(All.deltaz);
+						if (z + k == All.Nz-1) accz[m][j][k] = -(Potential(x+m,y+j,z+k,t)-Potential(x+m,y+j,z+k-1,t))/(All.deltaz);
+						if (z + k > 1 && z + k < All.Nz-1) accz[m][j][k] = -(Potential(x+m,y+j,z+k+1,t)-Potential(x+m,y+j,z+k-1,t))/(2*All.deltaz);
 						dz = All.deltaz;
 					}
 				}
@@ -373,19 +387,19 @@ void GravAccel_CMZ()
 				{
 					for(int m=0; m < 2; m++)
 					{
-						if (x + m == 0) accx[m][j][k] = -(CoarsePotential(x+m+1,y+j,z+k)-CoarsePotential(x+m,y+j,z+k))/(All.coarse_deltax);
-						if (x + m == All.coarse_Nx -1) accx[m][j][k] = -(CoarsePotential(x+m,y+j,z+k)-CoarsePotential(x+m-1,y+j,z+k))/(All.coarse_deltax);
-						if (x + m > 0 &&  x + m < All.coarse_Nx -1) accx[m][j][k] = -(CoarsePotential(x+m+1,y+j,z+k)-CoarsePotential(x+m-1,y+j,z+k))/(2*All.coarse_deltax);
+						if (x + m == 0) accx[m][j][k] = -(CoarsePotential(x+m+1,y+j,z+k,t)-CoarsePotential(x+m,y+j,z+k,t))/(All.coarse_deltax);
+						if (x + m == All.coarse_Nx -1) accx[m][j][k] = -(CoarsePotential(x+m,y+j,z+k,t)-CoarsePotential(x+m-1,y+j,z+k,t))/(All.coarse_deltax);
+						if (x + m > 0 &&  x + m < All.coarse_Nx -1) accx[m][j][k] = -(CoarsePotential(x+m+1,y+j,z+k,t)-CoarsePotential(x+m-1,y+j,z+k,t))/(2*All.coarse_deltax);
 						dx = All.coarse_deltax;
 					
-						if (y + j == 0) accy[m][j][k] = -(CoarsePotential(x+m,y+j+1,z+k)-CoarsePotential(x+m,y+j,z+k))/(All.coarse_deltay);
-						if (y + j == All.coarse_Ny-1) accy[m][j][k] = -(CoarsePotential(x+m,y+j,z+k)-CoarsePotential(x+m,y+j-1,z+k))/(All.coarse_deltay);
-						if (y + j > 0 && y + j < All.coarse_Ny-1) accy[m][j][k] = -(CoarsePotential(x+m,y+j+1,z+k)-CoarsePotential(x+m,y+j-1,z+k))/(2*All.coarse_deltay);
+						if (y + j == 0) accy[m][j][k] = -(CoarsePotential(x+m,y+j+1,z+k,t)-CoarsePotential(x+m,y+j,z+k,t))/(All.coarse_deltay);
+						if (y + j == All.coarse_Ny-1) accy[m][j][k] = -(CoarsePotential(x+m,y+j,z+k,t)-CoarsePotential(x+m,y+j-1,z+k,t))/(All.coarse_deltay);
+						if (y + j > 0 && y + j < All.coarse_Ny-1) accy[m][j][k] = -(CoarsePotential(x+m,y+j+1,z+k,t)-CoarsePotential(x+m,y+j-1,z+k,t))/(2*All.coarse_deltay);
 						dy = All.coarse_deltay;
 					
-						if (z + k == 0) accz[m][j][k] = -(CoarsePotential(x+m,y+j,z+k+1)-CoarsePotential(x+m,y+j,z+k))/(All.coarse_deltaz);
-						if (z + k == All.coarse_Nz-1) accz[m][j][k] = -(CoarsePotential(x+m,y+j,z+k)-CoarsePotential(x+m,y+j,z+k-1))/(All.coarse_deltaz);
-						if (z + k > 0 && z + k < All.coarse_Nz-1) accz[m][j][k] = -(CoarsePotential(x+m,y+j,z+k+1)-CoarsePotential(x+m,y+j,z+k-1))/(2*All.coarse_deltaz);
+						if (z + k == 0) accz[m][j][k] = -(CoarsePotential(x+m,y+j,z+k+1,t)-CoarsePotential(x+m,y+j,z+k,t))/(All.coarse_deltaz);
+						if (z + k == All.coarse_Nz-1) accz[m][j][k] = -(CoarsePotential(x+m,y+j,z+k,t)-CoarsePotential(x+m,y+j,z+k-1,t))/(All.coarse_deltaz);
+						if (z + k > 0 && z + k < All.coarse_Nz-1) accz[m][j][k] = -(CoarsePotential(x+m,y+j,z+k+1,t)-CoarsePotential(x+m,y+j,z+k-1,t))/(2*All.coarse_deltaz);
 						dz = All.coarse_deltaz;
 					}
 				}

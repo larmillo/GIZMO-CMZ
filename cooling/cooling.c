@@ -147,7 +147,6 @@ double DoCooling(double u_old, double rho, double dt, double *ne_guess, int targ
 	double err = fabs(u/u_old - 1.0);
 	if (err == 0.0) SphP[target].cool_time = dt_cool;
 	else SphP[target].cool_time = DMIN(dt_cool, dt/err);
-	if (err!= 0)printf(" dtcool=(%g %g %g)\n",  SphP[target].cool_time, u,u_old);
     return DMAX(u,All.MinEgySpec);
 #endif
     

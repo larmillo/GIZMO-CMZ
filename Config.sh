@@ -139,6 +139,7 @@ ANALYTIC_GRAVITY               # Specific analytic gravitational force to use in
                                 #  (edit "gravity/analytic_gravity.h" to actually assign the analytic gravitational forces)
                                 # with a bit mask, as for PM_PLACEHIGHRESREGION above (see description)
 #EOS_TRUELOVE_PRESSURE          # adds artificial pressure floor force Jeans length above resolution scale (means you will get the wrong answer, but things will look smooth)
+GRADUAL_NO_AXISYMMETRIC_POTENTIAL
 ####################################################################################################
 
 
