@@ -165,8 +165,8 @@ void allocate_acc_finegrid()
 	All.potential_symbar = malloc(Nx*Ny*Nz*sizeof(double));
 
     status += H5Dread(dataset_pot, datatype, dataspace_pot, dataspace_pot, H5P_DEFAULT, All.potential);
-	status += H5Dread(dataset_pot, datatype, dataspace_potbar, dataspace_potbar, H5P_DEFAULT, All.potential_bar);
-	status += H5Dread(dataset_pot, datatype, dataspace_potsymbar, dataspace_potsymbar, H5P_DEFAULT, All.potential_symbar);
+	status += H5Dread(dataset_potbar, datatype, dataspace_potbar, dataspace_potbar, H5P_DEFAULT, All.potential_bar);
+	status += H5Dread(dataset_potsymbar, datatype, dataspace_potsymbar, dataspace_potsymbar, H5P_DEFAULT, All.potential_symbar);
 
 	//printf("arriva qui! %e \n", All.potential_tot[100][100][100]);
 	
@@ -352,8 +352,8 @@ void allocate_acc_coarsegrid()
 	All.coarse_potential_symbar = malloc(Nx*Ny*Nz*sizeof(double));
 
     status += H5Dread(dataset_pot, datatype, dataspace_pot, dataspace_pot, H5P_DEFAULT, All.coarse_potential);
-	status += H5Dread(dataset_pot, datatype, dataspace_potbar, dataspace_potbar, H5P_DEFAULT, All.coarse_potential_bar);
-	status += H5Dread(dataset_pot, datatype, dataspace_potsymbar, dataspace_potsymbar, H5P_DEFAULT, All.coarse_potential_symbar);
+	status += H5Dread(dataset_potbar, datatype, dataspace_potbar, dataspace_potbar, H5P_DEFAULT, All.coarse_potential_bar);
+	status += H5Dread(dataset_potsymbar, datatype, dataspace_potsymbar, dataspace_potsymbar, H5P_DEFAULT, All.coarse_potential_symbar);
 
 	//printf("arriva qui! %e \n", All.potential_tot[100][100][100]);
 	
