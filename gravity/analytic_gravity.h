@@ -254,27 +254,26 @@ void GravAccel_KeplerianTestProblem()
     }
 }
 #ifdef ANALYTIC_GRAVITY
-double Potential(x,y,z,t)
+double Potential(int x, int y, int z, double t)
 {
 	int l = z+y*All.Nz+x*All.Nz*All.Ny;
 #ifdef GRADUAL_NO_AXISYMMETRIC_POTENTIAL
 	double tgrow = 150.;
-	double lambda = t / tgrow;
-	//printf ("%d %d %d %e %e %e \n", x, y, z, All.potential[l],All.potential_bar[l],All.potential_symbar[l]);
-	return All.potential[l] + lambda*All.potential_bar[l] + (1.-lambda)*All.potential_symbar[l];
+	double grow_coeff = t/tgrow;
+	return All.potential[l] + grow_coeff*All.potential_bar[l] + (1.-grow_coeff)*All.potential_symbar[l];
 #else
 	return All.potential[l];
 #endif		
 }
 
-double CoarsePotential(x,y,z,t)
+double CoarsePotential(int x, int y, int z, double t)
 {
 	int l = z+y*All.coarse_Nz+x*All.coarse_Nz*All.coarse_Ny;
 #ifdef GRADUAL_NO_AXISYMMETRIC_POTENTIAL
 	double tgrow = 150.;
-	double lambda = t / tgrow;
+	double grow_coeff = t/tgrow;
 	//printf ("%d %d %d %e %e %e \n", x, y, z, All.coarse_potential[l],All.coarse_potential_bar[l],All.coarse_potential_symbar[l]);
-	return All.coarse_potential[l] + lambda*All.coarse_potential_bar[l] + (1.-lambda)*All.coarse_potential_symbar[l];
+	return All.coarse_potential[l] + grow_coeff*All.coarse_potential_bar[l] + (1.-grow_coeff)*All.coarse_potential_symbar[l];
 #else
 	return All.coarse_potential[l];
 #endif	
@@ -303,7 +302,6 @@ void GravAccel_CMZ()
 		double inner_limiterz = (All.Nz) * All.deltaz;
 		
 		omega = vrot*t; //rotation angle
-		omega *= PI_VAL/180.;//radiant			
 		
 		dp[0]=fabs(P[i].Pos[0]*cos(omega)+P[i].Pos[1]*sin(omega)); 
 		dp[1]=fabs(P[i].Pos[1]*cos(omega)-P[i].Pos[0]*sin(omega)); 
@@ -375,7 +373,7 @@ void GravAccel_CMZ()
 		
 			z = (int) ((dp[2] - All.zz0) / All.coarse_deltaz);
 			z = DMAX(z, 0);
-			printf("%d %d %d \n",x,y,z);
+
 			if ((x > All.coarse_Nx - 1) || (y > All.coarse_Ny - 1) || (z > All.coarse_Nz - 1)) 
 			{
 				printf("The code is trying to calculate gravitational acceleration outside 20 kpc \n");
