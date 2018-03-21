@@ -24,9 +24,9 @@
 #LONG_X=1                    # modify box dimensions (non-square periodic box): multiply X (PERIODIC and NOGRAVITY required)
 #LONG_Y=1                      # modify box dimensions (non-square periodic box): multiply Y
 #LONG_Z=3                       # modify box dimensions (non-square periodic box): multiply Z
-#REFLECT_BND_X                  # make the x-boundary reflecting (assumes a box 0<x<1, unless PERIODIC is set)
-#REFLECT_BND_Y                  # make the y-boundary reflecting (assumes a box 0<y<1, unless PERIODIC is set)
-#REFLECT_BND_Z                  # make the z-boundary reflecting (assumes a box 0<z<1, unless PERIODIC is set)
+REFLECT_BND_X                  # make the x-boundary reflecting (assumes a box 0<x<1, unless PERIODIC is set)
+REFLECT_BND_Y                  # make the y-boundary reflecting (assumes a box 0<y<1, unless PERIODIC is set)
+REFLECT_BND_Z                  # make the z-boundary reflecting (assumes a box 0<z<1, unless PERIODIC is set)
 #SHEARING_BOX=1                 # shearing box boundaries: 1=r-z sheet (r,z,phi coordinates), 2=r-phi sheet (r,phi,z), 3=r-phi-z box, 4=as 3, with vertical gravity
 #SHEARING_BOX_Q=(3./2.)         # shearing box q=-dlnOmega/dlnr; will default to 3/2 (Keplerian) if not set
 #ONEDIM                         # Switch for 1D test problems: code only follows the x-line. requires NOGRAVITY, and all y=z=0
@@ -82,6 +82,7 @@ COOLING                        # enables radiative cooling and heating: if GALSF
 GRACKLE                        # enable GRACKLE: cooling+chemistry package (requires COOLING above; https://grackle.readthedocs.org/en/latest )
 GRACKLE_CHEMISTRY=0            # choose GRACKLE cooling chemistry: (0)=tabular, (1)=Atomic, (2)=(1)+H2+H2I+H2II, (3)=(2)+DI+DII+HD
 GRACKLE_OPTS			# additional options for GRACKLE chemistry solver (Lupi)
+#NO_CORONAL_COOLING
 #GRACKLE_FIX_TEMPERATURE	# if the initial temperature is provided via parameter file, the intial internal energy is computed taking into account the mmw dependence on density too (Lupi)
 #GRACKLE_FULLYIMPLICIT		# fully implicit solution for Grackle (customized version of the library) (Lupi)
 ##-----------------------------------------------------------------------------------------------------

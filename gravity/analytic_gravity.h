@@ -259,7 +259,8 @@ double Potential(int x, int y, int z, double t)
 	int l = z+y*All.Nz+x*All.Nz*All.Ny;
 #ifdef GRADUAL_NO_AXISYMMETRIC_POTENTIAL
 	double tgrow = 150.;
-	double grow_coeff = t/tgrow;
+	double grow_coeff;
+	grow_coeff = (t <= tgrow) ? (t/tgrow) : (1.);
 	return All.potential[l] + grow_coeff*All.potential_bar[l] + (1.-grow_coeff)*All.potential_symbar[l];
 #else
 	return All.potential[l];
@@ -271,8 +272,8 @@ double CoarsePotential(int x, int y, int z, double t)
 	int l = z+y*All.coarse_Nz+x*All.coarse_Nz*All.coarse_Ny;
 #ifdef GRADUAL_NO_AXISYMMETRIC_POTENTIAL
 	double tgrow = 150.;
-	double grow_coeff = t/tgrow;
-	//printf ("%d %d %d %e %e %e \n", x, y, z, All.coarse_potential[l],All.coarse_potential_bar[l],All.coarse_potential_symbar[l]);
+	double grow_coeff;
+	grow_coeff = (t <= tgrow) ? (t/tgrow) : (1.);
 	return All.coarse_potential[l] + grow_coeff*All.coarse_potential_bar[l] + (1.-grow_coeff)*All.coarse_potential_symbar[l];
 #else
 	return All.coarse_potential[l];
@@ -290,6 +291,15 @@ void GravAccel_CMZ()
 	
     for(i = FirstActiveParticle; i >= 0; i = NextActiveParticle[i])
 	{
+#ifdef REFLECT_BND_X 
+		P[i].Pos[0] -= 0.5*All.BoxSize;
+#endif	
+#ifdef REFLECT_BND_Y 
+		P[i].Pos[1] -= 0.5*All.BoxSize;
+#endif
+#ifdef REFLECT_BND_Z 
+		P[i].Pos[2] -= 0.5*All.BoxSize;
+#endif			
 		//Potential//
 		double dx,dy,dz;
 		
@@ -444,6 +454,15 @@ void GravAccel_CMZ()
 		if((P[i].Pos[2] - All.zz0) < 0) P[i].GravAccel[2] -= (interp1_z + (interp2_z - interp1_z)/dz * (dp[2] - All.zz0 - z * dz));
 
         //printf("%e %e %e %e %e %e \n", P[i].Pos[0], P[i].Pos[1], P[i].Pos[2], P[i].GravAccel[0],P[i].GravAccel[1],P[i].GravAccel[2]);
+#ifdef REFLECT_BND_X 
+		P[i].Pos[0] += 0.5*All.BoxSize;
+#endif	
+#ifdef REFLECT_BND_Y 
+		P[i].Pos[1] += 0.5*All.BoxSize;
+#endif
+#ifdef REFLECT_BND_Z 
+		P[i].Pos[2] += 0.5*All.BoxSize;
+#endif				
 	}
 	
 }

@@ -191,7 +191,7 @@ void drift_particle(int i, integertime time1)
             
             /* check for reflecting boundaries: if so, do the reflection! */
 #if defined(REFLECT_BND_X) || defined(REFLECT_BND_Y) || defined(REFLECT_BND_Z)
-            double box_upper[3]; box_upper[0]=box_upper[1]=box_upper[2]=1;
+            double box_upper[3]; box_upper[0]=box_upper[1]=box_upper[2]=All.BoxSize;
 #ifdef PERIODIC
             box_upper[0]=boxSize_X; box_upper[1]=boxSize_Y; box_upper[2]=boxSize_Z;
 #endif

@@ -41,6 +41,13 @@ void cooling_only(void)
     {
         if(P[i].Type == 0 && P[i].Mass > 0)
         {
+#if defined(NO_CORONAL_COOLING) && defined(GRACKLE_OPTS)
+			if(P[i].Metallicity[0] <= GENTRY_SOLAR_MET*0.3) 
+			{
+				SphP[i].cool_time = 1e20;
+				continue;
+			}
+#endif						
             do_the_cooling_for_particle(i);
         } // if(P[i].Type == 0 && P[i].Mass > 0)
     } // for(i = FirstActiveParticle; i >= 0; i = NextActiveParticle[i])

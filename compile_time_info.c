@@ -2,6 +2,9 @@
 void output_compile_time_options(void)
 {
 printf(
+"        REFLECT_BND_X\n"
+"        REFLECT_BND_Y\n"
+"        REFLECT_BND_Z\n"
 "        HYDRO_MESHLESS_FINITE_MASS\n"
 "        EOS_GAMMA=(5.0/3.0)\n"
 "        COOLING\n"

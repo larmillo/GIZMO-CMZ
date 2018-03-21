@@ -1,3 +1,6 @@
+#define REFLECT_BND_X 
+#define REFLECT_BND_Y 
+#define REFLECT_BND_Z 
 #define HYDRO_MESHLESS_FINITE_MASS 
 #define EOS_GAMMA (5.0/3.0)
 #define COOLING 
