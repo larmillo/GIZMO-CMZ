@@ -133,14 +133,14 @@ GRACKLE_OPTS			# additional options for GRACKLE chemistry solver (Lupi)
                                 # enclosing a neighbor number set in the parameter file. baryons search for other baryons,
                                 # dm for dm, sidm for sidm, etc. If set to numerical value, the maximum softening is this times All.ForceSoftening[for appropriate particle type]
 ## -----------------------------------------------------------------------------------------------------
-NOGRAVITY                      # turn off self-gravity (compatible with analytic_gravity)
+#NOGRAVITY                      # turn off self-gravity (compatible with analytic_gravity)
 #GRAVITY_NOT_PERIODIC           # self-gravity is not periodic, even though the rest of the box is periodic
 ## -----------------------------------------------------------------------------------------------------
 ANALYTIC_GRAVITY               # Specific analytic gravitational force to use instead of/with self-gravity. If set to a numerical value
                                 #  (edit "gravity/analytic_gravity.h" to actually assign the analytic gravitational forces)
                                 # with a bit mask, as for PM_PLACEHIGHRESREGION above (see description)
 #EOS_TRUELOVE_PRESSURE          # adds artificial pressure floor force Jeans length above resolution scale (means you will get the wrong answer, but things will look smooth)
-GRADUAL_NO_AXISYMMETRIC_POTENTIAL
+#GRADUAL_NO_AXISYMMETRIC_POTENTIAL
 ####################################################################################################
 
 
@@ -247,9 +247,9 @@ OUTPUT_ADDITIONAL_RUNINFO      # enables extended simulation output data (can sl
 
 #NOTEST_FOR_IDUNIQUENESS
 
-#SLUG
-#STAR_FORMATION
-#SN_FEEDBACK
+SLUG
+STAR_FORMATION
+SN_FEEDBACK
 #PHOTOIONIZATION
 
 

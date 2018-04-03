@@ -525,8 +525,8 @@ int FB_evaluate(int target, int mode, int *exportflag, int *exportnodecount, int
 				double pt, nb, fZ, mu, Rcool;
 				mu = 4.0 / (1 + 3 * HYDROGEN_MASSFRAC);	/* note: assuming NEUTRAL GAS */
 				nb = SphP[j].Density * All.UnitDensity_in_cgs / (mu * 1.67e-24);
-				if(P[j].Metallicity[0] < 0.01) fZ = 2;
-				else fZ = pow(P[j].Metallicity[0],-0.14);	
+				if(P[j].Metallicity[0]/GENTRY_SOLAR_MET < 0.01) fZ = 2;
+				else fZ = pow(P[j].Metallicity[0]/GENTRY_SOLAR_MET,-0.14);	
 				pt = 4.8e5 * pow(P[j].Nsn_timestep,13./14.) * pow(nb,-1./7.) * pow(fZ, 3./2.); //terminal momentum in solar mass * kms^-1
 				pt *= SOLAR_MASS / All.UnitMass_in_g;
 				pt *= 1e5 / All.UnitVelocity_in_cm_per_s;

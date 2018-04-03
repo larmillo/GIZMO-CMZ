@@ -38,7 +38,7 @@ void gas_to_star()
 	
 	if((P[i].Type == 0)&&(P[i].Mass>0)&&(dtime>0.)&&(P[i].TimeBin)) //TESTARE ULTIMA CONDIZIONE!!!!
 	{	
-		SphP[i].Sfr = 0;	
+		SphP[i].Sfr = 0.;	
 		SphP[i].Pressure = get_pressure(i);
 		cspeed = sqrt(GAMMA * SphP[i].Pressure / Particle_density_for_energy_i(i));
 		VelGradTens = 0.;
@@ -50,15 +50,15 @@ void gas_to_star()
 		/* Self-gravitating criterion */	
 		if(alpha < 1)
 		{
-			sfrate = 1;
+			sfrate = 1.;
 			/* Self-shielding criterion */
 			ModRhoGrad = 0.;
 			for (k = 0; k < 3; k++) ModRhoGrad += SphP[i].Gradients.Density[k]*SphP[i].Gradients.Density[k];
 			ModRhoGrad = sqrt(ModRhoGrad);
-			theta_a = 0.756*pow(1.+3.1*P[i].Metallicity[0],0.365);
+			theta_a = 0.756*pow(1.+3.1*P[i].Metallicity[0]/GENTRY_SOLAR_MET,0.365);
 			tau_a = 434.8 * All.UnitDensity_in_cgs * All.UnitLength_in_cm * All.HubbleParam * SphP[i].Density * (Get_Particle_Size(i)+SphP[i].Density/ModRhoGrad);
-			phi_a = 0.6*tau_a*(0.01+P[i].Metallicity[0])/(log(1.+0.6*theta_a+0.01*theta_a*theta_a));
-			fsh = 1.-3./(1.+4./phi_a);
+			phi_a = 0.6*tau_a*(0.01+P[i].Metallicity[0]/GENTRY_SOLAR_MET)/(log(1.+0.6*theta_a+0.01*theta_a*theta_a));
+			fsh = 1.-3./(1.+4.*phi_a);
 			
 			if(fsh > 0)
 			{	 
@@ -73,9 +73,10 @@ void gas_to_star()
 					/* Jeans unstable criterion */
 					if (P[i].Mass > Jeans_mass) 
 					{
-						tff = sqrt(3*PI_VAL/(32*All.G*SphP[i].Density));
+						tff = sqrt(3.*PI_VAL/(32.*All.G*SphP[i].Density));
 						
 						sfrate *= All.SfEffPerFreeFall * P[i].Mass / tff;
+						/* convert to solar masses per yr */
 			            SphP[i].Sfr = sfrate * (All.UnitMass_in_g / SOLAR_MASS) / (All.UnitTime_in_s / SEC_PER_YEAR);
 						
 			  	      	if(dtime>0.) TimeBinSfr[P[i].TimeBin] += SphP[i].Sfr;
@@ -83,7 +84,7 @@ void gas_to_star()
 						star_probability = All.SfEffPerFreeFall * fsh * dtime / tff;
 						//star_probability=1.-exp(-sfrate*dtime/tff); //like in Hopkins paper
 						Prandom = get_random_number(ThisTask);
-						//printf("JEANS_MASS %e %e \n",star_probability, Prandom);
+						//printf("I'm here!! %e %e %e %e %e \n",star_probability, tff*All.UnitTime_in_s, dtime*All.UnitTime_in_s, SphP[i].Density*All.UnitDensity_in_cgs, Prandom);
 						if (star_probability > Prandom)
 						{
 							P[i].Type = 4;
@@ -142,8 +143,9 @@ void gas_to_star()
             rate = total_sm / (All.TimeStep / (All.cf_atime*All.cf_hubble_a));
         else
             rate = 0;
-        /* convert to solar masses per yr */
-        rate_in_msunperyear = totsfrrate * (All.UnitMass_in_g / SOLAR_MASS) / (All.UnitTime_in_s / SEC_PER_YEAR);
+		
+        totsfrrate /= ((All.UnitMass_in_g / SOLAR_MASS) / (All.UnitTime_in_s / SEC_PER_YEAR));
+        rate_in_msunperyear = totsfrrate * ((All.UnitMass_in_g / SOLAR_MASS) / (All.UnitTime_in_s / SEC_PER_YEAR));
         fprintf(FdSfr, "%g %g %g %g %g\n", All.Time, total_sm, totsfrrate, rate_in_msunperyear, total_sum_mass_stars);
         fflush(FdSfr); // can flush it, because only occuring on master steps anyways
     } // thistask==0
