@@ -32,7 +32,7 @@ void HII_region(void)
 		//get number of photons per second
 		P[i].N_photons = slug_get_photometry_QH0(P[i].SlugOb);
 		if(P[i].N_photons <= 0) continue;
-		printf("Initial number of photons = %e \n", P[i].N_photons);
+		//printf("Initial number of photons = %e \n", P[i].N_photons);
 		
 		for(int j = 0; j < N_gas; j++) /* loop over the gas block */
 		{
@@ -110,8 +110,8 @@ void HII_region(void)
 			if (P[i].N_photons <= 0) break;
 		}
 		
-		printf("Final number of photons = %e \n", P[i].N_photons);
-		exit(0);
+		//printf("Final number of photons = %e \n", P[i].N_photons);
+		//exit(0);
 	}	
 	
     free(IonRate);

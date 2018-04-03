@@ -134,19 +134,18 @@ void gas_to_star()
       if(TimeBinCount[bin])
         sfrrate += TimeBinSfr[bin];
 	
-	MPI_Allreduce(&sfrrate, &totsfrrate, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
-    MPI_Reduce(&sum_sm, &total_sm, 1, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
+	MPI_reduce(&sfrrate, &totsfrrate, 1, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
     MPI_Reduce(&sum_mass_stars, &total_sum_mass_stars, 1, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
     if(ThisTask == 0)
     {
         if(All.TimeStep > 0)
-            rate = total_sm / (All.TimeStep / (All.cf_atime*All.cf_hubble_a));
+            rate = total_sum_mass_stars / (All.TimeStep / (All.cf_atime*All.cf_hubble_a));
         else
             rate = 0;
 		
-        totsfrrate /= ((All.UnitMass_in_g / SOLAR_MASS) / (All.UnitTime_in_s / SEC_PER_YEAR));
-        rate_in_msunperyear = totsfrrate * ((All.UnitMass_in_g / SOLAR_MASS) / (All.UnitTime_in_s / SEC_PER_YEAR));
-        fprintf(FdSfr, "%g %g %g %g %g\n", All.Time, total_sm, totsfrrate, rate_in_msunperyear, total_sum_mass_stars);
+        //totsfrrate /= ((All.UnitMass_in_g / SOLAR_MASS) / (All.UnitTime_in_s / SEC_PER_YEAR));
+        rate_in_msunperyear = rate * ((All.UnitMass_in_g / SOLAR_MASS) / (All.UnitTime_in_s / SEC_PER_YEAR));
+        fprintf(FdSfr, "%g %g %g %g \n", All.Time, totsfrrate, rate_in_msunperyear, total_sum_mass_stars);
         fflush(FdSfr); // can flush it, because only occuring on master steps anyways
     } // thistask==0
 		

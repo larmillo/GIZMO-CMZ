@@ -188,7 +188,7 @@ void out2particle_density(struct densdata_out *out, int i, int mode)
     }
 #endif
 
-#ifdef DO_DENSITY_AROUND_STAR_PARTICLES
+#if defined(DO_DENSITY_AROUND_STAR_PARTICLES) && defined(SN_FEEDBACK)
     if(P[i].Type == 4)
     {
         ASSIGN_ADD(P[i].DensAroundStar, out->Rho, mode);
