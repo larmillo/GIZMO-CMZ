@@ -93,7 +93,8 @@ void HII_region(void)
 				SphP[ParticleNum[j]].InternalEnergyPred = BOLTZMANN*Tfin/((GAMMA-1)*molw_i*PROTONMASS)*All.UnitMass_in_g / All.UnitEnergy_in_cgs;
 				SphP[ParticleNum[j]].HIIregion = 1;
 				//double T = CallGrackle(SphP[ParticleNum[j]].InternalEnergy,SphP[ParticleNum[j]].Density,0,&(SphP[ParticleNum[j]].Ne),ParticleNum[j],2);
-				//printf("IonRate Tini Nphotons Prandom mol %e %e %e %e \n", IonRate[j], T, Tfin, molw_i);
+				//double tcooling= CallGrackle(SphP[ParticleNum[j]].InternalEnergy,SphP[ParticleNum[j]].Density,0,&(SphP[ParticleNum[j]].Ne),ParticleNum[j],1);
+				//printf("IonRate Tini Nphotons Prandom mol %e %e %e %e \n", IonRate[j], T, Tfin, tcooling*All.UnitTime_in_s/SEC_PER_YEAR);
 				P[i].N_photons -= IonRate[j];
 			}	
 			else 

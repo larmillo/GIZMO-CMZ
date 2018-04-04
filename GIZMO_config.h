@@ -9,3 +9,4 @@
 #define SLUG 
 #define STAR_FORMATION 
 #define SN_FEEDBACK 
+#define PHOTOIONIZATION 

@@ -160,9 +160,9 @@ void compute_stellar_feedback(void)
     CPU_Step[CPU_LOCALWIND] += measure_time();
 #endif
 	
-#ifdef PHOTOIONIZATION
+	/*#ifdef PHOTOIONIZATION
 	HII_region();
-#endif		
+#endif	*/	
 
 #ifdef SN_FEEDBACK
 	omegab_calc();
