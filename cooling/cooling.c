@@ -46,7 +46,11 @@ void cooling_only(void)
         if(P[i].Type == 0 && P[i].Mass > 0)
         {
 #ifdef PHOTOIONIZATION
-			if (SphP[i].HIIregion==1) continue;
+			if (SphP[i].HIIregion==1) 
+			{
+				SphP[i].HIIregion=0;
+				continue;	
+			}
 #endif						
 #if defined(NO_CORONAL_COOLING) && defined(GRACKLE_OPTS)
 			if(P[i].Metallicity[0] <= GENTRY_SOLAR_MET*0.3) 

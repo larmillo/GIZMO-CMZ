@@ -22,7 +22,7 @@ void HII_region(void)
 	double Tfin = 1e4;
 	double molw_i = 4.0 / (8 - 5 * (1 - HYDROGEN_MASSFRAC)); /* assuming full ionization */
 	
-	for(int j = 0; j < N_gas; j++) SphP[j].HIIregion=0; 
+	//for(int j = 0; j < N_gas; j++) SphP[j].HIIregion=0; 
 		
     for(int i = FirstActiveParticle; i >= 0; i = NextActiveParticle[i])
     {

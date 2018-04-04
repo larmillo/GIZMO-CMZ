@@ -248,10 +248,13 @@ void init(void)
         {
             P[i].StellarAge = 0;
 			P[i].Nsn_tot = 0;
-			P[i].SlugMass = 0;
+			P[i].SlugMass = 0;					
         }
 #endif
-		
+#ifdef PHOTOIONIZATION
+			SphP[i].HIIregion = 0;
+#endif	
+					
         if(RestartFlag != 1)
         {
 #if defined(DO_DENSITY_AROUND_STAR_PARTICLES)
