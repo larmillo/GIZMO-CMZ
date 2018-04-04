@@ -24,9 +24,9 @@
 #LONG_X=1                    # modify box dimensions (non-square periodic box): multiply X (PERIODIC and NOGRAVITY required)
 #LONG_Y=1                      # modify box dimensions (non-square periodic box): multiply Y
 #LONG_Z=3                       # modify box dimensions (non-square periodic box): multiply Z
-REFLECT_BND_X                  # make the x-boundary reflecting (assumes a box 0<x<1, unless PERIODIC is set)
-REFLECT_BND_Y                  # make the y-boundary reflecting (assumes a box 0<y<1, unless PERIODIC is set)
-REFLECT_BND_Z                  # make the z-boundary reflecting (assumes a box 0<z<1, unless PERIODIC is set)
+#REFLECT_BND_X                  # make the x-boundary reflecting (assumes a box 0<x<1, unless PERIODIC is set)
+#REFLECT_BND_Y                  # make the y-boundary reflecting (assumes a box 0<y<1, unless PERIODIC is set)
+#REFLECT_BND_Z                  # make the z-boundary reflecting (assumes a box 0<z<1, unless PERIODIC is set)
 #SHEARING_BOX=1                 # shearing box boundaries: 1=r-z sheet (r,z,phi coordinates), 2=r-phi sheet (r,phi,z), 3=r-phi-z box, 4=as 3, with vertical gravity
 #SHEARING_BOX_Q=(3./2.)         # shearing box q=-dlnOmega/dlnr; will default to 3/2 (Keplerian) if not set
 #ONEDIM                         # Switch for 1D test problems: code only follows the x-line. requires NOGRAVITY, and all y=z=0
@@ -136,7 +136,7 @@ GRACKLE_OPTS			# additional options for GRACKLE chemistry solver (Lupi)
 #NOGRAVITY                      # turn off self-gravity (compatible with analytic_gravity)
 #GRAVITY_NOT_PERIODIC           # self-gravity is not periodic, even though the rest of the box is periodic
 ## -----------------------------------------------------------------------------------------------------
-ANALYTIC_GRAVITY               # Specific analytic gravitational force to use instead of/with self-gravity. If set to a numerical value
+#ANALYTIC_GRAVITY               # Specific analytic gravitational force to use instead of/with self-gravity. If set to a numerical value
                                 #  (edit "gravity/analytic_gravity.h" to actually assign the analytic gravitational forces)
                                 # with a bit mask, as for PM_PLACEHIGHRESREGION above (see description)
 #EOS_TRUELOVE_PRESSURE          # adds artificial pressure floor force Jeans length above resolution scale (means you will get the wrong answer, but things will look smooth)

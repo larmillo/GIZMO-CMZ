@@ -113,10 +113,11 @@ void gas_to_star()
 							slug_construct_cluster(P[i].SlugOb, particle_mass);
 				  		  	size_t sizeSlug = slug_buffer_size(P[i].SlugOb);
 							P[i].SlugOb_size = sizeSlug;
-							P[i].SlugMass = slug_get_stellar_mass(P[i].SlugOb);
-							
+							P[i].SlugMass = slug_get_stellar_mass(P[i].SlugOb); //solar masses
+							P[i].SlugMass /= (All.UnitMass_in_g / SOLAR_MASS); // unit code
+							P[i].Nsn_tot = 0;
 
-							printf("size SF %ld %d \n", P[i].SlugOb_size, P[i].ID);
+							printf("size SF %ld %d %e \n", P[i].SlugOb_size, P[i].ID, P[i].SlugMass);
 #endif						
 						}		
 					}
@@ -134,7 +135,7 @@ void gas_to_star()
       if(TimeBinCount[bin])
         sfrrate += TimeBinSfr[bin];
 	
-	MPI_reduce(&sfrrate, &totsfrrate, 1, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
+	MPI_Reduce(&sfrrate, &totsfrrate, 1, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
     MPI_Reduce(&sum_mass_stars, &total_sum_mass_stars, 1, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
     if(ThisTask == 0)
     {

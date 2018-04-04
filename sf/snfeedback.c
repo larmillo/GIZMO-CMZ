@@ -34,7 +34,7 @@ void SNproduction(void)
 		
 		//advance slug object in time
 		time_cluster = All.Time - P[i].StellarAge;
-		time_cluster *= (All.UnitTime_in_s / SEC_PER_YEAR);
+		time_cluster *= (All.UnitTime_in_s / SEC_PER_YEAR); //time in year
 		slug_advance(P[i].SlugOb,time_cluster);
 	
 		//get number of SNe
@@ -46,13 +46,15 @@ void SNproduction(void)
 	
 		//get mass of ejecta
 		P[i].Mej = 0.;
-		Cur_stellar_mass = slug_get_stellar_mass(P[i].SlugOb);
-		Cur_stellar_mass /= (All.UnitMass_in_g / SOLAR_MASS); //solar masses
+		Cur_stellar_mass = slug_get_stellar_mass(P[i].SlugOb); //solar masses
+		Cur_stellar_mass /= (All.UnitMass_in_g / SOLAR_MASS); //unit code
 		P[i].Mej = P[i].SlugMass - Cur_stellar_mass;
 		if (P[i].Mej < 0.0 && fabs(P[i].Mej) > Cur_stellar_mass*1e-4)
 			printf("Warning: Large fluctuation! relatTime = %e, |dm|/m = %e, prev_stellar_mass = %e, curr_stellar_mass = %e, Num = %d\n", time_cluster, fabs(P[i].Mej)/Cur_stellar_mass, P[i].SlugMass, Cur_stellar_mass, P[i].ID);
     	if (P[i].Mej < 0.0) P[i].Mej = 0.0;
 		P[i].SlugMass = Cur_stellar_mass;
+		
+		if(P[i].Nsn_timestep>0) printf("Supernovae!!! %d %d %d %e %e %e %e \n", P[i].Nsn_timestep, P[i].Nsn_tot, P[i].ID, P[i].Mej, P[i].SlugMass, time_cluster, P[i].StellarAge);
 	}	
 }
 #endif
@@ -72,22 +74,22 @@ void Check_conservation(void)
         if(P[i].Mass <= 0) continue;
 	    if((P[i].Nsn_timestep<=0)||(P[i].DensAroundStar<=0)) continue;
 		
-		if (P[i].tocons[0]==0 || P[i].tocons[0]<0 || fabs(P[i].tocons[0]-P[i].Mej)>1e-8) 
+		if (P[i].tocons[0]==0 || P[i].tocons[0]<0 || fabs(P[i].tocons[0]-P[i].Mej)>1e-6) 
 		{
 		printf("ERROR IN MASS CONSERVATION!!! %e %e %e\n", P[i].tocons[0], P[i].Mej, fabs(P[i].tocons[0]-P[i].Mej));
 		exit(0);
 		}
-		if (P[i].tocons[1]==0 || P[i].tocons[1]<0 || fabs(P[i].tocons[1]-vj)>1e-8) 
+		if (P[i].tocons[1]==0 || P[i].tocons[1]<0 || fabs(P[i].tocons[1]-vj)>1e-6) 
 		{
 		printf("ERROR IN MOMENTUM CONSERVATION!!! %e %e %e\n", P[i].tocons[1], vj, fabs(P[i].tocons[1]-vj));
 		exit(0);
 		}
-		if (fabs(P[i].tocons[2])/P[i].tocons[1] > 1e-8) 
+		if (fabs(P[i].tocons[2])/P[i].tocons[1] > 1e-6) 
 		{
 		printf("ERROR IN TOTAL MOMENTUM CONSERVATION!!! %e %e \n", P[i].tocons[2], fabs(P[i].tocons[2])/P[i].tocons[1]);
 		exit(0);
 		}
-		if (P[i].tocons[3]==0 || P[i].tocons[3]<0 || fabs(P[i].tocons[3]-Ej)>1e-8) 
+		if (P[i].tocons[3]==0 || P[i].tocons[3]<0 || fabs(P[i].tocons[3]-Ej)>1e-6) 
 		{
 		printf("ERROR IN ENERGY CONSERVATION!!! %e %e %e\n", P[i].tocons[3], Ej, fabs(P[i].tocons[3]-Ej));
 		exit(0);
