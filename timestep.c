@@ -627,8 +627,9 @@ integertime get_timestep(int p,		/*!< particle index */
         } // closes if(P[p].Type == 0) [gas particle check] //
     
     
-    
-    
+#ifdef PHOTOIONIZATION    //to avoid large jumps in HII region photoionization
+		//if(P[p].Type == 4)	dt = DMIN(dt,P[p].Feedback_timestep);
+#endif    
     // add a 'stellar evolution timescale' criterion to the timestep, to prevent too-large jumps in feedback //
 #if defined(YOUNGSTARWINDDRIVING) || defined(FLAG_NOT_IN_PUBLIC_CODE) || defined(FLAG_NOT_IN_PUBLIC_CODE) || defined(FLAG_NOT_IN_PUBLIC_CODE) || defined(FLAG_NOT_IN_PUBLIC_CODE)
     if(((P[p].Type == 4)||((All.ComovingIntegrationOn==0)&&((P[p].Type == 2)||(P[p].Type==3))))&&(P[p].Mass>0))

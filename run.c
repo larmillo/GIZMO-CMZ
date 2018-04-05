@@ -40,7 +40,10 @@ void run(void)
         set_non_standard_physics_for_current_time();
         
         compute_grav_accelerations();	/* compute gravitational accelerations for synchronous particles */
-        
+		
+#if (defined(SN_FEEDBACK) || defined(PHOTOIONIZATION) || defined(FLAG_NOT_IN_PUBLIC_CODE))
+        SNproduction();
+#endif        
         compute_hydro_densities_and_forces();	/* densities, gradients, & hydro-accels for synchronous particles */
         
         calculate_non_standard_physics();	/* source terms are here treated in a strang-split fashion */
@@ -104,7 +107,7 @@ void run(void)
         }
 #endif
 
-#if (defined(SN_FEEDBACK) || defined(FLAG_NOT_IN_PUBLIC_CODE) || defined(FLAG_NOT_IN_PUBLIC_CODE))
+#if (defined(SN_FEEDBACK) || defined(PHOTOIONIZATION) || defined(FLAG_NOT_IN_PUBLIC_CODE))
         /* flag particles which will be feedback centers */
         SNproduction();
 #endif
@@ -256,6 +259,10 @@ void calculate_non_standard_physics(void)
     
 #ifdef COOLING	/**** radiative cooling and star formation *****/
 	cooling_only();
+    if(ThisTask == 0)
+    {
+        printf("Cooling computation done.\n");
+    }
 	CPU_Step[CPU_COOLINGSFR] += measure_time(); // finish time calc for SFR+cooling
 #endif // closes if GALSF
 #ifdef STAR_FORMATION

@@ -1579,7 +1579,7 @@ int get_values_per_blockelement(enum iofields blocknr
 #ifdef SLUG	
 		if(type == 4) 
 		{
-			values = 30000;
+			values = MAX_SLUGBUFF_SIZE;
 		}
 		else
 		{

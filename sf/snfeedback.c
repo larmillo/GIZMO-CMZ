@@ -36,6 +36,8 @@ void SNproduction(void)
 		time_cluster = All.Time - P[i].StellarAge;
 		time_cluster *= (All.UnitTime_in_s / SEC_PER_YEAR); //time in year
 		slug_advance(P[i].SlugOb,time_cluster);
+	  	size_t sizeSlug = slug_buffer_size(P[i].SlugOb);
+		P[i].SlugOb_size = sizeSlug;
 	
 		//get number of SNe
 		P[i].Nsn_timestep = 0;
@@ -49,10 +51,11 @@ void SNproduction(void)
 		Cur_stellar_mass = slug_get_stellar_mass(P[i].SlugOb); //solar masses
 		Cur_stellar_mass /= (All.UnitMass_in_g / SOLAR_MASS); //unit code
 		P[i].Mej = P[i].SlugMass - Cur_stellar_mass;
-		if (P[i].Mej < 0.0 && fabs(P[i].Mej) > Cur_stellar_mass*1e-4)
-			printf("Warning: Large fluctuation! relatTime = %e, |dm|/m = %e, prev_stellar_mass = %e, curr_stellar_mass = %e, Num = %d\n", time_cluster, fabs(P[i].Mej)/Cur_stellar_mass, P[i].SlugMass, Cur_stellar_mass, P[i].ID);
+		//if (P[i].Mej < 0.0 && fabs(P[i].Mej) > Cur_stellar_mass*1e-4)
+			//printf("Warning: Large fluctuation! relatTime = %e, |dm|/m = %e, prev_stellar_mass = %e, curr_stellar_mass = %e, Num = %d\n", time_cluster, fabs(P[i].Mej)/Cur_stellar_mass, P[i].SlugMass, Cur_stellar_mass, P[i].ID);
     	if (P[i].Mej < 0.0) P[i].Mej = 0.0;
 		P[i].SlugMass = Cur_stellar_mass;
+		if(P[i].Nsn_timestep > 0) P[i].Mass = P[i].SlugMass; //This is when we don't take in account mass feedback due to stellar wind
 		
 		if(P[i].Nsn_timestep>0) printf("Supernovae!!! %d %d %d %e %e %e %e \n", P[i].Nsn_timestep, P[i].Nsn_tot, P[i].ID, P[i].Mej, P[i].SlugMass, time_cluster, P[i].StellarAge);
 	}	

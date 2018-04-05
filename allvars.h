@@ -654,7 +654,7 @@ typedef unsigned long long peanokey;
 #define MINRESTFAC 0.05
 
 #ifdef SLUG
-#define MAX_SLUGBUFF_SIZE 170000
+#define MAX_SLUGBUFF_SIZE 30000
 #endif
 
 #define GDE_TYPES 2
@@ -1647,15 +1647,9 @@ extern ALIGN(32) struct particle_data
 	MyDouble wb_tot;
 	MyDouble tocons[4];
 #endif		
-	/*#ifdef PHOTOIONIZATION
-	double **HII_Rho;
-	double **HII_Energy;
-	double **HII_Distance;
-	double **HII_Mass;
-	int **HII_ParticleID;
-	int **HII_ParticleNum;
-	int *HII_NumParticles;
-#endif	*/
+#ifdef PHOTOIONIZATION
+	MyDouble Feedback_timestep;
+#endif	
 }
  *P,				/*!< holds particle data on local processor */
  *DomainPartBuf;		/*!< buffer for particle data used in domain decomposition */

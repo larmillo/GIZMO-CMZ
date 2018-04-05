@@ -171,6 +171,10 @@ void compute_stellar_feedback(void)
 	//MPI_Barrier(MPI_COMM_WORLD);
     sn_feedback_calc();	
 	Check_conservation();
+    if(ThisTask == 0)
+    {
+        printf("Stellar feedback computation done.\n");
+    }
 #endif
 			
 #ifdef GALSF_FB_LUPI
