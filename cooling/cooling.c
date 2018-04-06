@@ -41,6 +41,11 @@ void cooling_only(void)
 #ifdef PHOTOIONIZATION
 	HII_region();
 #endif	
+    if(ThisTask == 0)
+    {
+        printf("Photoionization computation done.\n");
+    }	
+	
     for(i = FirstActiveParticle; i >= 0; i = NextActiveParticle[i])
     {
         if(P[i].Type == 0 && P[i].Mass > 0)

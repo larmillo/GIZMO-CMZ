@@ -16,7 +16,7 @@ void HII_region(void)
 	double *IonRate = (double*)malloc(N_gas*sizeof(double*));
 	double *Tini = (double*)malloc(N_gas*sizeof(double*));
 	int *ParticleNum = (int*)malloc(N_gas*sizeof(int*));
-	int *Tag_HIIregion = (int*)malloc(N_gas*sizeof(int*));
+	//int *Tag_HIIregion = (int*)malloc(N_gas*sizeof(int*));
 	double ord1,ord2, ord5;
 	int ord3,ord4;
 	double fbtime = 1e20, tcooling;
@@ -35,28 +35,31 @@ void HII_region(void)
 		P[i].N_photons = slug_get_photometry_QH0(P[i].SlugOb);
 		if(P[i].N_photons <= 0) continue;
 		//printf("Initial number of photons = %e \n", P[i].N_photons);
-		
+		int count = 0;
 		for(int j = 0; j < N_gas; j++) /* loop over the gas block */
 		{
-			ParticleNum[j] = j;
-			Tag_HIIregion[j] = SphP[j].HIIregion; 
+			if (SphP[j].HIIregion==1) continue; // The particle belongs to another HII region
 			double distx = P[i].Pos[0] - P[j].Pos[0];
 			double disty = P[i].Pos[1] - P[j].Pos[1];
 			double distz = P[i].Pos[2] - P[j].Pos[2];
-			Distance[j] = sqrt(distx*distx+disty*disty+distz*distz);
+			double dist = sqrt(distx*distx+disty*disty+distz*distz);
+			if (dist>300.) continue;
+			Distance[count] = sqrt(distx*distx+disty*disty+distz*distz);
+			ParticleNum[count] = j;
 			double Rhob = SphP[j].Density * All.UnitDensity_in_cgs;
 			double Mb   = P[j].Mass * All.UnitMass_in_g;
-			Tini[j] = CallGrackle(SphP[j].InternalEnergy,SphP[j].Density,0,&(SphP[j].Ne),j,2);
-			double molw_n = Tini[j]*BOLTZMANN/(GAMMA-1)/(SphP[j].InternalEnergy*All.UnitEnergy_in_cgs/All.UnitMass_in_g)/PROTONMASS;
+			Tini[count] = CallGrackle(SphP[j].InternalEnergy,SphP[j].Density,0,&(SphP[j].Ne),j,2);
+			double molw_n = Tini[count]*BOLTZMANN/(GAMMA-1)/(SphP[j].InternalEnergy*All.UnitEnergy_in_cgs/All.UnitMass_in_g)/PROTONMASS;
 			double beta = 3e-13; //cm**3s*-1, cgs units
-			IonRate[j] = HYDROGEN_MASSFRAC*beta*Tini[j]*Rhob*Mb/(2*PROTONMASS*PROTONMASS*molw_n*molw_i*Tfin); 
+			IonRate[count] = HYDROGEN_MASSFRAC*beta*Tini[j]*Rhob*Mb/(2*PROTONMASS*PROTONMASS*molw_n*molw_i*Tfin); 
+			count += 1;
 			//printf("IonRate Tini Mb Rhob %e %e %e %e \n", IonRate[j], Tini[j], Mb, molw);
 		}	
-		
+		printf("Number of particles to be photionized %d %d \n", P[i].ID, count+1);
 		//Cycle to sort particles by increasing distance
-        for (int j = 0; j < (N_gas - 1); j++)
+        for (int j = 0; j < (count - 1); j++)
 		{
-		    for (int k = 0; k < N_gas - 1 - j; k++)
+		    for (int k = 0; k < count - 1 - j; k++)
 		    {
 		        if (Distance[k] > Distance[k+1])
 		        {
@@ -68,26 +71,20 @@ void HII_region(void)
 		            IonRate[k+1] = IonRate[k];
 		            IonRate[k] = ord2;
 					
-		            ord5 = Tini[k+1];
+		            ord4 = Tini[k+1];
 		            Tini[k+1] = Tini[k];
-		            Tini[k] = ord5;
+		            Tini[k] = ord4;
 					
 		            ord3 = ParticleNum[k+1];
 		            ParticleNum[k+1] = ParticleNum[k];
 		            ParticleNum[k] = ord3;
-					
-		            ord4 = Tag_HIIregion[k+1];
-		            Tag_HIIregion[k+1] = Tag_HIIregion[k];
-		            Tag_HIIregion[k] = ord4;
 		        }
 		     }
 		}
 		
 		
-		for(int j = 0; j < N_gas; j++) /* loop over the gas block */
+		for(int j = 0; j < count; j++) /* loop over the gas block */
 		{
-			
-			if (Tag_HIIregion[j] == 1) continue; // The particle belongs to another HII region
 			if (Tini[j] >= Tfin) continue; //Particle already ionized
 			if (IonRate[j] <= P[i].N_photons) 
 			{
@@ -133,8 +130,8 @@ void HII_region(void)
     Tini=NULL;
     free(ParticleNum);
     ParticleNum=NULL;
-    free(Tag_HIIregion);
-    Tag_HIIregion=NULL;
+    //free(Tag_HIIregion);
+    //Tag_HIIregion=NULL;
 
 }	
 	
