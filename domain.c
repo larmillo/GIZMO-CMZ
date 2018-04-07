@@ -910,7 +910,7 @@ void domain_exchange(void)
 	  if(P[n].Type == 4)
 	  {
 		  sizeSl = slug_buffer_size(P[n].SlugOb);
-		  printf("size target %ld %d %d\n", sizeSl, ThisTask, P[n].ID);
+		  //printf("size target %ld %d %d\n", sizeSl, ThisTask, P[n].ID);
 		  slug_pack_buffer(P[n].SlugOb, &buf_object[offset_slug[target] + count_slug[target] * MAX_SLUGBUFF_SIZE]);
 		  slug_object_delete(P[n].SlugOb);
 		  count_slug[target]++;	  	  

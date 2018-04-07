@@ -6,3 +6,6 @@ grackle/src/clib/temp.*
 *.lo
 *.dylib
 ./lib
+Config.h
+Makefile.systype
+GIZMO
