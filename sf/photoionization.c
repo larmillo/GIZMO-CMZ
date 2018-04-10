@@ -136,14 +136,7 @@ void HII_region(void)
 				SphP[ParticleNum[j]].InternalEnergy = BOLTZMANN*Tfin/((GAMMA-1)*molw_i*PROTONMASS)*All.UnitMass_in_g / All.UnitEnergy_in_cgs;
 				SphP[ParticleNum[j]].InternalEnergyPred = BOLTZMANN*Tfin/((GAMMA-1)*molw_i*PROTONMASS)*All.UnitMass_in_g / All.UnitEnergy_in_cgs;
 				SphP[ParticleNum[j]].HIIregion = 1;
-				//double T = CallGrackle(SphP[ParticleNum[j]].InternalEnergy,SphP[ParticleNum[j]].Density,0,&(SphP[ParticleNum[j]].Ne),ParticleNum[j],2);
-				tcooling= CallGrackle(SphP[ParticleNum[j]].InternalEnergy,SphP[ParticleNum[j]].Density,0,&(SphP[ParticleNum[j]].Ne),ParticleNum[j],1);
-				//printf("IonRate Tini Nphotons Prandom mol %e %e %e %e \n", IonRate[j], T, Tfin, tcooling*All.UnitTime_in_s/SEC_PER_YEAR);
 				P[i].N_photons -= IonRate[j];
-				/*
-				fbtime = (1 << P[ParticleNum[j]].TimeBin) * All.Timebase_interval / All.cf_hubble_a;
-				fbtime = DMAX(fbtime,fabs(tcooling));
-				printf("IonRate Tini Nphotons Prandom mol %e %e \n", fbtime, tcooling);*/
 			}	
 			else 
 			{
@@ -154,9 +147,7 @@ void HII_region(void)
 					SphP[ParticleNum[j]].InternalEnergyPred = BOLTZMANN*Tfin/((GAMMA-1)*molw_i*PROTONMASS)*All.UnitMass_in_g / All.UnitEnergy_in_cgs;
 					SphP[ParticleNum[j]].HIIregion = 1;
 					P[i].N_photons -= IonRate[j];
-					/*tcooling= CallGrackle(SphP[ParticleNum[j]].InternalEnergy,SphP[ParticleNum[j]].Density,0,&(SphP[ParticleNum[j]].Ne),ParticleNum[j],1);
-					fbtime = (P[ParticleNum[j]].TimeBin ? (1 << P[ParticleNum[j]].TimeBin) : 0) * All.Timebase_interval / All.cf_hubble_a;
-					fbtime = DMAX(fbtime,fabs(tcooling));*/
+					
 				}	
 			}
 			P[i].Feedback_timestep = DMIN(P[i].Feedback_timestep,fbtime);

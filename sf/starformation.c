@@ -66,11 +66,11 @@ void gas_to_star()
 				/* Sufficiently-Dense */
 				mu = 4.0 / (1 + 3 * HYDROGEN_MASSFRAC);	/* note: assuming NEUTRAL GAS */
 				crit_density = All.CritPhysDensity * mu * 1.67e-24 / (All.UnitDensity_in_cgs);
-				if (SphP[i].Density > crit_density)
+				if (P[i].Particle_DivVel < 0. && SphP[i].Density > crit_density)
 				{
-					/*RJ = sqrt(PI_VAL*cspeed*cspeed/All.G/SphP[i].Density);
-					Jeans_mass = 4./3.*PI_VAL*SphP[i].Density*pow(RJ,3.);*/
-					Jeans_mass = pow(0.125,2.)*GAMMA*PI_VAL*SphP[i].InternalEnergy*(GAMMA-1.)/All.G/pow(Get_Particle_Size(i),2.);
+					RJ = sqrt(PI_VAL*cspeed*cspeed/All.G/SphP[i].Density);
+					Jeans_mass = 4./3.*PI_VAL*SphP[i].Density*pow(RJ,3.);
+					//Jeans_mass = pow(0.125,2.)*GAMMA*PI_VAL*SphP[i].InternalEnergy*(GAMMA-1.)/All.G/pow(Get_Particle_Size(i),2.);
 					//printf("%e \n", Get_Particle_Size(i));	
 					/* Jeans unstable criterion */
 					//if (P[i].Mass > Jeans_mass) 
