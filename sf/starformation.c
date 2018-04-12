@@ -17,10 +17,10 @@ void gas_to_star()
 {
 	double tff, Prandom, Jeans_mass;
 	int stars_converted, tot_stars_converted;
-	double cspeed, RJ, star_probability, dtime, VelGradTens;
+	double cspeed, RJ, cJ, star_probability, dtime, VelGradTens;
 	double mu, alpha, fsh, tau_a, phi_a, theta_a, ModRhoGrad, sfrate = 0.; 
 	double crit_density;
-	double sfrrate, totsfrrate, sum_sm, total_sm, sum_mass_stars, total_sum_mass_stars, rate, rate_in_msunperyear;
+	double sfrrate, totsfrrate, sum_sm, tcool, total_sm, sum_mass_stars, total_sum_mass_stars, rate, rate_in_msunperyear;
 	sum_sm = sum_mass_stars = 0;
 	int i,j,k, bin;
 	Stars_converted = stars_converted = 0;
@@ -46,12 +46,12 @@ void gas_to_star()
 		{
 			for(j = 0; j < 3; j++) VelGradTens += SphP[i].Gradients.Velocity[j][k]*SphP[i].Gradients.Velocity[j][k];
 		}
-		alpha = (VelGradTens + pow(cspeed/Get_Particle_Size(i),2))/(8*PI_VAL*All.G*SphP[i].Density);	
+		//alpha = (VelGradTens + pow(cspeed/Get_Particle_Size(i),2))/(8*PI_VAL*All.G*SphP[i].Density);
+		alpha = (VelGradTens)/(8*PI_VAL*All.G*SphP[i].Density);	
 		/* Self-gravitating criterion */	
 		if(alpha < 1)
 		{
 			sfrate = 1.;
-			/* Self-shielding criterion */
 			ModRhoGrad = 0.;
 			for (k = 0; k < 3; k++) ModRhoGrad += SphP[i].Gradients.Density[k]*SphP[i].Gradients.Density[k];
 			ModRhoGrad = sqrt(ModRhoGrad);
@@ -59,25 +59,30 @@ void gas_to_star()
 			tau_a = 434.8 * All.UnitDensity_in_cgs * All.UnitLength_in_cm * All.HubbleParam * SphP[i].Density * (Get_Particle_Size(i)+SphP[i].Density/ModRhoGrad);
 			phi_a = 0.6*tau_a*(0.01+P[i].Metallicity[0]/GENTRY_SOLAR_MET)/(log(1.+0.6*theta_a+0.01*theta_a*theta_a));
 			fsh = 1.-3./(1.+4.*phi_a);
-			
+			/* Self-shielding criterion */
 			if(fsh > 0)
 			{	 
 				sfrate *= fsh;
-				/* Sufficiently-Dense */
 				mu = 4.0 / (1 + 3 * HYDROGEN_MASSFRAC);	/* note: assuming NEUTRAL GAS */
 				crit_density = All.CritPhysDensity * mu * 1.67e-24 / (All.UnitDensity_in_cgs);
+				/* Sufficiently-Dense & Convergence criterion*/
 				if (P[i].Particle_DivVel < 0. && SphP[i].Density > crit_density)
 				{
-					RJ = sqrt(PI_VAL*cspeed*cspeed/All.G/SphP[i].Density);
-					Jeans_mass = 4./3.*PI_VAL*SphP[i].Density*pow(RJ,3.);
-					//Jeans_mass = pow(0.125,2.)*GAMMA*PI_VAL*SphP[i].InternalEnergy*(GAMMA-1.)/All.G/pow(Get_Particle_Size(i),2.);
-					//printf("%e \n", Get_Particle_Size(i));	
-					/* Jeans unstable criterion */
+					//RJ = sqrt(PI_VAL*cspeed*cspeed/All.G/SphP[i].Density);
+					//Jeans_mass = 4./3.*PI_VAL*SphP[i].Density*pow(RJ,3.);
 					//if (P[i].Mass > Jeans_mass) 
-					if (SphP[i].Density > Jeans_mass)
+					double r_eff = DMAX(Get_Particle_Size(i), All.ForceSoftening[0]/2.8);
+					int NJ = 8;
+					cJ = NJ * r_eff * sqrt(All.G*SphP[i].Density);
+					/* Jeans unstable criterion */ 
+					if (cspeed < cJ)
 					{
 						tff = sqrt(3.*PI_VAL/(32.*All.G*SphP[i].Density));
-						
+						tcool = CallGrackle(SphP[i].InternalEnergyPred, SphP[i].Density, 0, &(SphP[j].Ne), i, 1);
+						double T = CallGrackle(SphP[i].InternalEnergyPred, SphP[i].Density, 0, &(SphP[j].Ne), i, 2);
+						/* Rapid cooling */
+						if (tcool < tff && T < 1e2 && SphP[i].HIIregion == 1)
+						{
 						sfrate *= All.SfEffPerFreeFall * P[i].Mass / tff;
 						/* convert to solar masses per yr */
 			            SphP[i].Sfr = sfrate * (All.UnitMass_in_g / SOLAR_MASS) / (All.UnitTime_in_s / SEC_PER_YEAR);
@@ -123,7 +128,7 @@ void gas_to_star()
 							printf("size SF %ld %d %e \n", P[i].SlugOb_size, P[i].ID, P[i].SlugMass);
 #endif						
 						}		
-					}
+					}}
 				}
 			}	
 		}

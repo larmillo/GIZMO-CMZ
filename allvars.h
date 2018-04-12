@@ -1449,6 +1449,7 @@ extern struct global_data_all_processes
 #ifdef GRACKLE_OPTS
   int MetalCooling;
   int UVBackgroundOn;
+  int photoelectric_heating;
 #endif //GRACKLE_OPTS
 
 #if defined(GALSF_FB_LUPI)

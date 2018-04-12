@@ -726,6 +726,7 @@ void read_parameter_file(char *fname)
 #ifdef GRACKLE_OPTS
   All.MetalCooling   = 0;
   All.UVBackgroundOn = 0;
+  All.photoelectric_heating = 0;
 #endif
   
   if(ThisTask == 0)		/* read parameter file on process 0 */
@@ -1211,6 +1212,10 @@ void read_parameter_file(char *fname)
 
       strcpy(tag[nt], "UVBackgroundOn");
       addr[nt] = &All.UVBackgroundOn;
+      id[nt++] = INT;
+	  
+      strcpy(tag[nt], "photoelectric_heating");
+      addr[nt] = &All.photoelectric_heating;
       id[nt++] = INT;
 #endif
 	  

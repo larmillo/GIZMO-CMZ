@@ -302,10 +302,14 @@ void InitGrackle(void)
 #ifdef GRACKLE_OPTS
     my_grackle_data->metal_cooling          = All.MetalCooling;    // metal cooling on
 #else
-    my_grackle_data->metal_cooling          = 0;                   // metal cooling on
+    my_grackle_data->metal_cooling          = 0;                   // metal cooling off
 #endif
     my_grackle_data->h2_on_dust             = 0;                   // dust cooling/chemistry off
-    my_grackle_data->photoelectric_heating            = 0;
+#ifdef GRACKLE_OPTS
+    my_grackle_data->photoelectric_heating          = All.photoelectric_heating;    // photoelectric heating on
+#else
+    my_grackle_data->photoelectric_heating            = 0;    // photoelectric heating off
+#endif	
     my_grackle_data->photoelectric_heating_rate       = 8.5e-26; 
     
     // Flag to enable an effective CMB temperature floor. This is implemented by subtracting the value of the cooling rate at TCMB from the total cooling rate. Default: 1.
@@ -314,7 +318,7 @@ void InitGrackle(void)
 #ifdef GRACKLE_OPTS
     my_grackle_data->UVbackground           = All.UVBackgroundOn;   // UV background on
 #else
-    my_grackle_data->UVbackground           = 0;                  // UV background on
+    my_grackle_data->UVbackground           = 0;                  // UV background off
 #endif
     // Flag to enable Compton heating from an X-ray background following Madau & Efstathiou (1999). Default: 0.
     my_grackle_data->Compton_xray_heating   = 1;
