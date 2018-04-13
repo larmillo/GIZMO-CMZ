@@ -160,7 +160,7 @@ GMP_LIBS = #
 MKL_INCL = #
 MKL_LIBS = #
 GSL_INCL = -I/home/larmillo/libs/gsl-2.4/include
-GSL_LIBS = -L/home/larmillo/libs/gsl-2.4/lib -lgsl
+GSL_LIBS = -L/home/larmillo/libs/gsl-2.4/lib -lgsl -lgslcblas
 FFTW_INCL=
 FFTW_LIBS=
 HDF5INCL = -I/home/larmillo/libs/hdf5-1.10.1_openmpi3/include -DH5_USE_16_API
@@ -219,7 +219,7 @@ GMP_LIBS = #
 MKL_INCL = #
 MKL_LIBS = #
 GSL_INCL = -I/cineca/prod/opt/libraries/gsl/2.2.1/intel--pe-xe-2017--binary/include
-GSL_LIBS = -L/cineca/prod/opt/libraries/gsl/2.2.1/intel--pe-xe-2017--binary/lib
+GSL_LIBS = -L/cineca/prod/opt/libraries/gsl/2.2.1/intel--pe-xe-2017--binary/lib -lgsl -lgslcblas 
 FFTW_INCL= 
 FFTW_LIBS= 
 HDF5INCL = -I/cineca/prod/opt/libraries/hdf5/1.8.17/intelmpi--2017--binary/include -DH5_USE_16_API
@@ -251,7 +251,7 @@ GMP_LIBS = #
 MKL_INCL = #
 MKL_LIBS = #
 GSL_INCL = -I/usr/local/include 
-GSL_LIBS = -L/usr/local/lib 
+GSL_LIBS = -L/usr/local/lib -lgsl -lgslcblas
 FFTW_INCL= -I/usr/local/include
 FFTW_LIBS= -L/usr/local/lib
 HDF5INCL = -I/usr/local/include -DH5_USE_16_API
@@ -995,7 +995,7 @@ endif
 FFTW = $(FFTW_LIBS)  $(FFTW_LIBNAMES) 
 
 
-LIBS   = -lm $(HDF5LIB) -g $(MPICHLIB) $(GSL_LIBS) -lgsl $(FFTW) $(GRACKLELIBS) $(SLUGLIB)
+LIBS   = -lm $(HDF5LIB) -g $(MPICHLIB) $(GSL_LIBS) $(FFTW) $(GRACKLELIBS) $(SLUGLIB)
 
 ifeq (PTHREADS_NUM_THREADS,$(findstring PTHREADS_NUM_THREADS,$(CONFIGVARS))) 
 LIBS   +=  -lpthread

@@ -15,7 +15,6 @@ then
     module load profile/astro
     module load cfitsio
  
-    echo "Compiling grackle and slug for ${SYSTEM}"
 elif [[ ${SYSTEM} == "raijin" ]]
 then
     module unload intel-cc intel-fc
