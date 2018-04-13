@@ -174,6 +174,34 @@ OPT     += #
 CXXFLAGS = $(CFLAGS)
 endif
 
+#----------------------------
+ifeq ($(SYSTYPE),"Raijin")
+CC	 =  mpicc -std=c11
+CXX	 =  mpicxx -std=c++11
+FC	 =  mpif90 
+OPTIMIZE += -O3 -funroll-loops
+OPTIMIZE += -g -Wall # compiler warnings
+ifeq (OPENMP,$(findstring OPENMP,$(CONFIGVARS)))
+OPTIMIZE += -openmp
+endif
+GMP_INCL = #
+GMP_LIBS = #
+MKL_INCL = #
+MKL_LIBS = #
+GSL_INCL = -I/apps/gsl/2.4/include
+GSL_LIBS = -L/apps/gsl/2.4/lib -lgsl
+FFTW_INCL=
+FFTW_LIBS=
+HDF5INCL = -I$(HOME)/lib/hdf5_1.10_icc_openmpi2/include -DH5_USE_16_API
+HDF5LIB  = -L$(HOME)/lib/hdf5_1.10_icc_openmpi2/lib -lhdf5
+GRACKLEINCL = -I./grackle/include
+GRACKLELIBS = -L./grackle/lib -lgrackle -lifcore
+SLUGINCL = -I./slug2/src -I/apps/boost/1.66.0/include
+SLUGLIB = -L./slug2 -lslug -lboost_system-mt -lboost_filesystem-mt -lboost_regex-mt -L/apps/cfitsio/3.350/lib -lcfitsio
+MPICHLIB = #
+OPT     += #
+CXXFLAGS = $(CFLAGS)
+endif
 
 
 #----------------------------
@@ -967,7 +995,7 @@ endif
 FFTW = $(FFTW_LIBS)  $(FFTW_LIBNAMES) 
 
 
-LIBS   = -lm $(HDF5LIB) -g $(MPICHLIB) $(GSL_LIBS) -lgsl -lgslcblas $(FFTW) $(GRACKLELIBS) $(SLUGLIB)
+LIBS   = -lm $(HDF5LIB) -g $(MPICHLIB) $(GSL_LIBS) -lgsl $(FFTW) $(GRACKLELIBS) $(SLUGLIB)
 
 ifeq (PTHREADS_NUM_THREADS,$(findstring PTHREADS_NUM_THREADS,$(CONFIGVARS))) 
 LIBS   +=  -lpthread

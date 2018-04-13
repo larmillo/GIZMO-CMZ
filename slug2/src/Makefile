@@ -62,7 +62,7 @@ ifdef CXX_INCLUDE_PATH
 endif
 
 # Link flags
-LDLIBFLAGS      = -lgsl -lgslcblas -lboost_system$(MACH_BOOST_TAG) \
+LDLIBFLAGS      = -lgsl -lboost_system$(MACH_BOOST_TAG) \
 	-lboost_filesystem$(MACH_BOOST_TAG) \
 	-lboost_regex$(MACH_BOOST_TAG)
 ifdef BOOST_LIB_PATH
