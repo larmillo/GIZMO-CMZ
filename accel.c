@@ -170,7 +170,7 @@ void compute_stellar_feedback(void)
 	wb_calc();
 	//MPI_Barrier(MPI_COMM_WORLD);
     sn_feedback_calc();	
-	Check_conservation();
+	//Check_conservation();
     if(ThisTask == 0)
     {
         printf("Stellar feedback computation done.\n");

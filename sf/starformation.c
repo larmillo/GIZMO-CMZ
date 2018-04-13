@@ -81,7 +81,7 @@ void gas_to_star()
 						tcool = CallGrackle(SphP[i].InternalEnergyPred, SphP[i].Density, 0, &(SphP[j].Ne), i, 1);
 						double T = CallGrackle(SphP[i].InternalEnergyPred, SphP[i].Density, 0, &(SphP[j].Ne), i, 2);
 						/* Rapid cooling */
-						if (tcool < tff && T < 1e2 && SphP[i].HIIregion == 1)
+						if (tcool < tff && T < 1e2 && SphP[i].HIIregion == 0)
 						{
 						sfrate *= All.SfEffPerFreeFall * P[i].Mass / tff;
 						/* convert to solar masses per yr */
