@@ -407,7 +407,7 @@ int wb_evaluate(int target, int mode, int *exportflag, int *exportnodecount, int
                 double h_j = PPP[j].Hsml;
                 if(r2 <= 0) continue; // same particle //
                 if((r2 >= h2_i) && (r2 >= h_j * h_j)) continue; // outside kernel //
-				if(r2 > 2 * All.UnitLength_in_cm * CM_PER_KPC) continue; //search radius not larger than 2 kpc
+				if(sqrt(r2) > 2 * CM_PER_KPC/All.UnitLength_in_cm) continue; //search radius not larger than 2 kpc
                 kernel.r = sqrt(r2);
 
 				double Xba[3], Xba_p[3], Xba_m[3], Xba_vers[3], fp[3], fm[3]; //gas particle position as seen from the star

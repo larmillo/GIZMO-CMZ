@@ -79,22 +79,22 @@ void Check_conservation(void)
 		if (P[i].tocons[0]==0 || P[i].tocons[0]<0 || fabs(P[i].tocons[0]-P[i].Mej)>1e-6) 
 		{
 		printf("ERROR IN MASS CONSERVATION!!! %e %e %e\n", P[i].tocons[0], P[i].Mej, fabs(P[i].tocons[0]-P[i].Mej));
-		exit(0);
+		//exit(0);
 		}
 		if (P[i].tocons[1]==0 || P[i].tocons[1]<0 || fabs(P[i].tocons[1]-vj)>1e-6) 
 		{
 		printf("ERROR IN MOMENTUM CONSERVATION!!! %e %e %e\n", P[i].tocons[1], vj, fabs(P[i].tocons[1]-vj));
-		exit(0);
+		//exit(0);
 		}
 		if (fabs(P[i].tocons[2])/P[i].tocons[1] > 1e-6) 
 		{
 		printf("ERROR IN TOTAL MOMENTUM CONSERVATION!!! %e %e \n", P[i].tocons[2], fabs(P[i].tocons[2])/P[i].tocons[1]);
-		exit(0);
+		//exit(0);
 		}
 		if (P[i].tocons[3]==0 || P[i].tocons[3]<0 || fabs(P[i].tocons[3]-Ej)>1e-6) 
 		{
 		printf("ERROR IN ENERGY CONSERVATION!!! %e %e %e\n", P[i].tocons[3], Ej, fabs(P[i].tocons[3]-Ej));
-		exit(0);
+		//exit(0);
 		}
 	}	
 }		
@@ -507,7 +507,7 @@ int FB_evaluate(int target, int mode, int *exportflag, int *exportnodecount, int
                 double h_j = PPP[j].Hsml;
                 if(r2 <= 0) continue; // same particle //
                 if((r2 >= h2_i) && (r2 >= h_j * h_j)) continue; // outside kernel //
-				if(r2 > 2 * All.UnitLength_in_cm * CM_PER_KPC) continue; //search radius not larger than 2 kpc //
+				if(sqrt(r2) > 2 * CM_PER_KPC/All.UnitLength_in_cm) continue; //search radius not larger than 2 kpc
                 kernel.r = sqrt(r2);
 				
 				double wb_mod = 0;
@@ -520,6 +520,7 @@ int FB_evaluate(int target, int mode, int *exportflag, int *exportnodecount, int
 				
 				double dmass, dmom[3], mom_tot[3], dmom_tocons = 0, dmom_mod = 0, dmomrf_mod = 0;
 				double dtot_en, tot_en, v2 = 0.;
+				double Delta_InternalEnergy;
 				
 				for(k=0;k<3;k++) {mom_tot[k] = P[j].Vel[k]*P[j].Mass;}
 				for(k=0;k<3;k++) {v2 += P[j].Vel[k]*P[j].Vel[k];}
@@ -531,10 +532,10 @@ int FB_evaluate(int target, int mode, int *exportflag, int *exportnodecount, int
 				nb = SphP[j].Density * All.UnitDensity_in_cgs / (mu * 1.67e-24);
 				if(P[j].Metallicity[0]/GENTRY_SOLAR_MET < 0.01) fZ = 2;
 				else fZ = pow(P[j].Metallicity[0]/GENTRY_SOLAR_MET,-0.14);	
-				pt = 4.8e5 * pow(P[j].Nsn_timestep,13./14.) * pow(nb,-1./7.) * pow(fZ, 3./2.); //terminal momentum in solar mass * kms^-1
+				pt = 4.8e5 * pow(local.Nsn,13./14.) * pow(nb,-1./7.) * pow(fZ, 3./2.); //terminal momentum in solar mass * kms^-1
 				pt *= SOLAR_MASS / All.UnitMass_in_g;
 				pt *= 1e5 / All.UnitVelocity_in_cm_per_s;
-				Rcool = 28.4 * pow(P[j].Nsn_timestep,2./7.) * pow(nb,-3./7.) * fZ; //pc
+				Rcool = 28.4 * pow(local.Nsn,2./7.) * pow(nb,-3./7.) * fZ; //pc
 				Rcool *= CM_PER_PC / All.UnitLength_in_cm;
 				//////////////////////////////////
 				
@@ -569,8 +570,9 @@ int FB_evaluate(int target, int mode, int *exportflag, int *exportnodecount, int
 				v2 = 0;
 				for(k=0;k<3;k++) {v2 += P[j].Vel[k]*P[j].Vel[k];}
 				tot_en /= P[j].Mass;
-				SphP[j].InternalEnergy = tot_en - 0.5 * v2;
-				if (Rcool < kernel.r) SphP[j].InternalEnergy *= pow(kernel.r/Rcool,-6.5);
+				Delta_InternalEnergy = (tot_en - 0.5 * v2) - SphP[j].InternalEnergy;
+				if (Rcool < kernel.r) Delta_InternalEnergy *= pow(kernel.r/Rcool,-6.5);
+				SphP[j].InternalEnergy += Delta_InternalEnergy;
 				SphP[j].InternalEnergyPred = SphP[j].InternalEnergy;	
 				//END OF INJECTION OF ENERGY//
 						

@@ -1,1 +1,1 @@
-CONFIG_MACHINE = raijin
+CONFIG_MACHINE = darwin
