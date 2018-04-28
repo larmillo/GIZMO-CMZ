@@ -654,7 +654,7 @@ typedef unsigned long long peanokey;
 #define MINRESTFAC 0.05
 
 #ifdef SLUG
-#define MAX_SLUGBUFF_SIZE 170000
+#define MAX_SLUGBUFF_SIZE 30000
 #endif
 
 #define GDE_TYPES 2
