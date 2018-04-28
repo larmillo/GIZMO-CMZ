@@ -109,6 +109,11 @@ struct FBdata_in
     MyDouble Mej;
 	MyDouble Eej;
 	MyDouble Vej;
+	MyFloat NV_T[3][3];
+	MyDouble Dens;
+	MyDouble omegab_p[3];
+	MyDouble omegab_m[3];
+	MyDouble Mass;
 	
     int NodeList[NODELISTLENGTH];
 }
@@ -119,15 +124,27 @@ void particle2in_FB(struct FBdata_in *in, int i);
 void particle2in_FB(struct FBdata_in *in, int i)
 {
     if((P[i].Nsn_timestep<=0)||(P[i].DensAroundStar<=0)) {in->Mej=0; return;} // trap for no sne
-    int k;
+    int k,j;
     for(k=0; k<3; k++) {in->Pos[k] = P[i].Pos[k];}
 	for(k=0; k<3; k++) {in->Vel[k] = P[i].Vel[k];}
 	in->wb_tot = P[i].wb_tot;
     in->Hsml = PPP[i].Hsml;
 	in->Nsn = P[i].Nsn_timestep;
     in->Mej = P[i].Mej;
+	in->Mass = P[i].Mass;
     in->Eej = 1.e51 * P[i].Nsn_timestep / All.UnitEnergy_in_cgs; // energy per event
 	in->Vej = sqrt(2*in->Eej/in->Mej);
+	in->Dens = P[i].DensAroundStar;
+	for(k=0; k<3; k++) {in->omegab_p[k] = P[i].omegab_p[k];}
+	for(k=0; k<3; k++) {in->omegab_m[k] = P[i].omegab_m[k];}
+    for(j=0;j<3;j++)
+    {
+        for(k=0;k<3;k++)
+        {
+            in->NV_T[j][k] = P[i].NVT[j][k];
+        }
+    }
+	
 }
 
 
@@ -459,7 +476,7 @@ void sn_feedback_calc(void)
 int FB_evaluate(int target, int mode, int *exportflag, int *exportnodecount, int *exportindex, int *ngblist)
 {
     int startnode, numngb_inbox, listindex = 0, j, k, n;
-	double r2;
+	double hinv, hinv3, hinv4, r2, u, hinv_j, hinv3_j, hinv4_j;
     struct kernel_FB kernel;
     struct FBdata_in local;
     struct FBdata_out out;
@@ -476,6 +493,7 @@ int FB_evaluate(int target, int mode, int *exportflag, int *exportnodecount, int
     //kernel_hinv(local.Hsml, &kernel.hinv, &kernel.hinv3, &kernel.hinv4);
     kernel.h_i = local.Hsml;
     double h2_i = kernel.h_i*kernel.h_i;
+	double V_i = local.Mass/local.Dens;
 		 
     /* Now start the weights computation for this particle */
     if(mode == 0)
@@ -509,6 +527,89 @@ int FB_evaluate(int target, int mode, int *exportflag, int *exportnodecount, int
                 if((r2 >= h2_i) && (r2 >= h_j * h_j)) continue; // outside kernel //
 				if(sqrt(r2) > 2 * CM_PER_KPC/All.UnitLength_in_cm) continue; //search radius not larger than 2 kpc
                 kernel.r = sqrt(r2);
+				
+                if(kernel.r < kernel.h_i)
+                {
+				    kernel_hinv(kernel.h_i, &hinv, &hinv3, &hinv4);
+                    u = kernel.r * hinv;
+                    kernel_main(u, hinv3, hinv4, &kernel.wk_i, &kernel.dwk_i, 0);
+                }
+                else
+                {
+                    kernel.dwk_i = kernel.wk_i = 0;
+                }
+				
+                if(kernel.r < h_j)
+                {
+                    kernel_hinv(h_j, &hinv_j, &hinv3_j, &hinv4_j);
+                    u = kernel.r * hinv_j;
+                    kernel_main(u, hinv3_j, hinv4_j, &kernel.wk_j, &kernel.dwk_j, 0);
+                }
+                else
+                {
+                    kernel.dwk_j = kernel.wk_j = 0;
+                }
+				
+				double Xba[3], Xba_p[3], Xba_m[3], Xba_vers[3], fp[3], fm[3]; //gas particle position as seen from the star
+				for(k=0; k<3; k++) {Xba[k] = P[j].Pos[k] - local.Pos[k];}
+				for(k=0; k<3; k++) {Xba_vers[k] = Xba[k]/sqrt(r2);}
+				for(k=0; k<3; k++) {Xba_p[k] = DMAX(0,Xba[k])/sqrt(r2);} //they are versors
+				for(k=0; k<3; k++) {Xba_m[k] = DMIN(0,Xba[k])/sqrt(r2);} //they are versors
+				
+				double V_j = P[j].Mass / SphP[j].Density;
+			    double wt_i,wt_j;
+			    wt_i=V_i; wt_j=V_j;
+				
+#ifdef AGGRESSIVE_SLOPE_LIMITERS
+			    wt_i=V_i; wt_j=V_j;
+#else
+#ifdef COOLING
+			    if((fabs(V_i-V_j)/DMIN(V_i,V_j))/NUMDIMS > 1.25) {wt_i=wt_j=2.*V_i*V_j/(V_i+V_j);} else {wt_i=V_i; wt_j=V_j;}
+#else
+			    if((fabs(V_i-V_j)/DMIN(V_i,V_j))/NUMDIMS > 1.50) {wt_i=wt_j=(V_i*PPP[j].Hsml+V_j*local.Hsml)/(local.Hsml+PPP[j].Hsml);} else {wt_i=V_i; wt_j=V_j;}
+#endif
+#endif
+				
+				/* calculate the face area between the particles (must match what is done in the actual hydro routine!) */
+				double Face_Area_Vec[3];
+				double facenormal_dot_dp = 0, Face_Area_Norm = 0;
+				for(k=0;k<3;k++)
+                {
+                    Face_Area_Vec[k] = kernel.wk_i * wt_i * (local.NV_T[k][0]*kernel.dp[0] + local.NV_T[k][1]*kernel.dp[1] + local.NV_T[k][2]*kernel.dp[2])
+                                     + kernel.wk_j * wt_j * (SphP[j].NV_T[k][0]*kernel.dp[0] + SphP[j].NV_T[k][1]*kernel.dp[1] + SphP[j].NV_T[k][2]*kernel.dp[2]);
+                    if(All.ComovingIntegrationOn) {Face_Area_Vec[k] *= All.cf_atime*All.cf_atime;} // Face_Area_Norm has units of area, need to convert to physical
+					facenormal_dot_dp += Face_Area_Vec[k] * kernel.dp[k]; // check that face points same direction as vector normal: should be true for positive-definite (well-conditioned) NV_T 
+					Face_Area_Norm += Face_Area_Vec[k] * Face_Area_Vec[k];
+					//printf("AtimeX %e %e %e %e %e %e \n", kernel.wk_i, kernel.wk_j, wt_i, wt_j, V_i, V_j);
+				}
+			    if(facenormal_dot_dp < 0)
+			    {
+			        /* the effective gradient matrix is ill-conditioned (or not positive-definite!): for stability, we revert to the "RSPH" EOM */
+					Face_Area_Norm = -(wt_i*V_i*kernel.dwk_i + wt_j*V_j*kernel.dwk_j) / kernel.r;
+					Face_Area_Norm *= All.cf_atime*All.cf_atime; /* Face_Area_Norm has units of area, need to convert to physical */
+			        Face_Area_Vec[0] = Face_Area_Norm * kernel.dp[0];
+			        Face_Area_Vec[1] = Face_Area_Norm * kernel.dp[1];
+			        Face_Area_Vec[2] = Face_Area_Norm * kernel.dp[2];
+			        Face_Area_Norm = Face_Area_Norm * Face_Area_Norm * r2;
+			    }
+				
+				double AtimeX = 0;				
+				for(k=0; k<3; k++) {AtimeX += (-Face_Area_Vec[k])*Xba_vers[k];} //effective area has to be perpendicular to Xab
+                
+				SphP[j].omega_b = 0.5*(1.-1./sqrt(1.+((AtimeX)/(PI_VAL*r2))));
+
+				for(k=0; k<3; k++)
+				{
+					//printf("omegab_m, omegab_p %e %e \n", local.omegab_m[k],local.omegab_p[k]);
+					fp[k] = sqrt(0.5*(1+pow(local.omegab_m[k]/local.omegab_p[k],2)));
+					fm[k] = sqrt(0.5*(1+pow(local.omegab_p[k]/local.omegab_m[k],2)));	
+				    SphP[j].wb[k] = SphP[j].omega_b * (fp[k]*Xba_p[k] + fm[k]*Xba_m[k]);
+				}
+				
+				if (SphP[j].wb[0] != SphP[j].wb[0] || SphP[j].wb[1] != SphP[j].wb[1] || SphP[j].wb[2] != SphP[j].wb[2])
+				{
+					SphP[j].wb[k] = SphP[j].omega_b * Xba_vers[k];
+				}	 
 				
 				double wb_mod = 0;
 				
