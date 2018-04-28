@@ -541,6 +541,7 @@ int FB_evaluate(int target, int mode, int *exportflag, int *exportnodecount, int
 				
 				//INJECTION OF MASS//
 				dmass = local.Mej * sqrt(wb_mod);
+				if (dmass == 0) continue;
 				SphP[j].Density *= (1 + dmass/P[j].Mass);
 				P[j].Mass += dmass; 
 				out.M_coupled += local.Mej * sqrt(wb_mod); 
@@ -558,7 +559,7 @@ int FB_evaluate(int target, int mode, int *exportflag, int *exportnodecount, int
 					dmom[k] += dmass * local.Vel[k];
 					mom_tot[k] += dmom[k];
 					P[j].Vel[k] = mom_tot[k]/P[j].Mass;
-					dmom_mod +=  dmom[k]*dmom[k]; //for energy calculation
+					dmom_mod +=  dmom[k]*dmom[k]; //for energy calculation 
 				}
 				out.p_coupled += sqrt(dmom_tocons);
 				//END OF INJECTION OF MOMENTUM//

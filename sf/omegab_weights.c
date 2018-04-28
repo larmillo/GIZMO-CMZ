@@ -412,7 +412,7 @@ int omegab_evaluate(int target, int mode, int *exportflag, int *exportnodecount,
         { 
 			//find neighbors that can -mutually- see one another, not just single-directional searching here
             numngb_inbox = ngb_treefind_pairs_threads(local.Pos, local.Hsml, target, &startnode, mode, exportflag, exportnodecount, exportindex, ngblist);
-			//printf("mode %d %d \n", mode, numngb_inbox);
+			//printf("mode %d %d %d \n", mode, numngb_inbox, ThisTask);
             if(numngb_inbox < 0) return -1;
 			
             for(n = 0; n < numngb_inbox; n++)

@@ -742,7 +742,7 @@ void density(void)
                 {
                     desnumngb = All.DesNumNgb;
 #if defined(GALSF) || defined(STAR_FORMATION)
-                    if(desnumngb < 64.0) {desnumngb = 64.0;} // we do want a decent number to ensure the area around the particle is 'covered'
+                    if(desnumngb < 32.0) {desnumngb = 32.0;} // we do want a decent number to ensure the area around the particle is 'covered'
                     // if we're finding this for feedback routines, there isn't any good reason to search beyond a modest physical radius //
                     double unitlength_in_kpc=All.UnitLength_in_cm/All.HubbleParam/3.086e21*All.cf_atime;
                     maxsoft = 2.0 / unitlength_in_kpc;
