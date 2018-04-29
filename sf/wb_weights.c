@@ -498,10 +498,14 @@ int wb_evaluate(int target, int mode, int *exportflag, int *exportnodecount, int
 					fp[k] = sqrt(0.5*(1+pow(local.omegab_m[k]/local.omegab_p[k],2)));
 					fm[k] = sqrt(0.5*(1+pow(local.omegab_p[k]/local.omegab_m[k],2)));	
 				    SphP[j].wb[k] = SphP[j].omega_b * (fp[k]*Xba_p[k] + fm[k]*Xba_m[k]);
-					if (SphP[j].wb[k] != SphP[j].wb[k]) SphP[j].wb[k] = SphP[j].omega_b * Xba_vers[k];
-					wbmod += SphP[j].wb[k]*SphP[j].wb[k];	
-					
-			    }
+				}
+				
+				if (SphP[j].wb[0] != SphP[j].wb[0] || SphP[j].wb[1] != SphP[j].wb[1] || SphP[j].wb[2] != SphP[j].wb[2])
+				{
+					SphP[j].wb[k] = SphP[j].omega_b * Xba_vers[k];
+				}	 
+				for(k=0; k<3; k++)	wbmod += SphP[j].wb[k]*SphP[j].wb[k];	
+				
 				
 				out.weightb_tot += sqrt(wbmod);
 				
