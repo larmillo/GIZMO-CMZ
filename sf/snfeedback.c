@@ -105,6 +105,7 @@ struct FBdata_in
     MyDouble Hsml;
 	MyDouble wb_tot;
 	MyDouble Vel[3];
+	MyFloat Met;
 	int Nsn;
     MyDouble Mej;
 	MyDouble Eej;
@@ -135,6 +136,7 @@ void particle2in_FB(struct FBdata_in *in, int i)
     in->Eej = 1.e51 * P[i].Nsn_timestep / All.UnitEnergy_in_cgs; // energy per event
 	in->Vej = sqrt(2*in->Eej/in->Mej);
 	in->Dens = P[i].DensAroundStar;
+	in->Met = P[i].Metallicity[0];
 	for(k=0; k<3; k++) {in->omegab_p[k] = P[i].omegab_p[k];}
 	for(k=0; k<3; k++) {in->omegab_m[k] = P[i].omegab_m[k];}
     for(j=0;j<3;j++)
@@ -608,7 +610,7 @@ int FB_evaluate(int target, int mode, int *exportflag, int *exportnodecount, int
 				
 				if (SphP[j].wb[0] != SphP[j].wb[0] || SphP[j].wb[1] != SphP[j].wb[1] || SphP[j].wb[2] != SphP[j].wb[2])
 				{
-					SphP[j].wb[k] = SphP[j].omega_b * Xba_vers[k];
+					for(k=0; k<3; k++) SphP[j].wb[k] = SphP[j].omega_b * Xba_vers[k];
 				}	 
 				
 				double wb_mod = 0;
@@ -647,6 +649,10 @@ int FB_evaluate(int target, int mode, int *exportflag, int *exportnodecount, int
 				P[j].Mass += dmass; 
 				out.M_coupled += local.Mej * sqrt(wb_mod); 
 				//END OF INJECTION OF MASS//
+				
+				//INJECTION OF METALS//
+				P[j].Metallicity[0] = (P[j].Mass - dmass) * P[j].Metallicity[0] + dmass * local.Met;
+				P[j].Metallicity[0] /= (P[j].Mass);
 				
 				//INJECTION OF MOMENTUM//
 				for(k=0;k<3;k++)

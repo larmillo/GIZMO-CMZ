@@ -502,7 +502,7 @@ int wb_evaluate(int target, int mode, int *exportflag, int *exportnodecount, int
 				
 				if (SphP[j].wb[0] != SphP[j].wb[0] || SphP[j].wb[1] != SphP[j].wb[1] || SphP[j].wb[2] != SphP[j].wb[2])
 				{
-					SphP[j].wb[k] = SphP[j].omega_b * Xba_vers[k];
+					for(k=0; k<3; k++) SphP[j].wb[k] = SphP[j].omega_b * Xba_vers[k];
 				}	 
 				for(k=0; k<3; k++)	wbmod += SphP[j].wb[k]*SphP[j].wb[k];	
 				
