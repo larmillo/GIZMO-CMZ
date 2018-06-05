@@ -628,6 +628,18 @@ void fill_write_buffer(enum iofields blocknr, int *startindex, int pc, int type)
             break;
             
         case IO_VRMS:		/* turbulent velocity around mean */
+        	for(n = 0; n < pc; pindex++)
+            	if(P[pindex].Type == type)
+            	{
+					double vrms = 0.;
+					for(k = 0; k < 3; k++)
+					{
+						for(int j = 0; j < 3; j++) vrms += SphP[pindex].Gradients.Velocity[j][k]*SphP[pindex].Gradients.Velocity[j][k];
+					}
+					SphP[pindex].vrms = sqrt(vrms);
+                	*fp++ = SphP[pindex].vrms;
+                	n++;
+            	}
             break;
             
         case IO_VBULK:		/* mean velocity in kernel */
@@ -2047,6 +2059,9 @@ int blockpresent(enum iofields blocknr)
             break;
             
         case IO_VRMS:
+        	return 1;
+        	break;
+			
         case IO_VBULK:
         case IO_TRUENGB:
             return 0;

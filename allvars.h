@@ -1685,7 +1685,8 @@ extern struct sph_particle_data
     MyDouble VelPred[3];            /*!< predicted SPH particle velocity at the current time */
     //MyDouble dMomentum[3];        /*!< change in momentum from hydro step (conserved variable) */ //manifest-indiv-timestep-debug//
     MyDouble HydroAccel[3];         /*!< acceleration due to hydrodynamical force (for drifting) */
-    
+    MyDouble vrms;                  /* turbulent velocity around mean */
+	
 #ifdef MAGNETIC
     MyDouble Face_Area[3];          /*!< vector sum of effective areas of 'faces'; this is used to check closure for meshless methods */
     MyDouble BPred[3];              /*!< current magnetic field strength */
@@ -1730,6 +1731,7 @@ extern struct sph_particle_data
         MyDouble Density[3];
         MyDouble Pressure[3];
         MyDouble Velocity[3][3];
+		
 #ifdef MAGNETIC
         MyDouble B[3][3];
 #ifdef DIVBCLEANING_DEDNER

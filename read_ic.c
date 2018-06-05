@@ -901,7 +901,8 @@ void read_file(char *fname, int readTask, int lastTask)
         if(RestartFlag == 5 && blocknr > IO_MASS)	/* if we only do power spectra, we don't need to read other blocks beyond the mass */
             continue;
         
-        
+        if(blocknr == IO_VRMS) continue;
+		
         if(blockpresent(blocknr))
         {
                 if(RestartFlag == 0 && blocknr > IO_U && blocknr != IO_BFLD
