@@ -700,8 +700,8 @@ void fill_write_buffer(enum iofields blocknr, int *startindex, int pc, int type)
 					char *buf_slug = (char*) malloc(dimBuf);
 					slug_pack_buffer(P[pindex].SlugOb, buf_slug);
 					for(int i = 0; i < dimBuf; i++) fp_char[i] = buf_slug[i];
-					for(int i = dimBuf; i < MAX_SLUGBUFF_SIZE; i++) fp_char[i] = 'A';
-					fp_char += MAX_SLUGBUFF_SIZE;
+					for(int i = dimBuf; i < All.Max_SLUGBUFF_SIZE; i++) fp_char[i] = 'A';
+					fp_char += All.Max_SLUGBUFF_SIZE;
 					free (buf_slug);
 					buf_slug = NULL;
 				}	
@@ -1290,9 +1290,9 @@ int get_bytes_per_blockelement(enum iofields blocknr, int mode)
         case IO_SLUG:
 #ifdef SLUG		
             if(mode)
-                bytes_per_blockelement = MAX_SLUGBUFF_SIZE;
+                bytes_per_blockelement = All.Max_SLUGBUFF_SIZE;
             else
-                bytes_per_blockelement = MAX_SLUGBUFF_SIZE;
+                bytes_per_blockelement = All.Max_SLUGBUFF_SIZE;
 #endif		
             break;
 			
@@ -1591,7 +1591,7 @@ int get_values_per_blockelement(enum iofields blocknr
 #ifdef SLUG	
 		if(type == 4) 
 		{
-			values = MAX_SLUGBUFF_SIZE;
+			values = All.Max_SLUGBUFF_SIZE;
 		}
 		else
 		{

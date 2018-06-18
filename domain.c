@@ -839,7 +839,7 @@ void domain_exchange(void)
   offset_slug[0] = 0;
   for(i = 1; i < NTask; i++)
   {
-  	offset_slug[i] = offset_slug[i - 1] + toGoStars[i - 1] * MAX_SLUGBUFF_SIZE;
+  	offset_slug[i] = offset_slug[i - 1] + toGoStars[i - 1] * All.Max_SLUGBUFF_SIZE;
   }
 #endif 
 
@@ -869,8 +869,8 @@ void domain_exchange(void)
   keyBuf = (peanokey *) mymalloc("keyBuf", count_togo * sizeof(peanokey));
   
 #ifdef SLUG
-  char *buf_object = (char*) malloc(count_togo_stars * MAX_SLUGBUFF_SIZE);
-  char *buf_recv_object = (char*) malloc(count_get_stars * MAX_SLUGBUFF_SIZE);
+  char *buf_object = (char*) malloc(count_togo_stars * All.Max_SLUGBUFF_SIZE);
+  char *buf_recv_object = (char*) malloc(count_get_stars * All.Max_SLUGBUFF_SIZE);
   size_t sizeSl = 0;//(size_t*) malloc(NTask*sizeof(size_t));
 #endif  
   
@@ -911,7 +911,7 @@ void domain_exchange(void)
 	  {
 		  sizeSl = slug_buffer_size(P[n].SlugOb);
 		  //printf("size target %ld %d %d\n", sizeSl, ThisTask, P[n].ID);
-		  slug_pack_buffer(P[n].SlugOb, &buf_object[offset_slug[target] + count_slug[target] * MAX_SLUGBUFF_SIZE]);
+		  slug_pack_buffer(P[n].SlugOb, &buf_object[offset_slug[target] + count_slug[target] * All.Max_SLUGBUFF_SIZE]);
 		  slug_object_delete(P[n].SlugOb);
 		  count_slug[target]++;	  	  
 	  }
@@ -1020,7 +1020,7 @@ void domain_exchange(void)
   
   for(i = 1; i < NTask; i++)
   {
-  	offset_recv_slug[i] = offset_recv_slug[i - 1] + count_recv_slug[i - 1] * MAX_SLUGBUFF_SIZE;
+  	offset_recv_slug[i] = offset_recv_slug[i - 1] + count_recv_slug[i - 1] * All.Max_SLUGBUFF_SIZE;
   }
 #endif 
 
@@ -1077,7 +1077,7 @@ void domain_exchange(void)
 	  if(count_recv_slug[target] > 0)
 	    {
 	      MPI_Irecv(&buf_recv_object[offset_recv_slug[target]],
-			count_recv_stars[target] * MAX_SLUGBUFF_SIZE, MPI_BYTE, target,
+			count_recv_stars[target] * All.Max_SLUGBUFF_SIZE, MPI_BYTE, target,
 			TAG_PDATA_SLUG, MPI_COMM_WORLD, &requests[n_requests++]);
 	    }
 #endif
@@ -1139,7 +1139,7 @@ void domain_exchange(void)
 #ifdef SLUG
 	  if(count_slug[target] > 0)
 	    {
-	      MPI_Isend(&buf_object[offset_slug[target]], count_slug[target] * MAX_SLUGBUFF_SIZE,
+	      MPI_Isend(&buf_object[offset_slug[target]], count_slug[target] * All.Max_SLUGBUFF_SIZE,
 			MPI_BYTE, target, TAG_PDATA_SLUG, MPI_COMM_WORLD, &requests[n_requests++]);
 	    }		
 #endif	
@@ -1218,7 +1218,7 @@ void domain_exchange(void)
 	    {
 	      MPI_Sendrecv(buf_object[offset_slug[target]], size[offset_slug[target]],
 			MPI_BYTE, target, TAG_PDATA_SLUG, buf_recv_object[offset_recv_slug[target]],
-			count_recv_slug[target] * MAX_SLUGBUFF_SIZE, MPI_BYTE, target,
+			count_recv_slug[target] * All.Max_SLUGBUFF_SIZE, MPI_BYTE, target,
 			TAG_PDATA_SLUG, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
 	    }			
 #endif
@@ -1246,7 +1246,7 @@ void domain_exchange(void)
 			{				//{
 				//printf("Ciao %d %d %d %d \n", P[n].TagExp, ThisTask, offset_recv_slug[P[n].TagExp], l[P[n].TagExp]);
 				P[n].SlugOb = slug_object_new();
-				slug_reconstruct_cluster(P[n].SlugOb, &buf_recv_object[offset_recv_slug[P[n].TagExp] + l[P[n].TagExp] * MAX_SLUGBUFF_SIZE]);
+				slug_reconstruct_cluster(P[n].SlugOb, &buf_recv_object[offset_recv_slug[P[n].TagExp] + l[P[n].TagExp] * All.Max_SLUGBUFF_SIZE]);
 				size_t ciao = slug_buffer_size(P[n].SlugOb);
 				//printf("Newsize %d %d %d %d %d %ld\n", P[n].ID, P[n].TagExp, ThisTask, offset_recv_slug[P[n].TagExp], l[P[n].TagExp], ciao);
 				l[P[n].TagExp] +=1;

@@ -363,7 +363,7 @@ void empty_read_buffer(enum iofields blocknr, int offset, int pc, int type)
 				size_t dimBuf = P[offset + n].SlugOb_size;
 				char *buf_slug = (char*) malloc(dimBuf);
 				for(int i = 0; i < dimBuf; i++) buf_slug[i] = fp_char[i];
-				fp_char += MAX_SLUGBUFF_SIZE;
+				fp_char += All.Max_SLUGBUFF_SIZE;
 				P[offset + n].SlugOb = slug_object_new();							
 				slug_reconstruct_cluster(P[offset + n].SlugOb, buf_slug);
 				free (buf_slug);

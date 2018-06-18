@@ -285,7 +285,7 @@ void GravAccel_CMZ()
 	double dp[3], interp1_x, interp2_x, interp1_y, interp2_y, interp1_z, interp2_z;
 	double a_x, a_y, omega, vrot;
 	int x,y,z,i;
-	double t=All.Time;
+	double t = All.Time + All.IniTimeSim;
 	
 	vrot = 40.*(1e5/All.UnitVelocity_in_cm_per_s)*(All.UnitLength_in_cm/CM_PER_KPC); //from km s^-1 kpc^-1 to unit code
 	

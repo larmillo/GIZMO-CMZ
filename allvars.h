@@ -653,10 +653,6 @@ typedef unsigned long long peanokey;
 
 #define MINRESTFAC 0.05
 
-#ifdef SLUG
-#define MAX_SLUGBUFF_SIZE 170000
-#endif
-
 #define GDE_TYPES 2
 
 #ifndef LONGIDS
@@ -1444,6 +1440,15 @@ extern struct global_data_all_processes
     code_units GrackleUnits;
 #endif
 
+
+#ifdef ANALYTIC_GRAVITY
+  double IniTimeSim;
+#endif
+
+  
+#ifdef SLUG
+  int Max_SLUGBUFF_SIZE;
+#endif
 
 //Lupi recipes
 #ifdef GRACKLE_OPTS

@@ -941,15 +941,6 @@ void read_parameter_file(char *fname)
         id[nt++] = REAL;
 #endif
         
-        
-
-        
-
-        
-        
-
-
-
         strcpy(tag[nt], "MinGasHsmlFractional");
         addr[nt] = &All.MinGasHsmlFractional;
         id[nt++] = REAL;
@@ -1205,6 +1196,18 @@ void read_parameter_file(char *fname)
 #endif
 #endif
 
+#ifdef ANALYTIC_GRAVITY
+      strcpy(tag[nt], "IniTimeSim");
+      addr[nt] = &All.IniTimeSim;
+      id[nt++] = REAL;	
+#endif
+				
+#ifdef SLUG
+      strcpy(tag[nt], "SlugBuffer_Size");
+      addr[nt] = &All.Max_SLUGBUFF_SIZE;
+      id[nt++] = INT;	
+#endif
+				
 #ifdef GRACKLE_OPTS
       strcpy(tag[nt], "MetalCoolingOn");
       addr[nt] = &All.MetalCooling;
