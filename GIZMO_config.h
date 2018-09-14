@@ -6,6 +6,7 @@
 #define GRACKLE_OPTS 
 #define HAVE_HDF5 
 #define OUTPUT_ADDITIONAL_RUNINFO 
+#define MERGE_SPLIT_RADIUS 
 #define SLUG 
 #define STAR_FORMATION 
 #define SN_FEEDBACK 

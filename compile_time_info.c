@@ -10,6 +10,7 @@ printf(
 "        GRACKLE_OPTS\n"
 "        HAVE_HDF5\n"
 "        OUTPUT_ADDITIONAL_RUNINFO\n"
+"        MERGE_SPLIT_RADIUS\n"
 "        SLUG\n"
 "        STAR_FORMATION\n"
 "        SN_FEEDBACK\n"

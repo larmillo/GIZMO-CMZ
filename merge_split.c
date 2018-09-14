@@ -37,10 +37,17 @@ int does_particle_need_to_be_merged(int i)
     MyFloat r2  = P[i].Pos[0]*P[i].Pos[0] + P[i].Pos[1]*P[i].Pos[1] + P[i].Pos[2]*P[i].Pos[2] ;
     if( (r2 < 1.0) && (vr2 > All.BAL_v_outflow*All.BAL_v_outflow/100.0)) return 0;
 #endif
+#ifdef MERGE_SPLIT_RADIUS
+	double Base_Mass = 100.;
+	if (ref_mass_factor(i) == 1.5) return 0; // no merging below 1 kpc
+	if (P[i].Mass < 0.5 * ref_mass_factor(i) * Base_Mass) return 1; // If the particle mass is lower than the minimum mass allowed in the smaller region
+	return 0;
+#else		
     if(P[i].Mass <= 0) return 0;
     if((P[i].Type>0) && (P[i].Mass > 0.5*All.MinMassForParticleMerger*ref_mass_factor(i))) return 0;
     if(P[i].Mass <= (All.MinMassForParticleMerger* ref_mass_factor(i))) return 1;
     return 0;
+#endif	
 #endif
 }
 
@@ -61,16 +68,40 @@ int does_particle_need_to_be_split(int i)
     if( (P[i].Hsml * fac > sqrt(P[i].min_dist_to_bh+0.005) ) && (All.ExtraRef==1) ) return 1;
     
 #endif
+#ifdef MERGE_SPLIT_RADIUS
+	double Base_Mass = 100.;
+	if (P[i].Mass > ref_mass_factor(i) * Base_Mass) return 1; // If the particle mass is larger than the maximum mass allowed in a given region
+	return 0;
+#else	
     if(P[i].Mass >= (All.MaxMassForParticleSplit * ref_mass_factor(i))) return 1;
     return 0;
+#endif	
 #endif
 }
 
 /*! A multiplcative factor that determines the target mass of a particle for the (de)refinement routines */
 double ref_mass_factor(int i)
 {
+#ifdef MERGE_SPLIT_RADIUS
+	MyFloat xpos, ypos;
+	xpos = P[i].Pos[0];
+	ypos = P[i].Pos[1];
+#ifdef REFLECT_BND_X 
+	xpos = P[i].Pos[0] - 0.5*All.BoxSize;
+#endif	
+#ifdef REFLECT_BND_Y 
+	ypos = P[i].Pos[1] - 0.5*All.BoxSize;
+#endif
+	MyFloat rpos  = xpos*xpos + ypos*ypos; 
+	rpos = sqrt(rpos) * All.UnitLength_in_cm/CM_PER_KPC;
+	if (rpos <= 1.) return 1.5; 
+	if ((rpos > 1. && rpos <= 3.)) return 3.0;
+	if ((rpos > 3. && rpos <= 3.5)) return 6.0;	
+	if ((rpos > 3.5)) return 12.0;
+#else	
     double ref_factor=1.0;
     return ref_factor;
+#endif	
 }
 
 
@@ -87,6 +118,7 @@ void merge_and_split_particles(void)
     n_particles_split=0;
     MPI_n_particles_merged=0;
     MPI_n_particles_split=0;
+	double Base_Mass = 100.;
     /* loop over active particles */
     for(i=0; i<NumPart; i++)
     {
@@ -173,10 +205,17 @@ void merge_and_split_particles(void)
                     {
                         j = Ngblist[n];
                         /* make sure we're not taking the same particle (and that its available to be merged into)! */
+#ifdef MERGE_SPLIT_RADIUS
+						if((j>=0)&&(j!=i)&&(P[j].Type==P[i].Type)&&(ref_mass_factor(i)==ref_mass_factor(j))&&(P[i].Mass + P[j].Mass <= ref_mass_factor(i)*Base_Mass))
+                        {
+                            if(P[j].Mass<threshold_val) {threshold_val=P[j].Mass; target_for_merger=j;} // mass-based //
+                        }
+#else												
                         if((j>=0)&&(j!=i)&&(P[j].Type==P[i].Type)&&(P[j].Mass > P[i].Mass)&&(P[i].Mass+P[j].Mass < All.MaxMassForParticleSplit))
                         {
                             if(P[j].Mass<threshold_val) {threshold_val=P[j].Mass; target_for_merger=j;} // mass-based //
                         }
+#endif						
                     } // for(n=0; n<numngb_inbox; n++)
                     if(target_for_merger >= 0)
                     {
