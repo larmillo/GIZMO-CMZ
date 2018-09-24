@@ -253,6 +253,8 @@ void init(void)
 #endif
 #ifdef PHOTOIONIZATION
 			SphP[i].HIIregion = 0;
+			SphP[i].photo_star = 100000000;
+			SphP[i].photo_subtime = 0;
 #endif	
 					
         if(RestartFlag != 1)

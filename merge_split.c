@@ -93,11 +93,12 @@ double ref_mass_factor(int i)
 	ypos = P[i].Pos[1] - 0.5*All.BoxSize;
 #endif
 	MyFloat rpos  = xpos*xpos + ypos*ypos; 
-	rpos = sqrt(rpos) * All.UnitLength_in_cm/CM_PER_KPC;
-	if (rpos <= 1.) return 1.5; 
-	if ((rpos > 1. && rpos <= 3.)) return 3.0;
-	if ((rpos > 3. && rpos <= 3.5)) return 6.0;	
-	if ((rpos > 3.5)) return 12.0;
+	rpos = sqrt(rpos) * All.UnitLength_in_cm/CM_PER_KPC; // kpc units
+	if ((rpos <= 0.5)) return 1.5; 
+	if ((rpos > 0.5 && rpos <= 1.)) return 3.0; 
+	if ((rpos > 1. && rpos <= 3.)) return 6.0;
+	if ((rpos > 3. && rpos <= 3.5)) return 12.0;	
+	if ((rpos > 3.5)) return 24.0;
 #else	
     double ref_factor=1.0;
     return ref_factor;

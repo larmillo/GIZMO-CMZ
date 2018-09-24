@@ -1729,6 +1729,8 @@ extern struct sph_particle_data
 
 #ifdef PHOTOIONIZATION
 	int HIIregion;
+	int photo_star;
+	int photo_subtime;
 #endif			
     /* matrix of the primitive variable gradients: rho, P, vx, vy, vz, B, phi */
     struct

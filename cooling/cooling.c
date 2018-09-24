@@ -53,7 +53,11 @@ void cooling_only(void)
 #ifdef PHOTOIONIZATION
 			if (SphP[i].HIIregion==1) 
 			{
-				SphP[i].HIIregion=0;
+				SphP[i].photo_subtime -= 1;
+				if (SphP[i].photo_subtime<=0)
+				{
+					SphP[i].HIIregion=0;	
+				}
 				continue;	
 			}
 #endif						

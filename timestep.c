@@ -631,10 +631,11 @@ integertime get_timestep(int p,		/*!< particle index */
 		//if(P[p].Type == 4)	dt = DMIN(dt,P[p].Feedback_timestep);
 #endif    
     // add a 'stellar evolution timescale' criterion to the timestep, to prevent too-large jumps in feedback //
-#if defined(YOUNGSTARWINDDRIVING) || defined(FLAG_NOT_IN_PUBLIC_CODE) || defined(FLAG_NOT_IN_PUBLIC_CODE) || defined(FLAG_NOT_IN_PUBLIC_CODE) || defined(FLAG_NOT_IN_PUBLIC_CODE)
+#if defined(YOUNGSTARWINDDRIVING) || defined(PHOTOIONIZATION) || defined(FLAG_NOT_IN_PUBLIC_CODE) || defined(FLAG_NOT_IN_PUBLIC_CODE) || defined(FLAG_NOT_IN_PUBLIC_CODE)
     if(((P[p].Type == 4)||((All.ComovingIntegrationOn==0)&&((P[p].Type == 2)||(P[p].Type==3))))&&(P[p].Mass>0))
     {
-        double star_age = evaluate_stellar_age_Gyr(P[p].StellarAge);
+		double star_age = All.Time - P[p].StellarAge;
+		star_age *= (0.001 * All.UnitTime_in_s / SEC_PER_MEGAYEAR);
         double dt_stellar_evol;
         if(star_age<0.1)
         {

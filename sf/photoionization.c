@@ -92,18 +92,31 @@ void HII_region(void)
 	double Tfin = 1e4;
 	double molw_i = 4.0 / (8 - 5 * (1 - HYDROGEN_MASSFRAC)); /* assuming full ionization */
 	
-	//for(int j = 0; j < N_gas; j++) SphP[j].HIIregion=0; 
-		
+	// Wake stars after one star time step // 
     for(int i = FirstActiveParticle; i >= 0; i = NextActiveParticle[i])
     {
         if(P[i].Type != 4) continue;
         if(P[i].Mass <= 0) continue;
-		P[i].Feedback_timestep = fbtime;
+		for(int j = 0; j < N_gas; j++) if (SphP[j].photo_star == P[i].ID && SphP[j].HIIregion == 1) 
+			{
+				SphP[j].HIIregion = 0;
+				SphP[ParticleNum[j]].photo_subtime = 0;
+			}
+	}	
+	
+    for(int i = FirstActiveParticle; i >= 0; i = NextActiveParticle[i])
+    {
+        if(P[i].Type != 4) continue;
+        if(P[i].Mass <= 0) continue;
+		//P[i].Feedback_timestep = fbtime;
 		
 		//get number of photons per second
 		P[i].N_photons = slug_get_photometry_QH0(P[i].SlugOb);
 		if(P[i].N_photons <= 0) continue;
 		//printf("Initial number of photons = %e \n", P[i].N_photons);
+		
+		double gas_timestep;
+		double star_timestep = (P[i].TimeBin ? (1 << P[i].TimeBin) : 0) * All.Timebase_interval / All.cf_hubble_a;
 		
 		for(int j = 0; j < N_gas; j++) /* loop over the gas block */
 		{
@@ -136,6 +149,9 @@ void HII_region(void)
 				SphP[ParticleNum[j]].InternalEnergy = BOLTZMANN*Tfin/((GAMMA-1)*molw_i*PROTONMASS)*All.UnitMass_in_g / All.UnitEnergy_in_cgs;
 				SphP[ParticleNum[j]].InternalEnergyPred = BOLTZMANN*Tfin/((GAMMA-1)*molw_i*PROTONMASS)*All.UnitMass_in_g / All.UnitEnergy_in_cgs;
 				SphP[ParticleNum[j]].HIIregion = 1;
+				gas_timestep = (P[ParticleNum[j]].TimeBin ? (1 << P[ParticleNum[j]].TimeBin) : 0) * All.Timebase_interval / All.cf_hubble_a;
+				SphP[ParticleNum[j]].photo_subtime = round(star_timestep/gas_timestep);
+				SphP[ParticleNum[j]].photo_star = P[i].ID;
 				P[i].N_photons -= IonRate[j];
 			}	
 			else 
@@ -146,6 +162,9 @@ void HII_region(void)
 					SphP[ParticleNum[j]].InternalEnergy = BOLTZMANN*Tfin/((GAMMA-1)*molw_i*PROTONMASS)*All.UnitMass_in_g / All.UnitEnergy_in_cgs;
 					SphP[ParticleNum[j]].InternalEnergyPred = BOLTZMANN*Tfin/((GAMMA-1)*molw_i*PROTONMASS)*All.UnitMass_in_g / All.UnitEnergy_in_cgs;
 					SphP[ParticleNum[j]].HIIregion = 1;
+					gas_timestep = (P[ParticleNum[j]].TimeBin ? (1 << P[ParticleNum[j]].TimeBin) : 0) * All.Timebase_interval / All.cf_hubble_a;
+					SphP[ParticleNum[j]].photo_subtime = round(star_timestep/gas_timestep);
+					SphP[ParticleNum[j]].photo_star = P[i].ID;
 					P[i].N_photons -= IonRate[j];
 					
 				}	
